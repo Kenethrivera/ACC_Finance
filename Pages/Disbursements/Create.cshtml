@@ -1,0 +1,1502 @@
+﻿@page
+@model acc_finance.Pages.Disbursements.CreateModel
+@using System.Text.Json
+@{
+    ViewData["Title"] = "Cash Disbursement";
+    var isReturnOnly = Model.Sheet.ReturnOnlyMode;
+    
+    var initialTemplatesJson = JsonSerializer.Serialize(
+    (Model.FixedTemplates ?? new List<acc_finance.Pages.Disbursements.TemplatePayloadVm>())
+        .Select(t => new
+        {
+            id = t.Id,
+            templateName = t.TemplateName,
+            ministry = t.Ministry,
+            payee = t.Payee,
+            totalInput = t.TotalInput,
+            autoApply = t.AutoApply,
+            recurrenceType = t.RecurrenceType,
+            weekOfMonth = t.WeekOfMonth,
+            items = (t.Items ?? new List<acc_finance.Pages.Disbursements.TemplateItemPayloadVm>())
+                .Select(i => new
+                {
+                    lineNo = i.LineNo,
+                    particular = i.Particular,
+                    amount = i.Amount
+                }).ToList()
+        }).ToList()
+        );
+
+    var initialSheetJson = JsonSerializer.Serialize(new
+    {
+        vouchers = (Model.Sheet?.Vouchers ?? new List<acc_finance.Pages.Disbursements.VoucherVm>())
+            .Select(v => new
+            {
+                voucherNumber = v.VoucherNumber,
+                ministry = v.Ministry,
+                payee = v.Payee,
+                totalInput = v.TotalInput,
+                items = (v.Items ?? new List<acc_finance.Pages.Disbursements.VoucherItemVm>())
+                    .Select(i => new
+                    {
+                        particular = i.Particular,
+                        amount = i.Amount,
+                        amountReturned = i.AmountReturned
+                    }).ToList()
+            }).ToList()
+    });
+}
+
+<style>
+    .disb-page {
+        font-size: 0.95rem;
+    }
+
+    .card-soft {
+        border: 1px solid #d9dce7;
+        border-radius: 14px;
+        box-shadow: 0 4px 14px rgba(24, 39, 75, .06);
+        background: #fff;
+    }
+
+    .sheet-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: start;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .sheet-title {
+        font-size: 1.8rem;
+        font-weight: 800;
+        color: #10213a;
+        margin: 0;
+    }
+
+    .sheet-sub {
+        color: #62708a;
+        margin-top: .2rem;
+        font-size: .92rem;
+    }
+
+    .sheet-grid,
+    .voucher-line,
+    .sheet-total-row,
+    .summary-row {
+        display: grid;
+        grid-template-columns: minmax(0, 1.8fr) 110px 110px 100px 100px;
+        gap: 10px;
+        align-items: center;
+    }
+
+    .sheet-grid {
+        padding: .85rem 1rem;
+        border-top: 1px solid #e4e8f0;
+        border-bottom: 1px solid #e4e8f0;
+        font-weight: 700;
+        color: #0f172a;
+        margin-top: 1rem;
+    }
+
+    .head-right,
+    .voucher-line .text-end,
+    .sheet-total-row .text-end,
+    .summary-row .text-end {
+        text-align: right;
+    }
+
+    .cash-return-head {
+        color: #dc2626;
+        font-style: italic;
+        font-weight: 600;
+        text-align: right;
+    }
+
+    .voucher-card {
+        border: 1px solid #d9dce7;
+        border-radius: 14px;
+        padding: 1rem;
+        margin-top: .9rem;
+        background: #fbfcff;
+    }
+
+    .voucher-headline {
+        display: flex;
+        align-items: center;
+        gap: .65rem;
+        margin-bottom: .85rem;
+    }
+
+    .voucher-ministry {
+        width: 130px;
+        flex: 0 0 130px;
+    }
+
+    .voucher-payee {
+        width: 190px;
+        flex: 0 0 190px;
+    }
+
+    .voucher-dash {
+        font-weight: 700;
+        color: #334155;
+    }
+
+    .voucher-line {
+        margin-bottom: .5rem;
+    }
+
+    .inline-input,
+    .inline-select {
+        min-height: 38px;
+        border-radius: 10px;
+    }
+
+    .field-readonly {
+        background: #f8fafc;
+        font-weight: 700;
+    }
+
+    .field-blank {
+        visibility: hidden;
+        pointer-events: none;
+    }
+
+    .money-return {
+        color: #dc2626;
+    }
+
+    .voucher-actions {
+        display: flex;
+        gap: .5rem;
+        flex-wrap: wrap;
+        margin-top: .25rem;
+    }
+
+    .add-voucher-wrap {
+        display: flex;
+        justify-content: center;
+        margin-top: 1rem;
+    }
+
+    .sheet-total-row {
+        display: grid;
+        grid-template-columns: 430px 110px 110px 100px 100px;
+        gap: 10px;
+        align-items: center;
+        margin-top: 1rem;
+        padding-top: .35rem;
+        border-top: 1px solid #e4e8f0;
+    }
+
+    .summary-wrap {
+        margin-top: 1rem;
+        width: 100%;
+        max-width: 820px;
+    }
+
+    .summary-row {
+        display: grid;
+        grid-template-columns: 430px 110px 110px 100px 100px;
+        gap: 10px;
+        align-items: center;
+        padding: .2rem 0;
+    }
+
+    .summary-label {
+        font-weight: 500;
+        color: #1f2937;
+        padding-left: 2px;
+    }
+
+    .summary-value-strong {
+        font-weight: 700;
+    }
+
+    .net-box {
+        background: #dfead7;
+        border-radius: 8px;
+        padding: .22rem .55rem;
+        font-weight: 800;
+        display: inline-block;
+        width: 100%;
+        text-align: right;
+    }
+
+    .bottom-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+        margin-top: 1.4rem;
+        padding-top: 1rem;
+        border-top: 1px solid #e4e8f0;
+    }
+
+    .return-only-banner {
+        margin-top: 1rem;
+        margin-bottom: .25rem;
+    }
+
+    .return-lock {
+        background: #f8fafc !important;
+        color: #475467 !important;
+        font-weight: 600;
+    }
+
+    @@media (max-width: 992px) {
+        .sheet-grid,
+        .voucher-line,
+        .sheet-total-row,
+        .summary-row {
+            grid-template-columns: 1fr;
+            gap: .4rem;
+        }
+
+        .summary-wrap {
+            max-width: 100%;
+        }
+
+        .voucher-headline {
+            flex-wrap: wrap;
+        }
+
+        .voucher-ministry,
+        .voucher-payee {
+            width: 100%;
+            flex: 1 1 100%;
+        }
+
+        .field-blank {
+            display: none;
+        }
+    }
+
+    .template-list-item {
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        padding: .85rem 1rem;
+        background: #fff;
+        transition: all .15s ease;
+        cursor: pointer;
+    }
+
+        .template-list-item:hover {
+            border-color: #b8c4d9;
+            background: #f8fbff;
+        }
+
+        .template-list-item.selected {
+            border-color: #0d6efd;
+            background: #eef5ff;
+            box-shadow: 0 0 0 2px rgba(13,110,253,.08);
+        }
+
+    .template-list-title {
+        font-weight: 700;
+        color: #1f2937;
+    }
+
+    .template-list-sub {
+        font-size: .88rem;
+        color: #6b7280;
+    }
+
+    .template-list-total {
+        font-weight: 700;
+        color: #0f172a;
+    }
+
+    .template-empty {
+        padding: 1rem;
+        border: 1px dashed #d1d5db;
+        border-radius: 12px;
+        text-align: center;
+        color: #6b7280;
+        background: #fafafa;
+    }
+
+    .template-modal-section {
+        border: 1px solid #e5e7eb;
+        border-radius: 14px;
+        padding: 1rem;
+        background: #fcfcfd;
+    }
+
+    .template-modal-section-title {
+        font-size: 1rem;
+        font-weight: 700;
+        margin-bottom: .85rem;
+        color: #111827;
+    }
+
+    .toast-wrap-fixed {
+        position: fixed;
+        right: 20px;
+        bottom: 20px;
+        z-index: 1095;
+    }
+
+    .template-spinner {
+        width: 1rem;
+        height: 1rem;
+        border-width: .15em;
+    }
+</style>
+
+<div class="container-fluid disb-page py-4">
+    <div class="card-soft p-4">
+        @if (!ModelState.IsValid)
+        {
+            <div class="alert alert-danger">
+                <div asp-validation-summary="All"></div>
+            </div>
+        }
+
+        <form method="post" id="sheetForm">
+            @Html.AntiForgeryToken()
+            <input asp-for="SheetJson" type="hidden" id="SheetJson" />
+
+            <div class="sheet-head">
+                <div>
+                    <h1 class="sheet-title">Cash Disbursement</h1>
+                    <div class="sheet-sub">Excel-style voucher entry with per-particular cash return.</div>
+                </div>
+
+                <div style="min-width:220px;">
+                    <label class="form-label fw-semibold">Date</label>
+                    <input asp-for="RecordDate" type="date" class="form-control inline-input" id="recordDateInput" />
+                </div>
+
+                <div>
+                    <label class="form-label fw-semibold d-block">&nbsp;</label>
+                    <button type="button" class="btn btn-outline-secondary" id="openTemplateSettingsBtn">
+                        <i class="bi bi-gear"></i> Templates
+                    </button>
+                </div>
+
+                <div>
+                    <label class="form-label fw-semibold d-block">&nbsp;</label>
+                    <button type="button" class="btn btn-outline-primary" id="useTemplateBtn" @(isReturnOnly ? "disabled" : "")>
+                        Use Template
+                    </button>
+                </div>
+            </div>
+
+            @if (isReturnOnly)
+            {
+                <div class="alert alert-info return-only-banner">
+                    This date already has a saved disbursement. Only <strong>cash return</strong> can be edited.
+                </div>
+            }
+            @if (Model.Sheet.HasAutoLoadedTemplates)
+            {
+                <div class="alert alert-primary return-only-banner">
+                    <strong>@Model.Sheet.AutoLoadedTemplateCount</strong> scheduled template(s) were automatically loaded for this date.
+                </div>
+            }
+
+            <div class="sheet-grid">
+                <div>PARTICULARS</div>
+                <div class="head-right">AMOUNT</div>
+                <div class="head-right">TOTAL</div>
+                <div class="head-right">VOUCHER #</div>
+                <div class="cash-return-head">cash return</div>
+            </div>
+
+            <div id="voucherList"></div>
+
+            @if (!isReturnOnly)
+            {
+                <div class="add-voucher-wrap">
+                    <button type="button" class="btn btn-outline-primary rounded-pill px-4" id="addVoucherBtn">Add Voucher</button>
+                </div>
+            }
+
+            <div class="sheet-total-row">
+                <div class="fw-semibold">TOTAL</div>
+                <div></div>
+                <div class="text-end fw-bold" id="grandTotalText">0.00</div>
+                <div></div>
+                <div class="text-end fw-bold money-return" id="grandReturnText">0.00</div>
+            </div>
+
+            <div class="summary-wrap">
+                <div class="summary-row">
+                    <div class="summary-label">Adjusted disbursement</div>
+                    <div></div>
+                    <div class="text-end summary-value-strong" id="adjustedDisbursementText">0.00</div>
+                    <div></div>
+                    <div></div>
+                </div>
+
+                <div class="summary-row">
+                    <div class="summary-label">Cash Receipts / Blessings</div>
+                    <div></div>
+                    <div class="text-end" id="blessingText">@Model.Sheet.Blessing.ToString("N2")</div>
+                    <div></div>
+                    <div></div>
+                </div>
+
+                <div class="summary-row">
+                    <div class="summary-label">Less: Cash disbursements</div>
+                    <div></div>
+                    <div class="text-end" id="lessDisbursementText">0.00</div>
+                    <div></div>
+                    <div></div>
+                </div>
+
+                <div class="summary-row">
+                    <div class="summary-label">Net Cash Balance</div>
+                    <div></div>
+                    <div class="text-end">
+                        <span class="net-box" id="netCashBalanceText">0.00</span>
+                    </div>
+                    <div></div>
+                    <div></div>
+                </div>
+            </div>
+
+            <div class="bottom-actions">
+                <button type="submit" class="btn btn-primary px-4">Save Sheet</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="modal fade" id="templateModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header">
+                <h5 class="modal-title">Fixed Expense Templates</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+                <div class="row g-4">
+                    <div class="col-lg-6">
+                        <div class="template-modal-section">
+                            <div class="template-modal-section-title">Create / Edit Template</div>
+
+                            <input type="hidden" id="templateId" value="0" />
+
+                            <div class="mb-3">
+                                <label class="form-label">Template Name</label>
+                                <input type="text" class="form-control" id="templateName" />
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Ministry</label>
+                                    <select class="form-select" id="templateMinistry">
+                                        <option value="">-- Select --</option>
+                                        <option>Admin</option>
+                                        <option>Worship</option>
+                                        <option>Fellowship</option>
+                                        <option>Evangelism</option>
+                                        <option>Deacon</option>
+                                        <option>Stewardship</option>
+                                        <option>Prayer</option>
+                                        <option>Discipleship</option>
+                                    </select>
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Payee</label>
+                                    <input type="text" class="form-control" id="templatePayee" />
+                                </div>
+                            </div>
+
+                            <div id="templateItemsWrap"></div>
+
+                            <div class="mt-2">
+                                <button type="button" class="btn btn-outline-secondary btn-sm" id="addTemplateItemBtn">+ Add Item</button>
+                            </div>
+                        </div>
+
+                        <div class="template-modal-section mt-3">
+                            <div class="template-modal-section-title">Auto Apply Rule</div>
+
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="checkbox" id="templateAutoApply" />
+                                <label class="form-check-label" for="templateAutoApply">
+                                    Automatically load this template when the selected date matches
+                                </label>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Schedule Type</label>
+                                    <select class="form-select" id="templateRecurrenceType">
+                                        <option value="">-- None --</option>
+                                        <option value="weekly">Every week</option>
+                                        <option value="monthly_week">Specific week of month</option>
+                                    </select>
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Week of Month</label>
+                                    <select class="form-select" id="templateWeekOfMonth">
+                                        <option value="">-- Select --</option>
+                                        <option value="1">1st week</option>
+                                        <option value="2">2nd week</option>
+                                        <option value="3">3rd week</option>
+                                        <option value="4">4th week</option>
+                                        <option value="-1">Last week</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div class="col-lg-6">
+                        <div class="template-modal-section">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <div class="template-modal-section-title mb-0">Saved Templates</div>
+                                <button type="button" class="btn btn-outline-primary btn-sm" id="openUseTemplateModalBtn">
+                                    Use Selected
+                                </button>
+                            </div>
+
+                            <div id="savedTemplatesList"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" id="saveTemplateBtn">
+                    <span class="save-template-label">Save Template</span>
+                    <span class="spinner-border template-spinner ms-2 d-none save-template-spinner" role="status" aria-hidden="true"></span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="useTemplateModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header">
+                <h5 class="modal-title">Use Template</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+                <div id="useTemplateList"></div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" id="applySelectedTemplatesBtn">Add Selected Templates</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="toast-wrap-fixed">
+    <div id="uiToast" class="toast align-items-center border-0" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div id="uiToastBody" class="toast-body"></div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        (() => {
+            const isReturnOnlyMode = @Model.Sheet.ReturnOnlyMode.ToString().ToLower();
+            let fixedTemplates = @Html.Raw(initialTemplatesJson);
+            let selectedTemplateIds = [];
+
+            if (!Array.isArray(fixedTemplates)) {
+                fixedTemplates = [];
+            }
+
+            const ministryOptions = [
+                "Admin",
+                "Worship",
+                "Fellowship",
+                "Evangelism",
+                "Deacon",
+                "Stewardship",
+                "Prayer",
+                "Discipleship"
+            ];
+
+            let sheet = @Html.Raw(initialSheetJson);
+
+            if (!sheet || !Array.isArray(sheet.vouchers)) {
+                sheet = { vouchers: [] };
+            }
+
+            if (sheet.vouchers.length === 0) {
+                sheet.vouchers.push(createEmptyVoucher());
+            }
+
+            function showToast(message, type = "success") {
+                const toastEl = document.getElementById("uiToast");
+                const bodyEl = document.getElementById("uiToastBody");
+
+                if (!toastEl || !bodyEl) {
+                    console.warn("Toast elements not found:", message);
+                    return;
+                }
+
+                toastEl.className = "toast align-items-center border-0";
+                if (type === "success") toastEl.classList.add("text-bg-success");
+                else if (type === "error") toastEl.classList.add("text-bg-danger");
+                else if (type === "warning") toastEl.classList.add("text-bg-warning");
+                else toastEl.classList.add("text-bg-primary");
+
+                bodyEl.textContent = message;
+
+                const toast = bootstrap.Toast.getOrCreateInstance(toastEl, { delay: 2500 });
+                toast.show();
+            }
+
+            function setSaveTemplateLoading(isLoading) {
+                const btn = document.getElementById("saveTemplateBtn");
+                if (!btn) return;
+
+                const label = btn.querySelector(".save-template-label");
+                const spinner = btn.querySelector(".save-template-spinner");
+
+                btn.disabled = isLoading;
+
+                if (label) {
+                    label.textContent = isLoading ? "Saving..." : "Save Template";
+                }
+
+                if (spinner) {
+                    spinner.classList.toggle("d-none", !isLoading);
+                }
+            }
+
+            function createEmptyVoucher() {
+                return {
+                    voucherNumber: "",
+                    ministry: "",
+                    payee: "",
+                    totalInput: 0,
+                    items: [
+                        { particular: "", amount: 0, amountReturned: 0 }
+                    ]
+                };
+            }
+
+            function createEmptyItem() {
+                return { particular: "", amount: 0, amountReturned: 0 };
+            }
+
+            function escapeHtml(value) {
+                return (value ?? "")
+                    .toString()
+                    .replaceAll("&", "&amp;")
+                    .replaceAll("<", "&lt;")
+                    .replaceAll(">", "&gt;")
+                    .replaceAll('"', "&quot;");
+            }
+
+            function parseMoney(value) {
+                if (value === null || value === undefined || value === "") return 0;
+                const n = parseFloat(value);
+                return isNaN(n) ? 0 : n;
+            }
+
+            function formatMoney(value) {
+                return parseMoney(value).toLocaleString("en-US", {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
+            }
+
+            function isSingleItemVoucher(voucher) {
+                return (voucher.items || []).length === 1;
+            }
+
+            function voucherReleasedTotal(voucher) {
+                if (isSingleItemVoucher(voucher)) {
+                    return parseMoney(voucher.totalInput);
+                }
+
+                return (voucher.items || []).reduce((sum, item) => sum + parseMoney(item.amount), 0);
+            }
+
+            function voucherReturnedTotal(voucher) {
+                return (voucher.items || []).reduce((sum, item) => sum + parseMoney(item.amountReturned), 0);
+            }
+
+            function clampItemReturn(item, voucher) {
+                const maxBase = isSingleItemVoucher(voucher)
+                    ? parseMoney(voucher.totalInput)
+                    : parseMoney(item.amount);
+
+                let returned = parseMoney(item.amountReturned);
+
+                if (returned < 0) returned = 0;
+                if (returned > maxBase) returned = maxBase;
+
+                item.amountReturned = returned;
+            }
+
+            function normalizeVoucher(voucher) {
+                voucher.items = voucher.items || [];
+
+                if (voucher.items.length === 0) {
+                    voucher.items.push(createEmptyItem());
+                }
+
+                if (isSingleItemVoucher(voucher)) {
+                    voucher.totalInput = parseMoney(voucher.totalInput);
+                    voucher.items[0].amount = 0;
+                    clampItemReturn(voucher.items[0], voucher);
+                } else {
+                    voucher.items.forEach(item => {
+                        item.amount = parseMoney(item.amount);
+                        clampItemReturn(item, voucher);
+                    });
+
+                    voucher.totalInput = voucher.items.reduce((sum, item) => sum + parseMoney(item.amount), 0);
+                }
+            }
+
+            function buildMinistryOptions(selectedValue) {
+                let html = `<option value="">-- Select --</option>`;
+                for (const option of ministryOptions) {
+                    html += `<option value="${escapeHtml(option)}" ${option === selectedValue ? "selected" : ""}>${escapeHtml(option)}</option>`;
+                }
+                return html;
+            }
+
+            function getTemplateScheduleText(template) {
+                if (!template || !template.autoApply) {
+                    return "Manual only";
+                }
+
+                if (template.recurrenceType === "weekly") {
+                    return "Auto: Every week";
+                }
+
+                if (template.recurrenceType === "monthly_week") {
+                    if (template.weekOfMonth === -1) return "Auto: Last week";
+                    if (template.weekOfMonth === 1) return "Auto: 1st week";
+                    if (template.weekOfMonth === 2) return "Auto: 2nd week";
+                    if (template.weekOfMonth === 3) return "Auto: 3rd week";
+                    if (template.weekOfMonth === 4) return "Auto: 4th week";
+                }
+
+                return "Manual only";
+            }
+
+            function resetTemplateEditor() {
+                document.getElementById("templateId").value = "0";
+                document.getElementById("templateName").value = "";
+                document.getElementById("templateMinistry").value = "";
+                document.getElementById("templatePayee").value = "";
+                document.getElementById("templateAutoApply").checked = false;
+                document.getElementById("templateRecurrenceType").value = "";
+                document.getElementById("templateWeekOfMonth").value = "";
+                renderTemplateItemsEditor([{ particular: "", amount: 0 }]);
+                toggleWeekOfMonthField();
+            }
+
+            function openTemplateModal() {
+                resetTemplateEditor();
+                renderSavedTemplatesList();
+                bootstrap.Modal.getOrCreateInstance(document.getElementById("templateModal")).show();
+            }
+
+            function openUseTemplateModal() {
+                if (!fixedTemplates.length) {
+                    showToast("No saved template yet.", "warning");
+                    return;
+                }
+
+                selectedTemplateIds = [];
+                renderUseTemplateList();
+                bootstrap.Modal.getOrCreateInstance(document.getElementById("useTemplateModal")).show();
+            }
+
+            function renderTemplateItemsEditor(items) {
+                const wrap = document.getElementById("templateItemsWrap");
+                if (!wrap) return;
+
+                wrap.innerHTML = "";
+
+                items.forEach((item) => {
+                    const row = document.createElement("div");
+                    row.className = "row g-2 mb-2 template-item-row";
+                    row.innerHTML = `
+                        <div class="col-md-8">
+                            <input type="text" class="form-control template-particular" value="${escapeHtml(item.particular || "")}" placeholder="Particular" />
+                        </div>
+                        <div class="col-md-3">
+                            <input type="number" step="0.01" min="0" class="form-control template-amount text-end" value="${item.amount || ""}" placeholder="Amount" />
+                        </div>
+                        <div class="col-md-1 d-grid">
+                            <button type="button" class="btn btn-outline-danger remove-template-item-btn">×</button>
+                        </div>
+                    `;
+                    wrap.appendChild(row);
+                });
+            }
+
+            function collectTemplateItems() {
+                const rows = document.querySelectorAll(".template-item-row");
+                const items = [];
+
+                rows.forEach((row, index) => {
+                    const particular = row.querySelector(".template-particular")?.value.trim() || "";
+                    const amount = parseMoney(row.querySelector(".template-amount")?.value);
+
+                    if (particular !== "") {
+                        items.push({
+                            lineNo: index + 1,
+                            particular,
+                            amount
+                        });
+                    }
+                });
+
+                return items;
+            }
+
+            function renderSavedTemplatesList() {
+                const wrap = document.getElementById("savedTemplatesList");
+                if (!wrap) return;
+
+                if (!fixedTemplates.length) {
+                    wrap.innerHTML = `<div class="template-empty">No saved templates yet.</div>`;
+                    return;
+                }
+
+                wrap.innerHTML = fixedTemplates.map(t => `
+                    <div class="template-list-item mb-2">
+                        <div class="d-flex justify-content-between align-items-start gap-3">
+                            <div>
+                                <div class="template-list-title">${escapeHtml(t.templateName)}</div>
+                                <div class="template-list-sub">${escapeHtml(t.ministry)} • ${escapeHtml(t.payee)}</div>
+                                <div class="small text-primary mt-1">${escapeHtml(getTemplateScheduleText(t))}</div>
+                                <div class="small text-muted mt-1">${(t.items || []).length} item(s)</div>
+                            </div>
+                            <div class="text-end">
+                                <div class="template-list-total">${formatMoney(t.totalInput || 0)}</div>
+                                <button type="button" class="btn btn-sm btn-outline-primary mt-2 select-template-for-edit-btn" data-template-id="${t.id}">
+                                    Edit
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `).join("");
+            }
+
+            function renderUseTemplateList() {
+                const wrap = document.getElementById("useTemplateList");
+                if (!wrap) return;
+
+                if (!fixedTemplates.length) {
+                    wrap.innerHTML = `<div class="template-empty">No saved templates yet.</div>`;
+                    return;
+                }
+
+                wrap.innerHTML = fixedTemplates.map(t => {
+                    const checked = selectedTemplateIds.includes(t.id);
+                    return `
+                        <div class="template-list-item mb-2 ${checked ? "selected" : ""}" data-template-select-id="${t.id}">
+                            <div class="d-flex justify-content-between align-items-start gap-3">
+                                <div class="d-flex gap-3 align-items-start">
+                                    <input class="form-check-input mt-1 template-pick-checkbox" type="checkbox" value="${t.id}" ${checked ? "checked" : ""} />
+                                    <div>
+                                        <div class="template-list-title">${escapeHtml(t.templateName)}</div>
+                                        <div class="template-list-sub">${escapeHtml(t.ministry)} • ${escapeHtml(t.payee)}</div>
+                                        <div class="small text-primary mt-1">${escapeHtml(getTemplateScheduleText(t))}</div>
+                                        <div class="small text-muted mt-1">${(t.items || []).length} item(s)</div>
+                                    </div>
+                                </div>
+                                <div class="template-list-total">${formatMoney(t.totalInput || 0)}</div>
+                            </div>
+                        </div>
+                    `;
+                }).join("");
+            }
+
+            function loadTemplateIntoEditor(templateId) {
+                const template = fixedTemplates.find(x => x.id == templateId);
+                if (!template) return;
+
+                document.getElementById("templateId").value = template.id;
+                document.getElementById("templateName").value = template.templateName || "";
+                document.getElementById("templateMinistry").value = template.ministry || "";
+                document.getElementById("templatePayee").value = template.payee || "";
+                document.getElementById("templateAutoApply").checked = !!template.autoApply;
+                document.getElementById("templateRecurrenceType").value = template.recurrenceType || "";
+                document.getElementById("templateWeekOfMonth").value = template.weekOfMonth ?? "";
+                renderTemplateItemsEditor(template.items || [{ particular: "", amount: 0 }]);
+                toggleWeekOfMonthField();
+            }
+
+            function toggleWeekOfMonthField() {
+                const recurrenceTypeEl = document.getElementById("templateRecurrenceType");
+                const weekSelect = document.getElementById("templateWeekOfMonth");
+
+                if (!recurrenceTypeEl || !weekSelect) return;
+
+                const recurrenceType = recurrenceTypeEl.value;
+
+                if (recurrenceType === "monthly_week") {
+                    weekSelect.disabled = false;
+                } else {
+                    weekSelect.disabled = true;
+                    weekSelect.value = "";
+                }
+            }
+
+            function buildVoucherFromTemplate(template) {
+                const items = (template.items || []).map(x => ({
+                    particular: x.particular,
+                    amount: (template.items || []).length === 1 ? 0 : parseMoney(x.amount),
+                    amountReturned: 0
+                }));
+
+                return {
+                    voucherNumber: "",
+                    ministry: template.ministry || "",
+                    payee: template.payee || "",
+                    totalInput: (template.items || []).length === 1
+                        ? parseMoney(template.items[0]?.amount || 0)
+                        : parseMoney(template.totalInput || 0),
+                    items: items.length ? items : [{ particular: "", amount: 0, amountReturned: 0 }]
+                };
+            }
+
+            function renderVoucherList() {
+                const container = document.getElementById("voucherList");
+                if (!container) return;
+
+                container.innerHTML = "";
+
+                sheet.vouchers.forEach((voucher, vIndex) => {
+                    normalizeVoucher(voucher);
+
+                    const singleMode = isSingleItemVoucher(voucher);
+                    const totalReleased = voucherReleasedTotal(voucher);
+                    const voucherLocked = isReturnOnlyMode;
+
+                    const card = document.createElement("div");
+                    card.className = "voucher-card";
+                    card.dataset.vindex = vIndex;
+
+                    let html = `
+                        <div class="voucher-headline">
+                            <select class="form-select inline-select voucher-ministry ${voucherLocked ? "return-lock" : ""}" data-vindex="${vIndex}" ${voucherLocked ? "disabled" : ""}>
+                                ${buildMinistryOptions(voucher.ministry)}
+                            </select>
+                            <span class="voucher-dash">-</span>
+                            <input type="text"
+                                   class="form-control inline-input voucher-payee ${voucherLocked ? "return-lock" : ""}"
+                                   data-vindex="${vIndex}"
+                                   value="${escapeHtml(voucher.payee)}"
+                                   placeholder="Payee"
+                                   ${voucherLocked ? "readonly" : ""} />
+                        </div>
+                    `;
+
+                    if (singleMode) {
+                        const item = voucher.items[0];
+
+                        html += `
+                            <div class="voucher-line">
+                                <div>
+                                    <input type="text"
+                                           class="form-control inline-input item-particular ${voucherLocked ? "return-lock" : ""}"
+                                           data-vindex="${vIndex}"
+                                           data-iindex="0"
+                                           value="${escapeHtml(item.particular)}"
+                                           placeholder="Particular"
+                                           ${voucherLocked ? "readonly" : ""} />
+                                </div>
+
+                                <div>
+                                    <input type="text"
+                                           class="form-control inline-input field-blank"
+                                           value=""
+                                           tabindex="-1"
+                                           readonly />
+                                </div>
+
+                                <div>
+                                    <input type="number"
+                                           step="0.01"
+                                           min="0"
+                                           class="form-control inline-input voucher-total text-end ${voucherLocked ? "return-lock" : ""}"
+                                           data-vindex="${vIndex}"
+                                           value="${voucher.totalInput === 0 ? "" : voucher.totalInput}"
+                                           ${voucherLocked ? "readonly" : ""} />
+                                </div>
+
+                                <div>
+                                    <input type="text"
+                                           class="form-control inline-input voucher-number text-end"
+                                           data-vindex="${vIndex}"
+                                           value="${escapeHtml(voucher.voucherNumber)}"
+                                           placeholder="009"
+                                           ${voucherLocked ? "readonly" : ""} />
+                                </div>
+
+                                <div>
+                                    <input type="number"
+                                           step="0.01"
+                                           min="0"
+                                           class="form-control inline-input item-return text-end money-return"
+                                           data-vindex="${vIndex}"
+                                           data-iindex="0"
+                                           value="${item.amountReturned === 0 ? "" : item.amountReturned}" />
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        voucher.items.forEach((item, iIndex) => {
+                            const isLast = iIndex === voucher.items.length - 1;
+
+                            html += `
+                                <div class="voucher-line">
+                                    <div>
+                                        <input type="text"
+                                               class="form-control inline-input item-particular ${voucherLocked ? "return-lock" : ""}"
+                                               data-vindex="${vIndex}"
+                                               data-iindex="${iIndex}"
+                                               value="${escapeHtml(item.particular)}"
+                                               placeholder="Particular"
+                                               ${voucherLocked ? "readonly" : ""} />
+                                    </div>
+
+                                    <div>
+                                        <input type="number"
+                                               step="0.01"
+                                               min="0"
+                                               class="form-control inline-input item-amount text-end ${voucherLocked ? "return-lock" : ""}"
+                                               data-vindex="${vIndex}"
+                                               data-iindex="${iIndex}"
+                                               value="${item.amount === 0 ? "" : item.amount}"
+                                               ${voucherLocked ? "readonly" : ""} />
+                                    </div>
+
+                                    <div>
+                                        ${isLast ? `
+                                            <input type="text"
+                                                   class="form-control inline-input field-readonly text-end"
+                                                   value="${formatMoney(totalReleased)}"
+                                                   readonly />
+                                        ` : `<div></div>`}
+                                    </div>
+
+                                    <div>
+                                        ${isLast ? `
+                                            <input type="text"
+                                                   class="form-control inline-input voucher-number text-end"
+                                                   data-vindex="${vIndex}"
+                                                   value="${escapeHtml(voucher.voucherNumber)}"
+                                                   placeholder="010"
+                                                   ${voucherLocked ? "readonly" : ""} />
+                                        ` : `<div></div>`}
+                                    </div>
+
+                                    <div>
+                                        <input type="number"
+                                               step="0.01"
+                                               min="0"
+                                               class="form-control inline-input item-return text-end money-return"
+                                               data-vindex="${vIndex}"
+                                               data-iindex="${iIndex}"
+                                               value="${item.amountReturned === 0 ? "" : item.amountReturned}" />
+                                    </div>
+                                </div>
+                            `;
+                        });
+                    }
+
+                    if (!isReturnOnlyMode) {
+                        html += `
+                            <div class="voucher-actions">
+                                <button type="button" class="btn btn-sm btn-outline-secondary add-item-btn" data-vindex="${vIndex}">+ Add Item</button>
+                                <button type="button" class="btn btn-sm btn-outline-danger remove-item-btn" data-vindex="${vIndex}">Remove Last Item</button>
+                                <button type="button" class="btn btn-sm btn-danger remove-voucher-btn" data-vindex="${vIndex}">Remove Voucher</button>
+                            </div>
+                        `;
+                    }
+
+                    card.innerHTML = html;
+                    container.appendChild(card);
+                });
+
+                recalcSummary();
+                syncHiddenJson();
+            }
+
+            function refreshVoucherComputedFields(vIndex) {
+                const voucherCard = document.querySelector(`.voucher-card[data-vindex="${vIndex}"]`);
+                if (!voucherCard) return;
+
+                const voucher = sheet.vouchers[vIndex];
+                normalizeVoucher(voucher);
+
+                if (!isSingleItemVoucher(voucher)) {
+                    const lastRowReadonly = voucherCard.querySelector(".field-readonly");
+                    if (lastRowReadonly) {
+                        lastRowReadonly.value = formatMoney(voucherReleasedTotal(voucher));
+                    }
+                }
+
+                syncHiddenJson();
+                recalcSummary();
+            }
+
+            function recalcSummary() {
+                sheet.vouchers.forEach(normalizeVoucher);
+
+                const totalReleased = sheet.vouchers.reduce((sum, voucher) => sum + voucherReleasedTotal(voucher), 0);
+                const totalReturned = sheet.vouchers.reduce((sum, voucher) => sum + voucherReturnedTotal(voucher), 0);
+                const adjusted = totalReleased - totalReturned;
+
+                const blessingEl = document.getElementById("blessingText");
+                const blessing = parseMoney((blessingEl?.textContent || "0").replaceAll(",", ""));
+                const netCash = blessing - adjusted;
+
+                document.getElementById("grandTotalText").textContent = formatMoney(totalReleased);
+                document.getElementById("grandReturnText").textContent = formatMoney(totalReturned);
+                document.getElementById("adjustedDisbursementText").textContent = formatMoney(adjusted);
+                document.getElementById("lessDisbursementText").textContent = formatMoney(adjusted);
+                document.getElementById("netCashBalanceText").textContent = formatMoney(netCash);
+            }
+
+            function syncHiddenJson() {
+                sheet.vouchers.forEach(normalizeVoucher);
+                const hidden = document.getElementById("SheetJson");
+                if (hidden) {
+                    hidden.value = JSON.stringify(sheet);
+                }
+            }
+
+            async function loadBlessingForDate() {
+                const input = document.getElementById("recordDateInput");
+                const raw = input?.value;
+                if (!raw) return;
+
+                try {
+                    const response = await fetch(`?handler=Blessing&date=${encodeURIComponent(raw)}`);
+                    const data = await response.json();
+
+                    const blessingEl = document.getElementById("blessingText");
+                    if (!blessingEl) return;
+
+                    if (data && data.success) {
+                        blessingEl.textContent = formatMoney(data.blessing || 0);
+                    } else {
+                        blessingEl.textContent = "0.00";
+                    }
+                } catch {
+                    const blessingEl = document.getElementById("blessingText");
+                    if (blessingEl) {
+                        blessingEl.textContent = "0.00";
+                    }
+                }
+
+                recalcSummary();
+            }
+
+            async function reloadTemplatesFromServer() {
+                const reload = await fetch("?handler=Templates");
+                const reloadData = await reload.json();
+                fixedTemplates = Array.isArray(reloadData?.data) ? reloadData.data : [];
+                renderSavedTemplatesList();
+            }
+
+            const recurrenceTypeEl = document.getElementById("templateRecurrenceType");
+            if (recurrenceTypeEl) {
+                recurrenceTypeEl.addEventListener("change", toggleWeekOfMonthField);
+            }
+
+            const addVoucherBtn = document.getElementById("addVoucherBtn");
+            if (addVoucherBtn) {
+                addVoucherBtn.addEventListener("click", () => {
+                    if (isReturnOnlyMode) return;
+                    sheet.vouchers.push(createEmptyVoucher());
+                    renderVoucherList();
+                });
+            }
+
+            const openTemplateSettingsBtn = document.getElementById("openTemplateSettingsBtn");
+            if (openTemplateSettingsBtn) {
+                openTemplateSettingsBtn.addEventListener("click", openTemplateModal);
+            }
+
+            const useTemplateBtn = document.getElementById("useTemplateBtn");
+            if (useTemplateBtn) {
+                useTemplateBtn.addEventListener("click", () => {
+                    if (isReturnOnlyMode) return;
+                    openUseTemplateModal();
+                });
+            }
+
+            const openUseTemplateModalBtn = document.getElementById("openUseTemplateModalBtn");
+            if (openUseTemplateModalBtn) {
+                openUseTemplateModalBtn.addEventListener("click", openUseTemplateModal);
+            }
+
+            const addTemplateItemBtn = document.getElementById("addTemplateItemBtn");
+            if (addTemplateItemBtn) {
+                addTemplateItemBtn.addEventListener("click", () => {
+                    const items = collectTemplateItems();
+                    items.push({ lineNo: items.length + 1, particular: "", amount: 0 });
+                    renderTemplateItemsEditor(items);
+                });
+            }
+
+            const templateItemsWrap = document.getElementById("templateItemsWrap");
+            if (templateItemsWrap) {
+                templateItemsWrap.addEventListener("click", (e) => {
+                    if (!e.target.classList.contains("remove-template-item-btn")) return;
+
+                    const rows = [...document.querySelectorAll(".template-item-row")];
+                    const newItems = rows
+                        .filter(r => r !== e.target.closest(".template-item-row"))
+                        .map(r => ({
+                            particular: r.querySelector(".template-particular")?.value || "",
+                            amount: parseMoney(r.querySelector(".template-amount")?.value)
+                        }));
+
+                    renderTemplateItemsEditor(newItems.length ? newItems : [{ particular: "", amount: 0 }]);
+                });
+            }
+
+            const savedTemplatesList = document.getElementById("savedTemplatesList");
+            if (savedTemplatesList) {
+                savedTemplatesList.addEventListener("click", (e) => {
+                    if (!e.target.classList.contains("select-template-for-edit-btn")) return;
+                    const templateId = Number(e.target.dataset.templateId);
+                    loadTemplateIntoEditor(templateId);
+                });
+            }
+
+            const useTemplateList = document.getElementById("useTemplateList");
+            if (useTemplateList) {
+                useTemplateList.addEventListener("click", (e) => {
+                    const wrapper = e.target.closest("[data-template-select-id]");
+                    if (!wrapper) return;
+
+                    const templateId = Number(wrapper.dataset.templateSelectId);
+                    const checkbox = wrapper.querySelector(".template-pick-checkbox");
+                    if (!checkbox) return;
+
+                    if (e.target !== checkbox) {
+                        checkbox.checked = !checkbox.checked;
+                    }
+
+                    if (checkbox.checked) {
+                        if (!selectedTemplateIds.includes(templateId)) {
+                            selectedTemplateIds.push(templateId);
+                        }
+                    } else {
+                        selectedTemplateIds = selectedTemplateIds.filter(x => x !== templateId);
+                    }
+
+                    renderUseTemplateList();
+                });
+            }
+
+            const applySelectedTemplatesBtn = document.getElementById("applySelectedTemplatesBtn");
+            if (applySelectedTemplatesBtn) {
+                applySelectedTemplatesBtn.addEventListener("click", () => {
+                    if (!selectedTemplateIds.length) {
+                        showToast("Select at least one template.", "warning");
+                        return;
+                    }
+
+                    const selectedTemplates = fixedTemplates.filter(t => selectedTemplateIds.includes(t.id));
+                    selectedTemplates.forEach(template => {
+                        sheet.vouchers.push(buildVoucherFromTemplate(template));
+                    });
+
+                    renderVoucherList();
+                    bootstrap.Modal.getOrCreateInstance(document.getElementById("useTemplateModal")).hide();
+                    showToast("Template(s) added successfully.", "success");
+                });
+            }
+
+            const saveTemplateBtn = document.getElementById("saveTemplateBtn");
+            if (saveTemplateBtn) {
+                saveTemplateBtn.addEventListener("click", async () => {
+                    try {
+                        setSaveTemplateLoading(true);
+
+                        const payload = {
+                            templateId: parseInt(document.getElementById("templateId").value || "0"),
+                            templateName: document.getElementById("templateName").value.trim(),
+                            ministry: document.getElementById("templateMinistry").value,
+                            payee: document.getElementById("templatePayee").value.trim(),
+                            autoApply: document.getElementById("templateAutoApply").checked,
+                            recurrenceType: document.getElementById("templateRecurrenceType").value,
+                            weekOfMonth: document.getElementById("templateWeekOfMonth").value === ""
+                                ? null
+                                : parseInt(document.getElementById("templateWeekOfMonth").value),
+                            items: collectTemplateItems()
+                        };
+
+                        const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+
+                        const response = await fetch("?handler=SaveTemplate", {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                                "RequestVerificationToken": token || ""
+                            },
+                            body: JSON.stringify(payload)
+                        });
+
+                        const data = await response.json();
+
+                        if (!response.ok || !data.success) {
+                            showToast(data?.message || "Failed to save template.", "error");
+                            return;
+                        }
+
+                        await reloadTemplatesFromServer();
+                        renderUseTemplateList();
+                        showToast("Template saved successfully.", "success");
+                        resetTemplateEditor();
+                    } catch (err) {
+                        console.error(err);
+                        showToast("Save failed. Check console for error.", "error");
+                    } finally {
+                        setSaveTemplateLoading(false);
+                    }
+                });
+            }
+
+            const voucherList = document.getElementById("voucherList");
+            if (voucherList) {
+                voucherList.addEventListener("input", (e) => {
+                    const target = e.target;
+                    const vIndex = parseInt(target.dataset.vindex ?? "-1");
+                    const iIndex = parseInt(target.dataset.iindex ?? "-1");
+
+                    if (Number.isNaN(vIndex) || vIndex < 0) return;
+                    const voucher = sheet.vouchers[vIndex];
+
+                    if (target.classList.contains("voucher-payee")) {
+                        if (isReturnOnlyMode) return;
+                        voucher.payee = target.value;
+                        syncHiddenJson();
+                        return;
+                    }
+
+                    if (target.classList.contains("voucher-number")) {
+                        if (isReturnOnlyMode) return;
+                        voucher.voucherNumber = target.value;
+                        syncHiddenJson();
+                        return;
+                    }
+
+                    if (target.classList.contains("item-particular")) {
+                        if (isReturnOnlyMode) return;
+                        voucher.items[iIndex].particular = target.value;
+                        syncHiddenJson();
+                        return;
+                    }
+
+                    if (target.classList.contains("voucher-total")) {
+                        if (isReturnOnlyMode) return;
+                        voucher.totalInput = target.value === "" ? 0 : parseMoney(target.value);
+                        normalizeVoucher(voucher);
+                        syncHiddenJson();
+                        recalcSummary();
+                        return;
+                    }
+
+                    if (target.classList.contains("item-amount")) {
+                        if (isReturnOnlyMode) return;
+                        voucher.items[iIndex].amount = target.value === "" ? 0 : parseMoney(target.value);
+                        normalizeVoucher(voucher);
+                        refreshVoucherComputedFields(vIndex);
+                        return;
+                    }
+
+                    if (target.classList.contains("item-return")) {
+                        voucher.items[iIndex].amountReturned = target.value === "" ? 0 : parseMoney(target.value);
+                        clampItemReturn(voucher.items[iIndex], voucher);
+                        syncHiddenJson();
+                        recalcSummary();
+                        return;
+                    }
+                });
+
+                voucherList.addEventListener("change", (e) => {
+                    const target = e.target;
+                    const vIndex = parseInt(target.dataset.vindex ?? "-1");
+
+                    if (Number.isNaN(vIndex) || vIndex < 0) return;
+
+                    if (target.classList.contains("voucher-ministry")) {
+                        if (isReturnOnlyMode) return;
+                        sheet.vouchers[vIndex].ministry = target.value;
+                        syncHiddenJson();
+                    }
+                });
+
+                voucherList.addEventListener("click", (e) => {
+                    const target = e.target;
+                    const vIndex = parseInt(target.dataset.vindex ?? "-1");
+
+                    if (Number.isNaN(vIndex) || vIndex < 0) return;
+
+                    if (target.classList.contains("add-item-btn")) {
+                        if (isReturnOnlyMode) return;
+                        sheet.vouchers[vIndex].items.push(createEmptyItem());
+                        renderVoucherList();
+                        return;
+                    }
+
+                    if (target.classList.contains("remove-item-btn")) {
+                        if (isReturnOnlyMode) return;
+                        if (sheet.vouchers[vIndex].items.length > 1) {
+                            sheet.vouchers[vIndex].items.pop();
+                            renderVoucherList();
+                        }
+                        return;
+                    }
+
+                    if (target.classList.contains("remove-voucher-btn")) {
+                        if (isReturnOnlyMode) return;
+                        if (sheet.vouchers.length > 1) {
+                            sheet.vouchers.splice(vIndex, 1);
+                            renderVoucherList();
+                        }
+                        return;
+                    }
+                });
+            }
+
+            const recordDateInput = document.getElementById("recordDateInput");
+            if (recordDateInput) {
+                recordDateInput.addEventListener("change", () => {
+                    window.location.href = `?RecordDate=${encodeURIComponent(recordDateInput.value)}`;
+                });
+            }
+
+            const sheetForm = document.getElementById("sheetForm");
+            if (sheetForm) {
+                sheetForm.addEventListener("submit", () => {
+                    syncHiddenJson();
+                });
+            }
+
+            renderVoucherList();
+            loadBlessingForDate();
+            toggleWeekOfMonthField();
+        })();
+    </script>
+}

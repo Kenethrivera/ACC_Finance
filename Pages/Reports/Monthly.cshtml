@@ -1,0 +1,1126 @@
+﻿@page
+@model acc_finance.Pages.Reports.MonthlyModel
+@using acc_finance.Models.Reports
+@{
+    ViewData["Title"] = "Monthly Financial Report";
+}
+
+@functions {
+    public string MoneyOrBlank(decimal value)
+    {
+        return value == 0 ? "" : value.ToString("N2");
+    }
+}
+
+<style>
+    .monthly-page {
+        max-width: 1180px;
+        margin: 0 auto;
+        padding: 24px;
+        color: #1f2937;
+        font-size: 14px;
+        line-height: 1.5;
+    }
+
+    .monthly-topbar {
+        background: #fff;
+        border: 1px solid #d8dee9;
+        border-radius: 16px;
+        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+        padding: 16px 22px;
+        margin-bottom: 24px;
+    }
+
+    .monthly-filter-form {
+        display: flex;
+        gap: 12px;
+        align-items: end;
+        flex-wrap: wrap;
+    }
+
+    .monthly-filter-group {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        min-width: 220px;
+    }
+
+    .monthly-filter-group label {
+        font-size: 13px;
+        font-weight: 600;
+        color: #334155;
+    }
+
+    .monthly-filter-group input[type="month"] {
+        border: 1px solid #cbd5e1;
+        border-radius: 10px;
+        padding: 10px 12px;
+        font-size: 14px;
+        background: #fff;
+    }
+
+    .btn-month-load {
+        border: 0;
+        border-radius: 10px;
+        padding: 10px 18px;
+        font-size: 14px;
+        font-weight: 600;
+        background: #1d4ed8;
+        color: white;
+        cursor: pointer;
+    }
+
+    .btn-month-load:hover {
+        background: #1e40af;
+    }
+
+    .month-caption {
+        font-size: 13px;
+        color: #64748b;
+        margin-top: 10px;
+    }
+
+    .paper-stack {
+        display: flex;
+        flex-direction: column;
+        gap: 28px;
+    }
+
+    .paper-shell {
+        background: #fff;
+        border: 1px solid #d8dee9;
+        border-radius: 16px;
+        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+        overflow: hidden;
+    }
+
+    .paper-content {
+        padding: 30px 34px 38px;
+        background: #ffffff;
+    }
+
+    .paper-header {
+        text-align: center;
+        margin-bottom: 28px;
+    }
+
+    .church-name {
+        font-size: 26px;
+        font-weight: 800;
+        letter-spacing: .5px;
+        margin-bottom: 4px;
+        color: #0f172a;
+        text-transform: uppercase;
+    }
+
+    .report-title {
+        font-size: 18px;
+        font-weight: 700;
+        letter-spacing: .4px;
+        color: #334155;
+        text-transform: uppercase;
+    }
+
+    .paper-sunday-note {
+        margin-top: 8px;
+        font-size: 12px;
+        color: #64748b;
+        text-transform: uppercase;
+        letter-spacing: .4px;
+    }
+
+    .report-section {
+        margin-top: 28px;
+    }
+
+    .report-section-title {
+        font-size: 16px;
+        font-weight: 800;
+        color: #111827;
+        text-transform: uppercase;
+        letter-spacing: .4px;
+        margin-bottom: 12px;
+        padding-bottom: 6px;
+        border-bottom: 2px solid #111827;
+    }
+
+    .report-empty,
+    .report-message,
+    .empty-paper-message {
+        padding: 14px 16px;
+        border-radius: 12px;
+        background: #fff7ed;
+        border: 1px solid #fdba74;
+        color: #9a3412;
+    }
+
+    .empty-paper-message {
+        margin-top: 18px;
+    }
+
+    .record-code {
+        font-weight: 600;
+        font-size: 13px;
+        color: #475569;
+        margin-left: 6px;
+    }
+
+    .giving-table-wrap {
+        overflow-x: hidden;
+    }
+
+    .giving-table {
+        width: 100%;
+        table-layout: fixed;
+        border-collapse: collapse;
+        border: 1px solid #cbd5e1;
+    }
+
+    .giving-table th,
+    .giving-table td {
+        overflow: hidden;
+    }
+
+    .giving-table th:first-child,
+    .giving-table td:first-child {
+        width: 30%;
+        white-space: nowrap;
+    }
+
+    .giving-table th:not(:first-child),
+    .giving-table td:not(:first-child) {
+        width: 10%;
+        white-space: nowrap;
+    }
+
+    .giving-table thead th {
+        background: #f1f5f9;
+        color: #0f172a;
+        font-weight: 800;
+        font-size: 13px;
+        text-transform: uppercase;
+        border: 1px solid #cbd5e1;
+        padding: 10px 10px;
+        white-space: nowrap;
+    }
+
+    .giving-table tbody td {
+        border: 1px solid #dbe2ea;
+        padding: 9px 10px;
+        vertical-align: middle;
+    }
+
+    .giving-table .text-right {
+        text-align: right;
+        font-variant-numeric: tabular-nums;
+        overflow: visible;
+        text-overflow: clip;
+    }
+
+    .giving-table .text-left {
+        text-align: left;
+    }
+
+    .giving-table .name-cell {
+        font-weight: 600;
+        white-space: nowrap;
+        overflow: visible;
+        text-overflow: clip;
+    }
+
+    .giving-table .total-row td {
+        font-weight: 800;
+        background: #f8fafc;
+    }
+
+    .denom-box {
+        border: 1px solid #dbe2ea;
+        border-radius: 14px;
+        padding: 16px 18px;
+        background: #fcfcfd;
+    }
+
+    .denom-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(260px, 1fr));
+        gap: 10px 28px;
+    }
+
+    .denom-line {
+        display: flex;
+        align-items: baseline;
+        gap: 10px;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .denom-label {
+        white-space: nowrap;
+        font-weight: 600;
+        color: #1f2937;
+    }
+
+    .denom-dots {
+        flex: 1;
+        border-bottom: 1px dotted #94a3b8;
+        transform: translateY(-3px);
+    }
+
+    .denom-amount {
+        min-width: 110px;
+        text-align: right;
+        font-weight: 700;
+        color: #0f172a;
+    }
+
+    .denom-total {
+        margin-top: 14px;
+        padding-top: 12px;
+        border-top: 1px solid #cbd5e1;
+        display: flex;
+        align-items: baseline;
+        gap: 10px;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .denom-total .label {
+        font-weight: 800;
+        text-transform: uppercase;
+        color: #111827;
+    }
+
+    .denom-total .dots {
+        flex: 1;
+        border-bottom: 1px dotted #64748b;
+        transform: translateY(-3px);
+    }
+
+    .denom-total .amount {
+        min-width: 140px;
+        text-align: right;
+        font-weight: 800;
+        color: #111827;
+    }
+
+    .disbursement-box,
+    .summary-box {
+        border: 1px solid #dbe2ea;
+        border-radius: 14px;
+        padding: 18px 18px 16px;
+        background: #fff;
+    }
+
+    .sub-report-title {
+        font-size: 15px;
+        font-weight: 800;
+        color: #111827;
+        text-transform: uppercase;
+        margin-bottom: 12px;
+    }
+
+    .summary-spacer {
+        margin-top: 26px;
+    }
+
+    .cash-disbursement-report {
+        margin-bottom: 6px;
+    }
+
+    .cash-disbursement-head,
+    .cash-row {
+        display: grid;
+        grid-template-columns: 1.9fr 110px 110px 90px 110px;
+        gap: 12px;
+        align-items: start;
+    }
+
+    .cash-disbursement-head {
+        font-weight: 800;
+        color: #111827;
+        text-transform: uppercase;
+        padding-bottom: 8px;
+        border-bottom: 1px solid #cbd5e1;
+        margin-bottom: 8px;
+    }
+
+    .cash-row {
+        display: grid;
+        grid-template-columns: 1.9fr 110px 110px 90px 110px;
+        gap: 12px;
+        align-items: start;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .voucher-block {
+        margin-top: 14px;
+    }
+
+    .cash-row-main {
+        margin-bottom: 2px;
+    }
+
+    .cash-row-detail {
+        padding: 2px 0;
+    }
+
+    .particulars-cell {
+        padding-left: 10px;
+    }
+
+    .particular-main {
+        font-weight: 400;
+        color: #111827;
+        line-height: 1.5;
+        padding-left: 18px;
+    }
+
+    .particular-sub {
+        color: #111827;
+        line-height: 1.5;
+        padding-left: 48px;
+    }
+
+    .col-amount,
+    .col-total,
+    .col-voucher,
+    .col-return {
+        padding-top: 0;
+    }
+
+    .col-return {
+        color: red;
+    }
+
+    .cash-total-row {
+        display: grid;
+        grid-template-columns: 1.9fr 110px 110px 90px 110px;
+        gap: 12px;
+        align-items: center;
+        margin-top: 10px;
+        padding-top: 6px;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .cash-total-label {
+        font-weight: 800;
+        color: #111827;
+        padding-left: 18px;
+        align-self: start;
+    }
+
+    .cash-total-amount {
+        grid-column: 3;
+        text-align: left;
+        font-weight: 400;
+        color: #111827;
+        border-top: 1px solid #111827;
+        padding-top: 3px;
+        padding-left: 6px;
+    }
+
+    .cash-total-return {
+        grid-column: 5;
+        text-align: left;
+        font-weight: 400;
+        color: red;
+        border-top: 1px solid #111827;
+        padding-top: 3px;
+        padding-left: 6px;
+    }
+
+    .adjusted-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        max-width: 560px;
+        margin-top: 18px;
+        padding-left: 18px;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .adjusted-label {
+        font-size: 15px;
+        color: #111827;
+    }
+
+    .adjusted-amount {
+        font-size: 18px;
+        font-weight: 800;
+        color: #111827;
+        min-width: 140px;
+        text-align: right;
+    }
+
+    .summary-disbursement-report {
+        margin-top: 6px;
+    }
+
+    .summary-disbursement-head,
+    .summary-group-row,
+    .summary-grand-total-row {
+        display: grid;
+        grid-template-columns: 1fr 110px 110px;
+        gap: 10px;
+        align-items: start;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .summary-disbursement-head {
+        font-weight: 800;
+        color: #111827;
+        text-transform: uppercase;
+        margin-bottom: 8px;
+    }
+
+    .summary-col-text {
+        text-align: left;
+    }
+
+    .summary-col-amount,
+    .summary-col-total {
+        text-align: right;
+    }
+
+    .summary-group-block {
+        margin-top: 10px;
+    }
+
+    .summary-group-title {
+        font-weight: 400;
+        color: #111827;
+        margin-bottom: 2px;
+    }
+
+    .summary-group-row {
+        padding: 2px 0;
+    }
+
+    .summary-label-cell {
+        padding-left: 66px;
+        color: #111827;
+    }
+
+    .amount-underline {
+        border-bottom: 1px solid #111827;
+        padding-bottom: 2px;
+    }
+
+    .summary-grand-total-row {
+        margin-top: 12px;
+        padding-top: 8px;
+        border-top: 1px solid #111827;
+    }
+
+    .summary-total-label {
+        font-weight: 800;
+        color: #111827;
+    }
+
+    .summary-grand-total-amount {
+        font-weight: 800;
+        color: #111827;
+    }
+
+    .group-total-line,
+    .grand-total-line,
+    .summary-line {
+        display: flex;
+        align-items: baseline;
+        gap: 10px;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .summary-line + .summary-line {
+        margin-top: 10px;
+    }
+
+    .summary-line.strong {
+        margin-top: 14px;
+        padding-top: 12px;
+        border-top: 1px solid #cbd5e1;
+    }
+
+    .line-label {
+        width: 90px;
+        flex: 0 0 90px;
+        font-weight: 700;
+        color: #111827;
+    }
+
+    .line-dots {
+        flex: 1 1 auto;
+        width: 100%;
+        border-bottom: 1px dotted #64748b;
+        transform: translateY(-3px);
+    }
+
+    .line-amount {
+        width: 140px;
+        flex: 0 0 140px;
+        text-align: right;
+        font-weight: 800;
+        color: #111827;
+    }
+
+    .text-center {
+        text-align: center;
+    }
+
+    @@media print {
+        .monthly-topbar,
+        .navbar,
+        .sidebar,
+        footer {
+            display: none !important;
+        }
+
+        .monthly-page {
+            max-width: none;
+            padding: 0;
+        }
+
+        .paper-shell {
+            border: 0;
+            box-shadow: none;
+            border-radius: 0;
+            page-break-after: always;
+            break-after: page;
+        }
+
+        .paper-shell:last-child {
+            page-break-after: auto;
+            break-after: auto;
+        }
+
+        .paper-content {
+            padding: 0;
+        }
+    }
+
+    @@media (max-width: 900px) {
+        .cash-disbursement-head,
+        .cash-row,
+        .cash-total-row {
+            grid-template-columns: 1.6fr 90px 90px 80px 90px;
+            gap: 8px;
+            font-size: 13px;
+        }
+
+        .particular-sub {
+            padding-left: 30px;
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .monthly-page {
+            padding: 16px;
+        }
+
+        .paper-content {
+            padding: 22px 16px 28px;
+        }
+
+        .church-name {
+            font-size: 22px;
+        }
+
+        .report-title {
+            font-size: 16px;
+        }
+
+        .denom-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .summary-box-clean {
+        padding: 20px 18px 18px;
+    }
+
+    .summary-line-clean {
+        min-height: 34px;
+        align-items: center;
+    }
+
+    .line-label-clean {
+        min-width: 230px;
+        flex: 0 0 230px;
+        font-weight: 700;
+        color: #111827;
+        white-space: nowrap;
+    }
+
+    .summary-line-net {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-variant-numeric: tabular-nums;
+        margin-top: 16px;
+        padding-top: 14px;
+        border-top: 2px solid #94a3b8;
+        min-height: 42px;
+    }
+
+    .net-dots {
+        border-bottom: 1px dotted #475569;
+    }
+
+    .net-amount {
+        font-size: 20px;
+        font-weight: 900;
+    }
+
+    .net-positive {
+        color: #15803d;
+    }
+
+    .net-negative {
+        color: #dc2626;
+    }
+
+    .net-zero {
+        color: #111827;
+    }
+</style>
+
+<div class="monthly-page">
+    <div class="monthly-topbar">
+        <form method="get" class="monthly-filter-form">
+            <div class="monthly-filter-group">
+                <label asp-for="SelectedMonth">Month</label>
+                <input asp-for="SelectedMonth" type="month" />
+            </div>
+
+            <button type="submit" class="btn-month-load">
+                Load Month
+            </button>
+
+            <button type="submit" name="handler" value="Export" class="btn btn-success">
+                Export Monthly Records
+            </button>
+
+            <button type="submit" name="handler" value="ExportFinancial" class="btn btn-primary" style="background: #0f172a; border-color: #0f172a; color: white;">
+                Export Monthly Financial
+            </button>
+        </form>
+
+        <div class="month-caption">
+            Showing all Sundays for @Model.MonthReport.MonthLabel
+        </div>
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(Model.Message))
+    {
+        <div class="report-message">@Model.Message</div>
+    }
+
+    <div class="paper-stack">
+        @foreach (var page in Model.MonthReport.Pages)
+        {
+            <div class="paper-shell">
+                <div class="paper-content">
+                    <div class="paper-header">
+                        <div class="church-name">ADELINA CHRISTIAN CHURCH</div>
+                        <div class="report-title">
+                            FINANCIAL REPORT
+                        </div>
+                        <div >
+                            <h6>@(@page.ReportDate.ToString("MMMM dd, yyyy"))</h6>
+                        </div>
+                    </div>
+
+                    @if (!page.HasReport)
+                    {
+                        <div class="empty-paper-message">
+                            No report yet for this Sunday.
+                        </div>
+                    }
+                    else
+                    {
+                        <section class="report-section">
+                            <div class="report-section-title">
+                                GIVING TABLE
+                                @if (!string.IsNullOrWhiteSpace(page.Report.Giving.RecordCode))
+                                {
+                                    <span class="record-code">– @(@page.Report.Giving.RecordCode)</span>
+                                }
+                            </div>
+
+                            <div class="giving-table-wrap">
+                                <table class="giving-table">
+                                    <thead>
+                                        <tr>
+                                            <th class="text-left">Name</th>
+                                            <th class="text-right">Tithes</th>
+                                            <th class="text-right">Offerings</th>
+                                            <th class="text-right">Solomon</th>
+                                            <th class="text-right">Noah</th>
+                                            <th class="text-right">Mission</th>
+                                            <th class="text-right">Others</th>
+                                            <th class="text-right">Total</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @if (page.Report.Giving.Rows != null && page.Report.Giving.Rows.Any())
+                                        {
+                                            foreach (var row in page.Report.Giving.Rows)
+                                            {
+                                                <tr>
+                                                    <td class="text-left name-cell">@row.Name</td>
+                                                    <td class="text-right">@MoneyOrBlank(row.Tithes)</td>
+                                                    <td class="text-right">@MoneyOrBlank(row.Offerings)</td>
+                                                    <td class="text-right">@MoneyOrBlank(row.Solomon)</td>
+                                                    <td class="text-right">@MoneyOrBlank(row.Noah)</td>
+                                                    <td class="text-right">@MoneyOrBlank(row.Mission)</td>
+                                                    <td class="text-right">@MoneyOrBlank(row.Others)</td>
+                                                    <td class="text-right">@MoneyOrBlank(row.Total)</td>
+                                                </tr>
+                                            }
+
+                                            <tr class="total-row">
+                                                <td class="text-left">TOTAL</td>
+                                                <td class="text-right">@(@page.Report.Giving.TotalTithes.ToString("N2"))</td>
+                                                <td class="text-right">@(@page.Report.Giving.TotalOfferings.ToString("N2"))</td>
+                                                <td class="text-right">@(@page.Report.Giving.TotalSolomon.ToString("N2"))</td>
+                                                <td class="text-right">@(@page.Report.Giving.TotalNoah.ToString("N2"))</td>
+                                                <td class="text-right">@(@page.Report.Giving.TotalMission.ToString("N2"))</td>
+                                                <td class="text-right">@(@page.Report.Giving.TotalOthers.ToString("N2"))</td>
+                                                <td class="text-right">@(@page.Report.Giving.GrandTotal.ToString("N2"))</td>
+                                            </tr>
+                                        }
+                                        else
+                                        {
+                                            <tr>
+                                                <td colspan="8" class="text-left">No giving entries found.</td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </section>
+
+                        <section class="report-section">
+                            <div class="report-section-title">Giving Denom</div>
+
+                            <div class="denom-box">
+                                @if (page.Report.Denomination.Exists && page.Report.Denomination.Lines.Any())
+                                {
+                                    <div class="denom-grid">
+                                        @foreach (var line in page.Report.Denomination.Lines)
+                                        {
+                                            <div class="denom-line">
+                                                <span class="denom-label">@line.Label x @line.Quantity</span>
+                                                <span class="denom-dots"></span>
+                                                <span class="denom-amount">@line.LineTotal.ToString("N2")</span>
+                                            </div>
+                                        }
+                                    </div>
+
+                                    <div class="denom-total">
+                                        <span class="label">Total Denomination</span>
+                                        <span class="dots"></span>
+                                        <span class="amount">@(@page.Report.Denomination.Total.ToString("N2"))</span>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="report-empty">No denomination summary found.</div>
+                                }
+                            </div>
+                        </section>
+
+                        <section class="report-section">
+                            <div class="report-section-title">Disbursement</div>
+
+                            <div class="disbursement-box">
+                                @if (page.Report.Disbursement.Vouchers != null && page.Report.Disbursement.Vouchers.Any())
+                                {
+                                    <div class="sub-report-title">Cash Disbursements (@(@page.Report.ReportDate.ToString("MM/dd/yyyy")))</div>
+
+                                    <div class="cash-disbursement-report">
+                                        <div class="cash-disbursement-head">
+                                            <div class="col-particulars">Particulars</div>
+                                            <div class="col-amount text-right">Amount</div>
+                                            <div class="col-total text-right">Total</div>
+                                            <div class="col-voucher text-center">Voucher #</div>
+                                            <div class="col-return text-right">Cash Return</div>
+                                        </div>
+
+                                        @foreach (var voucher in page.Report.Disbursement.Vouchers)
+                                        {
+                                            var lines = voucher.Lines ?? new List<acc_finance.Models.Reports.DisbursementLineVm>();
+
+                                            if (lines.Any())
+                                            {
+                                                <div class="voucher-block">
+                                                    @for (int i = 0; i < lines.Count; i++)
+                                                    {
+                                                        var line = lines[i];
+                                                        bool isLast = i == lines.Count - 1;
+                                                        bool isSingle = lines.Count == 1;
+                                                        bool isFirst = i == 0;
+
+                                                        if (isFirst)
+                                                        {
+                                                            <div class="cash-row cash-row-main">
+                                                                <div class="col-particulars particulars-cell">
+                                                                    <div class="particular-main">@voucher.Ministry - @voucher.Payee</div>
+                                                                </div>
+                                                                <div class="col-amount"></div>
+                                                                <div class="col-total"></div>
+                                                                <div class="col-voucher"></div>
+                                                                <div class="col-return"></div>
+                                                            </div>
+                                                        }
+
+                                                        <div class="cash-row cash-row-detail">
+                                                            <div class="col-particulars particulars-cell">
+                                                                <div class="particular-sub">@line.Particular</div>
+                                                            </div>
+
+                                                            <div class="col-amount text-right">
+                                                                @if (!isSingle)
+                                                                {
+                                                                    @line.AmountReleased.ToString("N2")
+                                                                }
+                                                            </div>
+
+                                                            <div class="col-total text-right">
+                                                                @if (isSingle || isLast)
+                                                                {
+                                                                    @voucher.VoucherTotalReleased.ToString("N2")
+                                                                }
+                                                            </div>
+
+                                                            <div class="col-voucher text-center">
+                                                                @if (isSingle || isLast)
+                                                                {
+                                                                    @voucher.VoucherNumber
+                                                                }
+                                                            </div>
+
+                                                            <div class="col-return text-right">
+                                                                @if (line.CashReturned > 0)
+                                                                {
+                                                                    @line.CashReturned.ToString("N2")
+                                                                }
+                                                            </div>
+                                                        </div>
+                                                    }
+                                                </div>
+                                            }
+                                        }
+
+                                        <div class="cash-total-row">
+                                            <div class="cash-total-label">TOTAL</div>
+                                            <div class="cash-total-amount">@(@page.Report.Disbursement.TotalReleased.ToString("N2"))</div>
+                                            <div class="cash-total-return">@(@page.Report.Disbursement.TotalReturned.ToString("N2"))</div>
+                                        </div>
+
+                                        <div class="adjusted-row">
+                                            <div class="adjusted-label">Adjusted disbursement</div>
+                                            <div class="adjusted-amount">@(@page.Report.Disbursement.TotalNetDisbursement.ToString("N2"))</div>
+                                        </div>
+                                    </div>
+
+                                    <div class="sub-report-title summary-spacer">Summary Disbursement</div>
+                                    <hr />
+
+                                    <div class="summary-disbursement-report">
+                                        <div class="summary-disbursement-head">
+                                            <div class="summary-col-text">Summary</div>
+                                            <div class="summary-col-amount text-right">Amount</div>
+                                            <div class="summary-col-total text-right">Total</div>
+                                        </div>
+
+                                        @foreach (var group in page.Report.Disbursement.Groups)
+                                        {
+                                            var lines = group.Lines ?? new List<acc_finance.Models.Reports.DisbursementLineVm>();
+                                            bool isSingle = lines.Count == 1;
+
+                                            <div class="summary-group-block">
+                                                <div class="summary-group-title"><strong>@group.Ministry Expenses</strong></div>
+
+                                                @for (int i = 0; i < lines.Count; i++)
+                                                {
+                                                    var line = lines[i];
+                                                    bool isLast = i == lines.Count - 1;
+
+                                                    <div class="summary-group-row">
+                                                        <div class="summary-col-text summary-label-cell">
+                                                            @line.SummaryLabel
+                                                        </div>
+
+                                                        <div class="summary-col-amount text-right @(isLast && !isSingle ? "amount-underline" : "")">
+                                                            @if (!isSingle)
+                                                            {
+                                                                @line.NetAmount.ToString("N2")
+                                                            }
+                                                        </div>
+
+                                                        <div class="summary-col-total text-right">
+                                                            @if (isSingle || isLast)
+                                                            {
+                                                                @group.GroupTotal.ToString("N2")
+                                                            }
+                                                        </div>
+                                                    </div>
+                                                }
+                                            </div>
+                                        }
+
+                                        <div class="summary-grand-total-row">
+                                            <div class="summary-col-text summary-total-label">TOTAL</div>
+                                            <div class="summary-col-amount"></div>
+                                            <div class="summary-col-total text-right summary-grand-total-amount">
+                                                @(@page.Report.Disbursement.TotalNetDisbursement.ToString("N2"))
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="report-empty">No disbursement report found.</div>
+                                }
+                            </div>
+                        </section>
+
+                        <section class="report-section">
+                            <div class="report-section-title">Summary</div>
+
+                            <div class="summary-box summary-box-clean">
+                                <div class="summary-line summary-line-clean">
+                                    <div class="line-label-clean">Cash Receipts / Blessings</div>
+                                    <div class="line-dots"></div>
+                                    <div class="line-amount">@(@page.Report.Summary.CashReceiptsOrBlessings.ToString("N2"))</div>
+                                </div>
+
+                                <div class="summary-line summary-line-clean">
+                                    <div class="line-label-clean">Less: Cash Disbursement</div>
+                                    <div class="line-dots"></div>
+                                    <div class="line-amount">@(@page.Report.Summary.LessCashDisbursements.ToString("N2"))</div>
+                                </div>
+
+                                <div class="summary-line summary-line-net">
+                                    <div class="line-label-clean">Net Cash Balance @(@page.Report.ReportDate.ToString("MM/dd/yyyy"))</div>
+                                    <div class="line-dots net-dots"></div>
+                                    <div class="line-amount net-amount @(page.Report.Summary.NetCashBalance < 0 ? "net-negative" : page.Report.Summary.NetCashBalance > 0 ? "net-positive" : "net-zero")">
+                                        @(@page.Report.Summary.NetCashBalance.ToString("N2"))
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<div id="loading-overlay" class="loading-overlay">
+    <div class="spinner"></div>
+    <div class="loading-text">Loading report data... Please wait. This may take a minute.</div>
+</div>
+
+<style>
+    /* CSS for the loading screen */
+    .loading-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(255, 255, 255, 0.85);
+        z-index: 9999;
+        display: flex; /* Keep it flex */
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        backdrop-filter: blur(4px);
+        /* NEW: Smooth fade transitions */
+        visibility: hidden;
+        opacity: 0;
+        transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+    }
+
+        /* NEW: Class to trigger the fade in */
+        .loading-overlay.show {
+            visibility: visible;
+            opacity: 1;
+        }
+
+    .spinner {
+        border: 5px solid #e2e8f0; /* Light gray border */
+        border-top: 5px solid #1d4ed8; /* Blue spinning part */
+        border-radius: 50%;
+        width: 50px;
+        height: 50px;
+        animation: spin 1s linear infinite;
+    }
+
+    .loading-text {
+        margin-top: 16px;
+        font-size: 16px;
+        font-weight: 600;
+        color: #1e293b;
+    }
+
+    @@keyframes spin {
+        0%
+
+    {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+
+    }
+</style>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const form = document.querySelector(".monthly-filter-form");
+        const overlay = document.getElementById("loading-overlay");
+        const loadingText = document.querySelector(".loading-text");
+        let downloadTimer;
+
+        if (form) {
+            form.addEventListener("submit", function (event) {
+                // Smoothly fade in the overlay
+                overlay.classList.add("show");
+
+                const clickedButton = event.submitter;
+
+                if (clickedButton && clickedButton.value === "Export") {
+                    loadingText.innerText = "Generating Excel File... Please wait. Server may take a minute to write the excel.";
+                    startCookieTimer();
+                }
+                else if (clickedButton && clickedButton.value === "ExportFinancial") {
+                    loadingText.innerText = "Generating Financial Report... Please wait.";
+                    startCookieTimer();
+                }
+                else {
+                    loadingText.innerText = "Loading Month Data... Please wait.";
+                }
+            });
+        }
+
+        function startCookieTimer() {
+            // Clear any old cookies just in case
+            document.cookie = "DownloadComplete=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+
+            // Start checking for the cookie every half-second
+            downloadTimer = window.setInterval(function() {
+                if (document.cookie.indexOf("DownloadComplete=1") !== -1) {
+                    // File is downloaded! Fade out the loader.
+                    overlay.classList.remove("show");
+
+                    // Delete the cookie so it's ready for next time
+                    document.cookie = "DownloadComplete=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+                    window.clearInterval(downloadTimer);
+                }
+            }, 500);
+        }
+    });
+</script>
