@@ -12,13 +12,10 @@ namespace acc_finance.Models
         [Column("name")]
         public string Name { get; set; } = string.Empty;
 
-        [Column("is_active")]
-        public bool Is_Active { get; set; }
+        [Column("is_active")] 
+        public bool Is_Active { get; set; } 
 
-        [Column("created_At")]
+        [Column("created_at")]
         public DateTime CreatedAt { get; set; }
-
-
-
     }
 }

@@ -1,3 +1,11 @@
 ﻿@{
-    Layout = "_Layout";
+    // If the request came from HTMX, don't use the master layout!
+    if (Context.Request.Headers.ContainsKey("HX-Request"))
+    {
+        Layout = null;
+    }
+    else
+    {
+        Layout = "_Layout";
+    }
 }

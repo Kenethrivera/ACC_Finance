@@ -23,5 +23,8 @@ namespace acc_finance.Models
 
         [Column("created_at")]
         public DateTime CreatedAt { get; set; }
+
+        [Column("fund_source")]
+        public string FundSource { get; set; } = "General";
     }
 }

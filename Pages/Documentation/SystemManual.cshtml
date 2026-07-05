@@ -1,0 +1,454 @@
+﻿@page
+@model acc_finance.Pages.Documentation.SystemManualModel
+@{
+    ViewData["Title"] = "System Architecture & Logic";
+}
+
+<div class="mb-4">
+    <h3 class="fw-bold mb-1">System Architecture & Logic Manual</h3>
+    <p class="text-muted">Comprehensive documentation of database schemas, algorithmic logic, and automated workflows.</p>
+</div>
+
+<div class="row g-4">
+
+    <div class="col-12">
+        <div class="card border-0 shadow-sm rounded-4">
+            <div class="card-header bg-white border-bottom pt-4 pb-3 px-4">
+                <h5 class="fw-bold mb-0"><i class="bi bi-diagram-3-fill me-2 text-primary"></i> 1. Supabase Entity-Relationship Diagram (ERD)</h5>
+                <p class="text-muted small mb-0 mt-1">Complete structural map including generated columns and relationships.</p>
+            </div>
+
+            <div class="card-body p-4 text-center overflow-hidden bg-light">
+                <pre class="mermaid">
+                    erDiagram
+                        %% Relationships
+                        giving_records ||--o{ giving_entries : "has many"
+                        giving_records ||--|| giving_denominations : "has one"
+                        giving_records |o--o{ disbursement_records : "funds"
+                        members ||--o{ giving_entries : "makes"
+                        disbursement_records ||--o{ vouchers : "contains"
+                        vouchers ||--o{ voucher_items : "itemizes"
+                        disbursement_templates ||--o{ disbursement_template_items : "generates"
+
+                        %% Tables
+                        users {
+                            bigint id PK
+                            text username
+                            text password
+                            text role
+                            text full_name
+                            timestamp created_at
+                        }
+
+                        members {
+                            bigint id PK
+                            text name
+                            boolean is_active
+                            timestamp created_at
+                        }
+
+                        giving_records {
+                            bigint id PK
+                            text record_code
+                            date service_date
+                            boolean is_closed
+                            decimal grand_total
+                            decimal total_tithes
+                            decimal total_offerings
+                            decimal total_solomon
+                            decimal total_noah
+                            decimal total_mission
+                            decimal total_others
+                            text notes
+                            text created_by
+                            timestamp created_at
+                        }
+
+                        giving_entries {
+                            bigint id PK
+                            bigint giving_record_id FK
+                            bigint member_id FK
+                            text entry_name
+                            text others_fund
+                            decimal tithes
+                            decimal offerings
+                            decimal solomon
+                            decimal noah
+                            decimal mission
+                            decimal others
+                            decimal total "Trigger Computed"
+                            timestamp created_at
+                            timestamp updated_at
+                        }
+
+                        giving_denominations {
+                            bigint id PK
+                            bigint giving_record_id FK
+                            int qty_1000
+                            int qty_500
+                            int qty_200
+                            int qty_100
+                            int qty_50
+                            int qty_20_paper
+                            int qty_20_coin
+                            int qty_10
+                            int qty_5
+                            int qty_1
+                            int qty_25_cent
+                            int qty_10_cent
+                            int qty_5_cent
+                            int qty_1_cent
+                            decimal total
+                            timestamp created_at
+                            timestamp updated_at
+                        }
+
+                        disbursement_records {
+                            bigint id PK
+                            bigint giving_record_id FK
+                            date record_date
+                            decimal total_blessing
+                            decimal total_released
+                            decimal total_returned
+                            decimal net_cash_disbursement "Generated"
+                            decimal net_cash_balance "Generated"
+                            boolean is_closed
+                            text notes
+                            text created_by
+                            timestamp created_at
+                            timestamp updated_at
+                        }
+
+                        vouchers {
+                            bigint id PK
+                            bigint disbursement_record_id FK
+                            text voucher_number
+                            text ministry
+                            text payee
+                            decimal amount_released
+                            decimal amount_returned
+                            decimal adjusted_disbursement "Generated"
+                            timestamp created_at
+                            timestamp updated_at
+                        }
+
+                        voucher_items {
+                            bigint id PK
+                            bigint voucher_id FK
+                            text particular
+                            text fund_source
+                            decimal amount
+                            decimal amount_returned
+                            decimal net_amount "Generated"
+                            timestamp created_at
+                        }
+
+                        disbursement_templates {
+                            bigint id PK
+                            text template_name
+                            text ministry
+                            text payee
+                            text recurrence_type
+                            int week_of_month
+                            boolean auto_apply
+                            boolean is_active
+                            text created_by
+                            timestamp created_at
+                            timestamp updated_at
+                        }
+
+                        disbursement_template_items {
+                            bigint id PK
+                            bigint template_id FK
+                            int line_no
+                            text particular
+                            text fund_source
+                            decimal amount
+                        }
+
+                        monthly_fund_balances {
+                            bigint id PK
+                            text report_month
+                            text fund_name
+                            text custodian
+                            decimal ending_balance
+                            timestamp created_at
+                        }
+                </pre>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12">
+        <div class="card border-0 shadow-sm rounded-4">
+            <div class="card-header bg-white border-bottom pt-4 pb-3 px-4">
+                <h5 class="fw-bold mb-0"><i class="bi bi-box-arrow-in-down me-2 text-success"></i> 2. Income Architecture (Procedural Flow)</h5>
+            </div>
+            <div class="card-body p-4 text-secondary">
+
+                <p class="mb-4 text-dark">The Giving Section (<code>EntryModel.cs</code>) manages the primary inflow of funds. Below is the step-by-step procedural explanation of how the system processes, calculates, and secures this data.</p>
+
+                <div class="row">
+                    <div class="col-md-12 mb-4">
+                        <div class="p-3 bg-light rounded border border-start border-4 border-primary">
+                            <h6 class="fw-bold text-dark mb-2">Phase 1: Record Initialization (`OnPostCreateRecordAsync`)</h6>
+                            <p class="small mb-2">When a user creates a new record, the system first handles <strong>Timezone Standardization</strong>. Cloud servers often operate in UTC. To prevent a selected date from shifting backwards depending on browser timezone, the C# logic executes: <code>request.ServiceDate.Date.AddHours(12)</code>. This locks the timestamp precisely at noon.</p>
+                            <p class="small mb-0">The system then executes a Supabase query to check for duplicates using the <code>record_code</code> and <code>service_date</code>. If clear, it runs a SQL <code>INSERT</code> into the <code>giving_records</code> table, explicitly setting <code>IsClosed = false</code> (Draft Mode).</p>
+                        </div>
+                    </div>
+
+                    <div class="col-md-12 mb-4">
+                        <div class="p-3 bg-light rounded border border-start border-4 border-info">
+                            <h6 class="fw-bold text-dark mb-2">Phase 2: The "Scratchpad" Data Entry (`OnPostSaveMemberAjaxAsync`)</h6>
+                            <p class="small mb-2">To prevent database bloat and excessive API calls, adding individual member entries <strong>does not immediately hit the Supabase database</strong>. Instead, the system uses a "Scratchpad" technique via <code>HttpContext.Session</code>.</p>
+                            <p class="small mb-0">When a user inputs Tithes, Offerings, etc., the system instantiates a <code>GivingEntryDraftVm</code> object. It calculates the individual total natively via C#: <code>Tithes + Offerings + Solomon + Noah + Mission + Others</code>. This object is serialized into JSON and saved to the server's session memory under a unique key: <code>giving_draft_{recordId}</code>.</p>
+                        </div>
+                    </div>
+
+                    <div class="col-md-12 mb-4">
+                        <div class="p-3 bg-light rounded border border-start border-4 border-warning">
+                            <h6 class="fw-bold text-dark mb-2">Phase 3: The Hybrid Merge & Math Engine (`BuildSummaryRowsAsync`)</h6>
+                            <p class="small mb-2">How does the UI show the data if it isn't in the database yet? The system runs a Hybrid Merge. It fetches any existing permanent rows from Supabase, then fetches the Session Drafts. If a draft matches an existing database row, the system <strong>overwrites the DB data in memory</strong> before rendering. If it's a new draft, it appends it to the list.</p>
+                            <p class="small mb-0">Next, the <code>BuildTotals()</code> function executes LINQ expressions (e.g., <code>rows.Sum(x => x.Tithes)</code>) across this merged list to calculate the real-time Grand Total displayed on the screen.</p>
+                        </div>
+                    </div>
+
+                    <div class="col-md-12 mb-4">
+                        <div class="p-3 bg-light rounded border border-start border-4 border-danger">
+                            <h6 class="fw-bold text-dark mb-2">Phase 4: Denomination Validation (`OnPostSaveDenominationAjaxAsync`)</h6>
+                            <p class="small mb-2">To guarantee financial integrity, the physical money must be validated against the encoded envelopes. When the user inputs the physical bill counts, the system executes <code>GivingDenominationInput.ComputeTotal()</code>, performing strict arithmetic: <code>(Qty1000 * 1000m) + (Qty500 * 500m)...</code>.</p>
+                            <p class="small mb-0">The system checks the math: <code>difference = totalTyped - request.TargetTotal</code>. The vital boolean property <code>IsMatched</code> is set to <code>true</code> <em>only</em> if the TargetTotal > 0 and the difference is exactly 0.00. This data is saved directly to the <code>giving_denominations</code> table.</p>
+                        </div>
+                    </div>
+
+                    <div class="col-md-12 mb-2">
+                        <div class="p-3 bg-light rounded border border-start border-4 border-success">
+                            <h6 class="fw-bold text-dark mb-2">Phase 5: The Finalize Transaction (`OnPostFinalizeAjaxAsync`)</h6>
+                            <p class="small mb-2">This is the commit phase. The system validates that <code>IsMatched</code> is true. It then iterates over every single item inside the Session Drafts.</p>
+                            <ul class="small mb-2">
+                                <li>If the system finds a matching <code>giving_record_id</code> and <code>member_id</code> in the database, it executes a Supabase <code>UPDATE</code>.</li>
+                                <li>If no match is found, it executes a Supabase <code>INSERT</code>, permanently writing the draft to the <code>giving_entries</code> table.</li>
+                            </ul>
+                            <p class="small mb-0">Once all data is flushed, the system updates the master <code>giving_records</code>, setting <code>IsClosed = true</code>. Finally, it executes <code>ClearDraftEntries(request.RecordId)</code> to wipe the server's session memory and locks the UI permanently.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12">
+        <div class="card border-0 shadow-sm rounded-4">
+            <div class="card-header bg-white border-bottom pt-4 pb-3 px-4">
+                <h5 class="fw-bold mb-0"><i class="bi bi-receipt me-2 text-danger"></i> 3. Expense Architecture (Procedural Flow)</h5>
+            </div>
+            <div class="card-body p-4 text-secondary">
+
+                <p class="mb-4 text-dark">The Disbursement Section (<code>CreateModel.cs</code>) manages the outflow of funds. Because it deals with physical cash advances and automated schedules, it relies heavily on differential syncing and calendar math.</p>
+
+                <div class="row">
+                    <div class="col-md-12 mb-4">
+                        <div class="p-3 bg-light rounded border border-start border-4 border-primary">
+                            <h6 class="fw-bold text-dark mb-2">Phase 1: Record & Budget Initialization (`GetOrCreateDisbursementRecordAsync`)</h6>
+                            <p class="small mb-2">Before any expenses can be logged, the system must establish the available budget. When a user selects a date, the C# backend immediately executes a Supabase query targeting the <code>GivingRecord</code> for that exact same date.</p>
+                            <p class="small mb-0">If a giving record exists, the system extracts its <code>GrandTotal</code> and permanently binds it to the <code>DisbursementRecord.TotalBlessing</code> column. This strict relationship ensures that ministries cannot disburse money that wasn't physically collected on that specific date.</p>
+                        </div>
+                    </div>
+
+                    <div class="col-md-12 mb-4">
+                        <div class="p-3 bg-light rounded border border-start border-4 border-info">
+                            <h6 class="fw-bold text-dark mb-2">Phase 2: Master Template Automation (`BuildAutoLoadedTemplateVouchersAsync`)</h6>
+                            <p class="small mb-2">When opening a fresh sheet, the system utilizes a Calendar Algorithm rather than relying on manual data entry.</p>
+                            <p class="small mb-2">First, it calls <code>GetSundaysInMonth(recordDate)</code> to determine if the current month has 4 or 5 Sundays. It then calls <code>GetSundayIndex()</code> to find out which week the current record falls on (e.g., Week 1, Week 3).</p>
+                            <p class="small mb-0">The system queries the <code>DisbursementTemplate</code> table. If it finds active templates where the <code>RecurrenceType</code> (4_week vs 5_week) and the <code>WeekOfMonth</code> perfectly match the calendar algorithm, it automatically clones the <code>DisbursementTemplateItem</code>s into the active UI as pre-filled <code>VoucherVm</code> objects.</p>
+                        </div>
+                    </div>
+
+                    <div class="col-md-12 mb-4">
+                        <div class="p-3 bg-light rounded border border-start border-4 border-warning">
+                            <h6 class="fw-bold text-dark mb-2">Phase 3: Payload Parsing & Normalization (`NormalizeAndValidateVouchers`)</h6>
+                            <p class="small mb-2">When the user clicks "Save", the entire HTML table of vouchers is serialized into a single JSON string (<code>SheetJson</code>) and posted to the backend.</p>
+                            <p class="small mb-0">The C# logic then scrubs the data. It trims white spaces. It runs a `GroupBy` LINQ query to actively block duplicate <code>VoucherNumber</code>s. Furthermore, it enforces logical rules: converting negative amounts to zero, and strictly preventing the <code>AmountReturned</code> from exceeding the <code>AmountReleased</code>.</p>
+                        </div>
+                    </div>
+
+                    <div class="col-md-12 mb-4">
+                        <div class="p-3 bg-light rounded border border-start border-4 border-danger">
+                            <h6 class="fw-bold text-dark mb-2">Phase 4: The Sync Algorithm (`SyncDisbursementVouchersAsync`)</h6>
+                            <p class="small mb-2">Because a user can edit an existing batch of vouchers, the backend must figure out what changed without deleting everything. It uses a <strong>Differential Sync Algorithm</strong>.</p>
+                            <p class="small mb-0">The system creates a "Composite Key" for every submitted voucher: <code>VoucherNumber|Ministry|Payee</code>. It pulls the existing database vouchers and compares the keys. <br>1. <strong>Delete:</strong> If an existing DB key isn't in the newly submitted list, the system executes an SQL <code>DELETE</code>. <br>2. <strong>Update:</strong> If the key exists in both, it runs an <code>UPDATE</code>, specifically replacing the old <code>VoucherItem</code>s with the new ones. <br>3. <strong>Insert:</strong> If the submitted key isn't in the DB, it executes a fresh <code>INSERT</code>.</p>
+                        </div>
+                    </div>
+
+                    <div class="col-md-12 mb-2">
+                        <div class="p-3 bg-light rounded border border-start border-4 border-success">
+                            <h6 class="fw-bold text-dark mb-2">Phase 5: Financial Recomputation & Liquidation (`RefreshDisbursementRecordTotalsAsync`)</h6>
+                            <p class="small mb-2">After syncing the individual vouchers, the system must ensure the master record is mathematically sound. The backend queries all vouchers tied to the <code>disbursement_record_id</code>.</p>
+                            <p class="small mb-0">It runs a LINQ <code>.Sum(v => v.AmountReleased)</code> and <code>.Sum(v => v.AmountReturned)</code>, forcing an update on the master <code>DisbursementRecord</code>. The Supabase database then takes over: using the <code>GENERATED ALWAYS AS</code> SQL constraint, it automatically calculates the <code>net_cash_disbursement</code> and updates the master <code>net_cash_balance</code>, ensuring the dashboard reporting is flawlessly accurate.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12">
+        <div class="card border-0 shadow-sm rounded-4">
+            <div class="card-header bg-white border-bottom pt-4 pb-3 px-4">
+                <h5 class="fw-bold mb-0"><i class="bi bi-bar-chart me-2 text-warning"></i> 4. Reporting & Export Architecture</h5>
+            </div>
+            <div class="card-body p-4 text-secondary">
+                <p class="mb-4 text-dark">The Reporting Section (<code>MonthlyModel.cs</code>) prepares highly critical financial data for the church congregation. <strong>There are zero manual inputs here.</strong> The system strictly acts as a data aggregator and presentation formatter.</p>
+                <div class="row">
+                    <div class="col-md-12 mb-4">
+                        <div class="p-3 bg-light rounded border border-start border-4 border-primary">
+                            <h6 class="fw-bold text-dark mb-2">Phase 1: Time Horizon & Historical Carry-Over</h6>
+                            <p class="small mb-2">Financial reports require strict chronological continuity. When generating a report for a specific month, the system cannot just look at that month in isolation. It first looks backwards.</p>
+                            <p class="small mb-0">The system executes a query filtering for the <em>previous</em> month. It extracts the exact <code>EndingBalance</code> for the General, Pledges, Construction, and Praise & Worship funds. These historical numbers are natively injected as the "Beginning Balances" for the current report, ensuring the ledger remains unbroken year-round.</p>
+                        </div>
+                    </div>
+
+                    <div class="col-md-12 mb-4">
+                        <div class="p-3 bg-white rounded border border-danger shadow-sm">
+                            <h6 class="fw-bold text-danger mb-3"><i class="bi bi-exclamation-triangle-fill text-danger me-2"></i> Troubleshooting: The "Duplicate Table" Error 500</h6>
+                            <p class="small mb-3">When exporting the Detailed Report, you might occasionally encounter a failure with an <strong>Internal Server Error 500</strong>. This happens specifically because of how Google Sheets handles Table Data.</p>
+                            <p class="small mb-2"><strong>The Cause:</strong> The C# system instructs Google Sheets to draw a formatted table using your <code>RecordCode</code> as the table's official name. However, Google Sheets mandates that <em>every table name must be strictly unique across the entire document</em> (including all tabs and past months).</p>
+                            <p class="small mb-0"><strong>The Solution:</strong> If you used the Record Code <code>CR_01</code> in January, you cannot use <code>CR_01</code> again in February. The system's <code>try/catch</code> block actively watches for this collision. When it happens, it aborts the export, protects your existing data, and displays a step-by-step UI message instructing the user to return to the Giving Module and rename the current month's record code to something unique (e.g., <code>CR_FEB_01</code>).</p>
+                        </div>
+                    </div>
+
+                    <div class="col-md-12 mb-4">
+                        <div class="p-3 bg-light rounded border border-start border-4 border-info">
+                            <h6 class="fw-bold text-dark mb-2">Phase 2: Situational Data Scrubbing (The "Smart" Ledger)</h6>
+                            <p class="small mb-2">Raw database entries are often too fragmented for a church congregation to read comfortably. The system applies situational C# logic to "clean up" the descriptions before presentation.</p>
+                            <ul class="small mb-0">
+                                <li><strong>The Audit Rule:</strong> If an expense particular contains "professional fee" and the payee is "Imelda", the system overrides the label to explicitly print: <em>"Internal auditor's professional fee - Sis. Imelda"</em>.</li>
+                                <li><strong>The Olivarez Rent Split:</strong> If the system detects a "PFC - Olivarez" expense of ₱2,500, it intercepts the data. It artificially splits it into two lines for the report: one strictly labeled <em>"Rent payment - PFC Olivarez"</em> for exactly ₱2,000, and leaves the remaining ₱500 under the standard PFC label.</li>
+                                <li><strong>The Context Rule:</strong> If a voucher is for a "Stipend", the system automatically appends the Payee's name to the end of the particular so the congregation knows exactly who received it.</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="col-md-12 mb-4">
+                        <div class="p-3 bg-white rounded border border-dark shadow-sm">
+                            <h6 class="fw-bold text-dark mb-3"><i class="bi bi-search text-dark me-2"></i> Case Study: The January 4th Scenario</h6>
+                            <p class="small mb-3">To understand how the UI, Detailed Export, and Financial Export work together, let's trace a concrete example. Assume the user opens the Reports module and selects <strong>January 2026</strong>. We will focus specifically on the first Sunday: <strong>January 4th</strong>.</p>
+
+                            <h6 class="fw-bold text-primary small">A. UI Rendering (`LoadMonthAsync`)</h6>
+                            <p class="small mb-3">The system identifies all Sundays in January (Jan 4, 11, 18, 25). For <strong>Jan 4</strong>, it queries the <code>GivingRecord</code> where <code>service_date = '2026-01-04'</code>. If it finds ₱10,000 in collections, it fetches all individual envelopes and groups them (Family, Group, Anonymous). Next, it fetches the <code>DisbursementRecord</code> for Jan 4. It pulls all vouchers, calculating Net Disbursements (e.g., ₱2,000 Released - ₱500 Returned = ₱1,500 Net). It renders this summary strictly for Jan 4 in an accordion on the screen.</p>
+
+                            <h6 class="fw-bold text-success small">B. Export Detailed Report (`ExportRecordsAsync`)</h6>
+                            <p class="small mb-3">The user clicks "Export Detailed Report". The system authenticates with the Google Sheets API. It commands Google to create a new tab named "JANUARY 2026". The C# logic then loops through January 4th. It prints a massive grid, dropping every single <code>GivingEntry</code> envelope row-by-row, followed by every single <code>VoucherItem</code> row-by-row. It applies strict Arial 11 formatting and sets the cells as Currency. It repeats this for Jan 11, 18, and 25 directly beneath it, generating a master audit trail.</p>
+
+                            <h6 class="fw-bold text-danger small">C. Export Financial Report (`ExportFinancialAsync`)</h6>
+                            <p class="small mb-0">The user clicks "Export Financial Report". The system ignores individual envelopes. Instead, it looks back to December 2025 to grab the Beginning Balance. It takes the Jan 4th Income (₱10,000) and subtracts the Jan 4th Expense (₱1,500). It applies the Situational Scrubbing rules mentioned above to clean the labels. Finally, it calculates the true Ending Balance: <em>Beg Balance + ₱10,000 - ₱1,500</em>. It performs an <code>UPSERT</code> to save this final number into the database for February to use, and pushes this highly summarized, executive-level math to the separate Financial Summary Google Sheet.</p>
+                        </div>
+                    </div>
+
+                    <div class="col-md-12 mb-2">
+                        <div class="p-3 bg-light rounded border border-start border-4 border-success">
+                            <h6 class="fw-bold text-dark mb-2">Phase 4: The Google Sheets Presentation Engine</h6>
+                            <p class="small mb-2">To present the data beautifully, the system interfaces directly with the <strong>Google Sheets API v4</strong>. It uses a server-to-server hidden Service Account (<code>google-credentials.json</code>) to authenticate.</p>
+                            <p class="small mb-0">Instead of updating cells one by one, the system builds an entire "Virtual Grid" in memory using a <code>List&lt;List&lt;object&gt;&gt;</code>. It prepares an array of <code>BatchRequests</code> containing advanced formatting instructions (merging columns, hiding gridlines, setting currency rules). It executes this massive data payload in a single API call, generating a perfectly formatted spreadsheet ready for printing.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12">
+        <div class="card border-0 shadow-sm rounded-4">
+            <div class="card-header bg-white border-bottom pt-4 pb-3 px-4">
+                <h5 class="fw-bold mb-0"><i class="bi bi-grid me-2 text-info"></i> 5. Dashboard Telemetry & Wallet Initialization</h5>
+            </div>
+            <div class="card-body p-4 text-secondary">
+                <p class="small mb-4 text-dark">The Dashboard (<code>IndexModel.cs</code>) does not pull from a static "Dashboard Table". Instead, it dynamically aggregates data from across the entire system. Below is the procedural logic of how the 4 specific Fund Wallets calculate their exact real-time values.</p>
+                <div class="row">
+                    <div class="col-md-12 mb-4">
+                        <div class="p-3 bg-light rounded border border-start border-4 border-primary">
+                            <h6 class="fw-bold text-dark mb-2">Phase 1: Finding the "Anchor" Month</h6>
+                            <p class="small mb-2">If a user logs in on May 1st but hasn't created any May records yet, showing a blank screen would cause panic. To prevent this, the system executes <code>OrderByDescending(b => b.ReportMonth).FirstOrDefault()</code> on the <code>MonthlyFundBalance</code> table.</p>
+                            <p class="small mb-0">This finds the absolute latest officially reported month (e.g., April) and uses that as the "Anchor Month" for all dashboard calculations, ensuring the data always reflects the latest recognized reality.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-12 mb-4">
+                        <div class="p-3 bg-light rounded border border-start border-4 border-info">
+                            <h6 class="fw-bold text-dark mb-2">Phase 2: Extracting Historical Carry-Over</h6>
+                            <p class="small mb-0">The system queries the <code>MonthlyFundBalance</code> table twice. First, it extracts the <code>EndingBalance</code> of the <em>previous</em> month (e.g., March) to populate the <code>BegBalance</code> metric of the current Wallets. Secondly, it extracts the <code>EndingBalance</code> of the <em>anchor</em> month (e.g., April) to firmly lock the <code>EndBalance</code> metric shown in large font on the UI.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-12 mb-4">
+                        <div class="p-3 bg-light rounded border border-start border-4 border-warning">
+                            <h6 class="fw-bold text-dark mb-2">Phase 3: The Inflow Engine (Income Segregation)</h6>
+                            <p class="small mb-2">To calculate the green "Income" metric for the month, the system fetches all <code>GivingEntry</code> records for the Anchor Month. It then applies strict C# LINQ routing logic based on the <code>OthersFund</code> column:</p>
+                            <ul class="small mb-0">
+                                <li><strong>General Income:</strong> <code>Sum(Tithes + Offerings)</code> PLUS any <code>Others</code> amount where the fund source is "General" or blank.</li>
+                                <li><strong>Pledges Income:</strong> <code>Sum(Solomon + Noah + Mission)</code> PLUS any <code>Others</code> tagged directly to "Pledges".</li>
+                                <li><strong>Construction & P/W Income:</strong> Extracts only the <code>Others</code> amounts explicitly tagged to "Construction" or "Praise & Worship".</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="col-md-12 mb-4">
+                        <div class="p-3 bg-light rounded border border-start border-4 border-danger">
+                            <h6 class="fw-bold text-dark mb-2">Phase 4: The Outflow Engine (Expense Routing)</h6>
+                            <p class="small mb-2">To calculate the red "Expense" metric, the system fetches all <code>VoucherItem</code>s for the month. It does not just blindly sum the requested amounts.</p>
+                            <p class="small mb-0">It loops through every item and mathematically derives the <code>Net Expense = Amount - AmountReturned</code>. It then inspects the <code>FundSource</code> string on each line item (e.g., "General", "Pledges") and routes that specific Net Expense precisely to the corresponding wallet's expense tally.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-12 mb-2">
+                        <div class="p-3 bg-light rounded border border-start border-4 border-success">
+                            <h6 class="fw-bold text-dark mb-2">Phase 5: Wallet Construction</h6>
+                            <p class="small mb-0">Finally, the system instantiates 4 distinct <code>FundWallet</code> objects (General Fund, Pledges, Construction, Praise & Worship), injecting the Beginning Balances, Incomes, Expenses, and Ending Balances calculated in the previous phases. It computes the <code>TotalChurchFunds</code> by summing the four official ending balances, readying the dashboard for instant presentation.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12">
+        <div class="card border-0 shadow-sm rounded-4">
+            <div class="card-header bg-white border-bottom pt-4 pb-3 px-4">
+                <h5 class="fw-bold mb-0"><i class="bi bi-hdd-network me-2 text-secondary"></i> 6. Infrastructure & Connection Handling</h5>
+            </div>
+            <div class="card-body p-4 text-secondary">
+                <p class="small mb-4 text-dark">The system relies on a cloud-hosted Supabase PostgreSQL database. It is important to understand how the system behaves when the database enters a standby state.</p>
+
+                <div class="row">
+                    <div class="col-md-12 mb-4">
+                        <div class="p-3 bg-white rounded border border-dark shadow-sm">
+                            <h6 class="fw-bold text-dark mb-3"><i class="bi bi-pause-circle text-warning me-2"></i> The Supabase "Pause" Mechanic</h6>
+                            <p class="small mb-2"><strong>Why does it happen?</strong> If you are using the Free Tier of Supabase, the platform will automatically "Pause" the database project if it detects zero API requests or logins for exactly 7 days. This is a cost-saving measure by the provider.</p>
+
+                            <p class="small mb-2"><strong>What are the symptoms?</strong> If the database is paused, the web application will not instantly crash. Because our C# backend strictly wraps data calls in <code>try/catch</code> blocks, the system will gracefully fail. However, users will experience symptoms such as:</p>
+                            <ul class="small mb-3">
+                                <li>The Dashboard spinning endlessly or displaying ₱0.00 for all wallets.</li>
+                                <li>Red UI alerts stating <em>"Unexpected Error: Task was canceled"</em> or <em>"Connection Timed Out"</em> when trying to save a record.</li>
+                                <li>Failed login attempts.</li>
+                            </ul>
+
+                            <h6 class="fw-bold text-success mb-2">How to Fix (Waking the Database)</h6>
+                            <p class="small mb-2">You cannot fix this from within the ACC Finance app. The administrator must intervene at the infrastructure level:</p>
+                            <ol class="small mb-0">
+                                <li>Open a new browser tab and navigate to <strong>app.supabase.com</strong>.</li>
+                                <li>Log in using the master administrator credentials for the project.</li>
+                                <li>The Supabase dashboard will display a massive banner stating the project is paused. Click the green <strong>"Restore Project"</strong> button.</li>
+                                <li>Wait approximately 2 to 5 minutes for the cloud servers to spin back up.</li>
+                                <li>Once Supabase shows the project is "Active", return to the ACC Finance app and refresh the page. Connectivity will instantly resume.</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+@section Scripts {
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({ startOnLoad: true, theme: 'default' });
+    </script>
+}

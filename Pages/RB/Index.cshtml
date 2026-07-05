@@ -1,0 +1,158 @@
+﻿@page
+@model acc_finance.Pages.RB.IndexModel
+@{
+    ViewData["Title"] = "Running Balance";
+}
+
+<div class="container-fluid py-4">
+
+    @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+    {
+        <div class="alert alert-danger mb-4">@Model.ErrorMessage</div>
+    }
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 fw-bold text-dark mb-1">RB (Running Balance) Ledger</h1>
+            <p class="text-muted mb-0">Historical log of all inter-fund balances, pledges, and total cash on hand.</p>
+        </div>
+    </div>
+
+    <!-- Filter Navigation -->
+    <ul class="nav nav-pills mb-4 border-bottom pb-3">
+        <li class="nav-item me-2">
+            <a class="nav-link @(Model.Filter == "COH" ? "active bg-primary text-white fw-semibold" : "text-dark bg-light")" href="?Filter=COH">Total Cash On Hand</a>
+        </li>
+        <li class="nav-item me-2">
+            <a class="nav-link @(Model.Filter == "General" ? "active bg-primary text-white fw-semibold" : "text-dark bg-light")" href="?Filter=General">General Fund</a>
+        </li>
+        <li class="nav-item me-2">
+            <a class="nav-link @(Model.Filter == "Pledges" ? "active bg-primary text-white fw-semibold" : "text-dark bg-light")" href="?Filter=Pledges">Pledges</a>
+        </li>
+        <li class="nav-item me-2">
+            <a class="nav-link @(Model.Filter == "Construction" ? "active bg-primary text-white fw-semibold" : "text-dark bg-light")" href="?Filter=Construction">Construction</a>
+        </li>
+    </ul>
+
+    @if (Model.Filter == "COH")
+    {
+        <!-- DEFAULT VIEW: TOTAL CASH ON HAND (Excel Formatting) -->
+        <div class="row">
+            <div class="col-md-10 col-lg-8">
+                <h5 class="fw-bold mb-1 text-dark">Total cash on hand</h5>
+                <h6 class="mb-4 text-dark" style="font-size: 0.95rem;">Estimated</h6>
+
+                @if (Model.CohSnapshots.Any())
+                {
+                    foreach (var snap in Model.CohSnapshots)
+                    {
+                        <div class="mb-5 pb-4 border-bottom">
+                            <!-- Header Line -->
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="text-uppercase text-dark" style="font-size: 1.05rem;">TOTAL COH - @snap.Date.ToString("MM.dd.yyyy")</span>
+                                <span class="text-dark fw-bold" style="font-size: 1.15rem;">@snap.TotalCohAmount.ToString("N2")</span>
+                            </div>
+
+                            <!-- Custodian Breakdown -->
+                            <div class="ms-5 ps-5 mb-5" style="max-width: 350px;">
+                                <div class="d-flex justify-content-between mb-1 text-dark" style="font-size: 1rem;">
+                                    <span>c/o Sis. Cora</span>
+                                    <span>@snap.CoSisCora.ToString("N2")</span>
+                                </div>
+                                <div class="d-flex justify-content-between mb-1 text-dark" style="font-size: 1rem;">
+                                    <span>c./o Ptra Es</span>
+                                    <span>@snap.CoPtraEs.ToString("N2")</span>
+                                </div>
+                                <div class="d-flex justify-content-between text-dark" style="font-size: 1rem;">
+                                    <span>c/o P/W</span>
+                                    <span class="border-bottom border-dark pb-1" style="border-width: 1px !important;">@snap.CoPW.ToString("N2")</span>
+                                </div>
+                                <div class="d-flex justify-content-end mt-1 text-dark" style="font-size: 1rem;">
+                                    <span>@((snap.CoSisCora + snap.CoPtraEs + snap.CoPW).ToString("N2"))</span>
+                                </div>
+                            </div>
+
+                            <!-- Pledges Breakdown -->
+                            <div class="ms-5 ps-5" style="max-width: 350px;">
+                                <div class="d-flex justify-content-between mb-1 text-dark" style="font-size: 1rem;">
+                                    <span>Pledges should be total</span>
+                                    <span>@snap.PledgesShouldBeTotal.ToString("N2")</span>
+                                </div>
+                                <div class="d-flex justify-content-between text-dark" style="font-size: 1rem;">
+                                    <span>Pledges actual total</span>
+                                    <span class="border-bottom border-dark pb-1" style="border-width: 1px !important;">@snap.PledgesActualTotal.ToString("N2")</span>
+                                </div>
+                                <div class="d-flex justify-content-between mt-1 text-dark @(snap.ShouldReturn > 0 ? "bg-danger-subtle fw-semibold px-2 py-1" : "")" style="font-size: 1rem;">
+                                    <span>Should return</span>
+                                    <span>@snap.ShouldReturn.ToString("N2")</span>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="py-5 text-muted">
+                        No financial data available to calculate Cash On Hand.
+                    </div>
+                }
+            </div>
+        </div>
+    }
+    else
+    {
+        <!-- WALLET VIEW: General, Pledges, Construction -->
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="py-3 px-4 fw-semibold text-secondary" style="width: 20%;">DATE</th>
+                                <th class="py-3 px-4 fw-semibold text-secondary" style="width: 40%;">DESCRIPTION</th>
+                                <th class="py-3 px-4 fw-semibold text-secondary text-end" style="width: 20%;">AMOUNT</th>
+                                <th class="py-3 px-4 fw-semibold text-secondary text-end" style="width: 20%;">RUNNING BALANCE</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (Model.WalletEntries.Any())
+                            {
+                                foreach (var entry in Model.WalletEntries)
+                                {
+                                    <tr>
+                                        <td class="py-3 px-4 text-dark">@entry.Date.ToString("MMM dd, yyyy")</td>
+                                        <td class="py-3 px-4 text-dark">
+                                            @if (entry.Amount < 0)
+                                            {
+                                                <span class="badge bg-danger-subtle text-danger border border-danger-subtle me-2">OUT</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-success-subtle text-success border border-success-subtle me-2">IN</span>
+                                            }
+                                            @entry.Description
+                                        </td>
+                                        <td class="py-3 px-4 text-end fw-medium @(entry.Amount < 0 ? "text-danger" : "text-success")">
+                                            ₱ @Math.Abs(entry.Amount).ToString("N2")
+                                        </td>
+                                        <td class="py-3 px-4 text-end fw-bold text-dark">
+                                            ₱ @entry.RunningBalance.ToString("N2")
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="4" class="py-5 text-center text-muted">
+                                        No ledger entries found for @Model.Filter.
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+</div>

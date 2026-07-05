@@ -20,5 +20,8 @@ namespace acc_finance.Models
 
         [Column("amount")]
         public decimal Amount { get; set; }
+
+        [Column("fund_source")]
+        public string FundSource { get; set; } = "General";
     }
 }

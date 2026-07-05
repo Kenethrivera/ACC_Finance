@@ -1,0 +1,123 @@
+=== DEBUG January 2026 | Run at 4/20/2026 5:24:10 PM ===
+[1] GivingRecords: 4
+[2] GR 3 -> 1 DisbRecords
+[2] GR 1 -> 1 DisbRecords
+[2] GR 4 -> 1 DisbRecords
+[2] GR 2 -> 1 DisbRecords
+[2] Total DisbRecords: 4
+[3] DR 3 -> 5 Vouchers
+    V#011 id=11 ministry='Admin' payee='Ptr. Syd'
+    V#013 id=13 ministry='Evangelism' payee='Ken'
+    V#014 id=14 ministry='Worship' payee='Joyce'
+    V#015 id=15 ministry='Deacon' payee='Len'
+    V#012 id=12 ministry='Admin' payee='Len'
+[3] DR 1 -> 4 Vouchers
+    V#008 id=2 ministry='Admin' payee='Len'
+    V#007 id=1 ministry='Admin' payee='Ptr. Syd'
+    V#009 id=3 ministry='Admin' payee='Imelda'
+    V#010 id=4 ministry='Evangelism' payee='Keneth / Len'
+[3] DR 4 -> 8 Vouchers
+    V#016 id=16 ministry='Admin' payee='Ptr. Syd'
+    V#017 id=17 ministry='Admin' payee='Len'
+    V#018 id=18 ministry='Admin' payee='Ptr. Syd'
+    V#019 id=19 ministry='Evangelism' payee='Ken / Len'
+    V#020 id=20 ministry='Deacon' payee='Len'
+    V#021 id=21 ministry='Admin' payee='Cora / Hanna'
+    V#022 id=22 ministry='Admin' payee='Cora'
+    V#023 id=23 ministry='Discipleship' payee='Ptr. Syd'
+[3] DR 2 -> 6 Vouchers
+    V#001 id=5 ministry='Admin' payee='Ptr. Syd'
+    V#004 id=7 ministry='Admin' payee='Hanna'
+    V#003 id=8 ministry='Evangelism' payee='Ken'
+    V#005 id=9 ministry='Deacon' payee='Len'
+    V#006 id=10 ministry='Fellowship' payee='Ptra. Ester'
+    V#002 id=6 ministry='Admin' payee='Len'
+[3] Total Vouchers: 23
+[4] V#011 (ministry='Admin') -> 1 items
+    item id=12 particular='Stipend' amt=3750.00 ret=0.00 net=3750.00
+[4] V#013 (ministry='Evangelism') -> 1 items
+    item id=14 particular='PFC Olivarez' amt=500.00 ret=280.00 net=220.00
+[4] V#014 (ministry='Worship') -> 1 items
+    item id=15 particular='Israel Hougton's concert - food and transpo of P/W members' amt=3243.00 ret=0.00 net=3243.00
+[4] V#015 (ministry='Deacon') -> 1 items
+    item id=16 particular='Cleaning materials - mop and disinfectant' amt=325.00 ret=0.00 net=325.00
+[4] V#012 (ministry='Admin') -> 1 items
+    item id=13 particular='Stipend' amt=1250.00 ret=0.00 net=1250.00
+[4] V#008 (ministry='Admin') -> 1 items
+    item id=2 particular='Stipend' amt=1250.00 ret=0.00 net=1250.00
+[4] V#007 (ministry='Admin') -> 1 items
+    item id=1 particular='Stipend' amt=3750.00 ret=0.00 net=3750.00
+[4] V#009 (ministry='Admin') -> 1 items
+    item id=3 particular='Professional Fee' amt=500.00 ret=0.00 net=500.00
+[4] V#010 (ministry='Evangelism') -> 2 items
+    item id=4 particular='PFC Dela Paz' amt=1500.00 ret=346.50 net=1153.50
+    item id=5 particular='PFC Olivarez' amt=1500.00 ret=270.00 net=1230.00
+[4] V#016 (ministry='Admin') -> 1 items
+    item id=17 particular='Stipend' amt=3750.00 ret=0.00 net=3750.00
+[4] V#017 (ministry='Admin') -> 1 items
+    item id=18 particular='Stipend' amt=1250.00 ret=0.00 net=1250.00
+[4] V#018 (ministry='Admin') -> 1 items
+    item id=19 particular='SSS - Ptr. Syd' amt=3150.00 ret=0.00 net=3150.00
+[4] V#019 (ministry='Evangelism') -> 2 items
+    item id=20 particular='PFC Dela Paz' amt=1500.00 ret=105.00 net=1395.00
+    item id=21 particular='PFC Olivarez' amt=500.00 ret=310.00 net=190.00
+[4] V#020 (ministry='Deacon') -> 3 items
+    item id=22 particular='Lord's Supper' amt=200.00 ret=0.00 net=200.00
+    item id=23 particular='Cleaning Materials' amt=124.00 ret=0.00 net=124.00
+    item id=24 particular='Light Buld' amt=100.00 ret=0.00 net=100.00
+[4] V#021 (ministry='Admin') -> 1 items
+    item id=25 particular='Finance Meeting (all churches) - Food' amt=850.00 ret=0.00 net=850.00
+[4] V#022 (ministry='Admin') -> 1 items
+    item id=26 particular='Meralco' amt=3589.14 ret=0.00 net=3589.14
+[4] V#023 (ministry='Discipleship') -> 1 items
+    item id=27 particular='Book for discipleship training' amt=1000.00 ret=0.00 net=1000.00
+[4] V#001 (ministry='Admin') -> 1 items
+    item id=6 particular='Stipend' amt=3750.00 ret=0.00 net=3750.00
+[4] V#004 (ministry='Admin') -> 1 items
+    item id=8 particular='Meralco' amt=5453.55 ret=0.00 net=5453.55
+[4] V#003 (ministry='Evangelism') -> 1 items
+    item id=9 particular='PFC Olivarez' amt=1500.00 ret=340.00 net=1160.00
+[4] V#005 (ministry='Deacon') -> 1 items
+    item id=10 particular='Lord's Supper' amt=400.00 ret=0.00 net=400.00
+[4] V#006 (ministry='Fellowship') -> 1 items
+    item id=11 particular='Youth Camp' amt=10000.00 ret=1764.00 net=8236.00
+[4] V#002 (ministry='Admin') -> 1 items
+    item id=7 particular='Stipend' amt=1250.00 ret=0.00 net=1250.00
+[4] Total Items: 27
+    null particular: 0
+    empty particular: 0
+    skipped net<=0: 0
+[5] Ministry groups:
+    'Admin': 13 items, total=33542.69
+      'Stipend' = 3750.00
+      'Stipend' = 1250.00
+      'Stipend' = 1250.00
+      'Stipend' = 3750.00
+      'Professional Fee' = 500.00
+      'Stipend' = 3750.00
+      'Stipend' = 1250.00
+      'SSS - Ptr. Syd' = 3150.00
+      'Finance Meeting (all churches) - Food' = 850.00
+      'Meralco' = 3589.14
+      'Stipend' = 3750.00
+      'Meralco' = 5453.55
+      'Stipend' = 1250.00
+    'Deacon': 5 items, total=1149.00
+      'Cleaning materials - mop and disinfectant' = 325.00
+      'Lord's Supper' = 200.00
+      'Cleaning Materials' = 124.00
+      'Light Buld' = 100.00
+      'Lord's Supper' = 400.00
+    'Discipleship': 1 items, total=1000.00
+      'Book for discipleship training' = 1000.00
+    'Evangelism': 6 items, total=5348.50
+      'PFC Olivarez' = 220.00
+      'PFC Dela Paz' = 1153.50
+      'PFC Olivarez' = 1230.00
+      'PFC Dela Paz' = 1395.00
+      'PFC Olivarez' = 190.00
+      'PFC Olivarez' = 1160.00
+    'Fellowship': 1 items, total=8236.00
+      'Youth Camp' = 8236.00
+    'Worship': 1 items, total=3243.00
+      'Israel Hougton's concert - food and transpo of P/W members' = 3243.00

@@ -1,0 +1,79 @@
+﻿@page
+@model acc_finance.Pages.DebtTracker.PayModel
+@{
+    ViewData["Title"] = "Pay Inter-Fund Loan";
+}
+
+<div class="container py-5" style="max-width: 650px;">
+
+    <div class="mb-4">
+        <a href="/WalletDetails?fund=@Model.TargetLoan.BorrowerFund" class="text-decoration-none text-muted mb-2 d-inline-block">
+            <i class="bi bi-arrow-left me-1"></i> Cancel & Return to Ledger
+        </a>
+        <h2 class="fw-bold text-dark"><i class="bi bi-cash-coin text-success me-2"></i> Process Repayment</h2>
+        <p class="text-secondary">You are moving physical cash back to the lending fund.</p>
+    </div>
+
+    @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+    {
+        <div class="alert alert-danger shadow-sm border-0 rounded-3">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i> @Model.ErrorMessage
+        </div>
+    }
+
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
+        <!-- Summary Header -->
+        <div class="bg-light border-bottom p-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="text-center">
+                    <div class="text-muted small fw-bold text-uppercase" style="letter-spacing: 0.05em;">Paying Fund</div>
+                    <div class="fs-5 fw-bold text-danger">@Model.TargetLoan.BorrowerFund</div>
+                </div>
+                <div>
+                    <i class="bi bi-arrow-right fs-3 text-secondary opacity-50"></i>
+                </div>
+                <div class="text-center">
+                    <div class="text-muted small fw-bold text-uppercase" style="letter-spacing: 0.05em;">Receiving Fund</div>
+                    <div class="fs-5 fw-bold text-success">@Model.TargetLoan.LenderFund</div>
+                </div>
+            </div>
+
+            <div class="text-center mt-4">
+                <div class="text-muted fw-bold text-uppercase small mb-1">Current Unpaid Balance</div>
+                <div class="fs-1 fw-bolder text-dark" style="line-height: 1;">
+                    <span class="fs-4 opacity-75">₱</span> @Model.TargetLoan.RemainingBalance.ToString("N2")
+                </div>
+            </div>
+        </div>
+
+        <!-- Payment Form -->
+        <div class="card-body p-4 p-md-5">
+            <form method="post">
+                <input type="hidden" asp-for="LoanId" />
+
+                <div class="mb-4">
+                    <label asp-for="PaymentAmount" class="form-label fw-bold text-dark">Amount to Pay Now</label>
+                    <div class="input-group input-group-lg shadow-sm">
+                        <span class="input-group-text bg-white border-end-0 text-muted">₱</span>
+                        <input type="number" asp-for="PaymentAmount" class="form-control border-start-0 fw-bold text-dark" step="0.01" min="0.01" max="@Model.TargetLoan.RemainingBalance" required />
+                    </div>
+                    <div class="form-text mt-2"><i class="bi bi-info-circle me-1"></i> Defaults to the full remaining balance. You can change this for partial payments.</div>
+                </div>
+
+                <div class="mb-5">
+                    <label asp-for="PaymentNotes" class="form-label fw-bold text-dark">Memo / Notes (Optional)</label>
+                    <textarea asp-for="PaymentNotes" class="form-control bg-light" rows="3" placeholder="e.g., Partial payment from Sunday tithes..."></textarea>
+                </div>
+
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-success btn-lg fw-bold rounded-pill shadow-sm">
+                        <i class="bi bi-check2-circle me-2"></i> Confirm Repayment
+                    </button>
+                    <a href="/WalletDetails?fund=@Model.TargetLoan.BorrowerFund" class="btn btn-light text-muted fw-bold rounded-pill">
+                        Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

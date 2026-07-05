@@ -4,34 +4,39 @@ using acc_finance.Models;
 using acc_finance.Services;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.AspNetCore.Authorization;
 
 namespace acc_finance.Pages.Giving
 {
+    [Authorize(Roles = "Admin")]
     public class EntryModel : PageModel
     {
         private readonly SupabaseService _supabase;
+        private readonly IMemoryCache _cache;
 
-        public EntryModel(SupabaseService supabase)
+        public EntryModel(SupabaseService supabase, IMemoryCache cache)
         {
             _supabase = supabase;
+            _cache = cache;
         }
 
-        public List<Member> Members { get; set; } = new(); // for members
-        public List<GivingEntryRowVm> SummaryRows { get; set; } = new(); // vm for entries
+        public List<Member> Members { get; set; } = new();
+        public List<GivingEntryRowVm> SummaryRows { get; set; } = new();
 
         [BindProperty(SupportsGet = true)]
-        public long RecordId { get; set; } // record id
+        public long RecordId { get; set; }
 
         [BindProperty(SupportsGet = true)]
-        public long? SelectedMemberId { get; set; } // member id
+        public long? SelectedMemberId { get; set; }
 
         [BindProperty]
-        public RecordHeaderInput Header { get; set; } = new(); // header (object)
+        public RecordHeaderInput Header { get; set; } = new();
 
-        public GivingRecord? CurrentRecord { get; set; } // current header 
+        public GivingRecord? CurrentRecord { get; set; }
 
         [BindProperty]
-        public GivingInput Input { get; set; } = new(); // input (use in entries input)
+        public GivingInput Input { get; set; } = new();
 
         public decimal TotalTithes { get; set; }
         public decimal TotalOfferings { get; set; }
@@ -41,19 +46,50 @@ namespace acc_finance.Pages.Giving
         public decimal TotalOthers { get; set; }
         public decimal GrandTotal { get; set; }
 
-        public string Message { get; set; } = ""; // handling error message
-        public bool IsClosed { get; set; } // flag for finalized record or not
+        public string Message { get; set; } = "";
+        public bool IsClosed { get; set; }
 
-        // handles for DENOMINATIONS
         public GivingDenominationInput Denomination { get; set; } = new();
-        public decimal DenominationTotal { get; set; } // total var
-        public decimal DenominationDifference { get; set; } // difference var
-        public bool IsDenominationMatched { get; set; } // isMatch var
-        public bool DenominationExist { get; set; } // flag for exists
+        public decimal DenominationTotal { get; set; }
+        public decimal DenominationDifference { get; set; }
+        public bool IsDenominationMatched { get; set; }
+        public bool DenominationExist { get; set; }
 
-        public async Task OnGetAsync()
+        private async Task<List<Member>> GetCachedMembersAsync()
         {
+            if (!_cache.TryGetValue("ActiveMembersList", out List<Member> cachedMembers))
+            {
+                var memberResponse = await _supabase.Client
+                    .From<Member>()
+                    .Filter("is_active", Operator.Equals, "true")
+                    .Get();
+
+                cachedMembers = memberResponse.Models.OrderBy(m => m.Name).ToList();
+                var memberOptions = new MemoryCacheEntryOptions()
+                    .SetSize(5) 
+                    .SetAbsoluteExpiration(TimeSpan.FromHours(1));
+                _cache.Set("ActiveMembersList", cachedMembers, memberOptions);
+            }
+            return cachedMembers ?? new List<Member>();
+        }
+
+        public async Task<IActionResult> OnGetAsync()
+        {
+            if (RecordId == 0)
+            {
+                var savedRecordId = HttpContext.Session.GetString("ActiveGivingRecordId");
+                if (!string.IsNullOrEmpty(savedRecordId) && long.TryParse(savedRecordId, out long parsedId))
+                {
+                    return RedirectToPage(new { RecordId = parsedId });
+                }
+            }
+            else
+            {
+                HttpContext.Session.SetString("ActiveGivingRecordId", RecordId.ToString());
+            }
+
             await LoadPageDataAsync();
+            return Page();
         }
 
         public async Task<IActionResult> OnPostLoadRecordAsync()
@@ -203,7 +239,8 @@ namespace acc_finance.Pages.Giving
                     solomon = draft.Solomon,
                     noah = draft.Noah,
                     mission = draft.Mission,
-                    others = draft.Others
+                    others = draft.Others,
+                    othersFund = draft.OthersFund // NEW PER-ROW FIELD
                 });
             }
 
@@ -214,14 +251,7 @@ namespace acc_finance.Pages.Giving
         {
             await _supabase.InitializeAsync(true);
 
-            var memberResponse = await _supabase.Client
-                .From<Member>()
-                .Filter("is_active", Operator.Equals, "true")
-                .Get();
-
-            Members = memberResponse.Models
-                .OrderBy(m => m.Name)
-                .ToList();
+            Members = await GetCachedMembersAsync();
 
             if (RecordId > 0)
             {
@@ -256,7 +286,8 @@ namespace acc_finance.Pages.Giving
                         Solomon = draft.Solomon,
                         Noah = draft.Noah,
                         Mission = draft.Mission,
-                        Others = draft.Others
+                        Others = draft.Others,
+                        OthersFund = draft.OthersFund
                     };
                 }
                 else if (RecordId > 0)
@@ -277,7 +308,8 @@ namespace acc_finance.Pages.Giving
                         Solomon = entry?.Solomon ?? 0,
                         Noah = entry?.Noah ?? 0,
                         Mission = entry?.Mission ?? 0,
-                        Others = entry?.Others ?? 0
+                        Others = entry?.Others ?? 0,
+                        OthersFund = entry?.OthersFund ?? "General"
                     };
                 }
             }
@@ -303,10 +335,11 @@ namespace acc_finance.Pages.Giving
                             Noah = e.Noah,
                             Mission = e.Mission,
                             Others = e.Others,
+                            OthersFund = e.OthersFund,
                             Total = e.Total
                         };
                     })
-                    .OrderBy(x => x.MemberName)
+                    // Removed .OrderBy to keep chronological order for drafts
                     .ToList();
             }
             else if (RecordId > 0)
@@ -318,7 +351,7 @@ namespace acc_finance.Pages.Giving
 
                 var allEntries = allEntriesResponse.Models;
 
-                SummaryRows = allEntries
+                var mappedRows = allEntries
                     .Select(e =>
                     {
                         var memberName = e.MemberId.HasValue
@@ -338,11 +371,20 @@ namespace acc_finance.Pages.Giving
                             Noah = e.Noah,
                             Mission = e.Mission,
                             Others = e.Others,
+                            OthersFund = e.OthersFund,
                             Total = e.Total
                         };
-                    })
-                    .OrderBy(x => x.MemberName)
-                    .ToList();
+                    }).ToList();
+
+                // Conditional Sorting Check
+                if (IsClosed)
+                {
+                    SummaryRows = mappedRows.OrderBy(x => x.MemberName).ToList();
+                }
+                else
+                {
+                    SummaryRows = mappedRows.OrderBy(x => x.Id).ToList();
+                }
             }
             else
             {
@@ -406,17 +448,23 @@ namespace acc_finance.Pages.Giving
 
         private async Task<List<GivingEntryRowVm>> BuildSummaryRowsAsync(long recordId)
         {
-            var memberResponse = await _supabase.Client
-                .From<Member>()
-                .Filter("is_active", Operator.Equals, "true")
+            // Check if record is closed first
+            var recordResponse = await _supabase.Client
+                .From<GivingRecord>()
+                .Filter("id", Operator.Equals, recordId.ToString())
                 .Get();
-            var members = memberResponse.Models.ToList();
+            var record = recordResponse.Models.FirstOrDefault();
+            bool isClosed = record?.IsClosed ?? false;
+
+            var members = await GetCachedMembersAsync();
 
             var dbResponse = await _supabase.Client
                 .From<GivingEntry>()
                 .Filter("giving_record_id", Operator.Equals, recordId.ToString())
                 .Get();
-            var dbRows = dbResponse.Models.ToList();
+
+            // Ensure DB entries are loaded in chronological order by ID
+            var dbRows = dbResponse.Models.OrderBy(x => x.Id).ToList();
 
             var drafts = GetDraftEntries(recordId).ToList();
             var summary = new List<GivingEntryRowVm>();
@@ -442,9 +490,10 @@ namespace acc_finance.Pages.Giving
                         Noah = draft.Noah,
                         Mission = draft.Mission,
                         Others = draft.Others,
+                        OthersFund = draft.OthersFund,
                         Total = draft.Total
                     });
-                    drafts.Remove(draft); // Remove so we don't duplicate it below
+                    drafts.Remove(draft);
                 }
                 else
                 {
@@ -461,12 +510,13 @@ namespace acc_finance.Pages.Giving
                         Noah = dbRow.Noah,
                         Mission = dbRow.Mission,
                         Others = dbRow.Others,
+                        OthersFund = dbRow.OthersFund,
                         Total = dbRow.Total
                     });
                 }
             }
 
-            // 2. Add any remaining brand new drafts
+            // 2. Add any remaining brand new drafts (these naturally fall to the bottom)
             foreach (var draft in drafts)
             {
                 summary.Add(new GivingEntryRowVm
@@ -481,11 +531,20 @@ namespace acc_finance.Pages.Giving
                     Noah = draft.Noah,
                     Mission = draft.Mission,
                     Others = draft.Others,
+                    OthersFund = draft.OthersFund,
                     Total = draft.Total
                 });
             }
 
-            return summary.OrderBy(x => x.MemberName).ToList();
+            // Conditional Sorting
+            if (isClosed)
+            {
+                return summary.OrderBy(x => x.MemberName).ToList();
+            }
+            else
+            {
+                return summary; // Return chronological order
+            }
         }
 
         private TotalsVm BuildTotals(List<GivingEntryRowVm> rows)
@@ -528,7 +587,8 @@ namespace acc_finance.Pages.Giving
                     solomon = draft.Solomon,
                     noah = draft.Noah,
                     mission = draft.Mission,
-                    others = draft.Others
+                    others = draft.Others,
+                    othersFund = draft.OthersFund
                 });
             }
 
@@ -552,7 +612,8 @@ namespace acc_finance.Pages.Giving
                 solomon = entry?.Solomon ?? 0,
                 noah = entry?.Noah ?? 0,
                 mission = entry?.Mission ?? 0,
-                others = entry?.Others ?? 0
+                others = entry?.Others ?? 0,
+                othersFund = entry?.OthersFund ?? "General"
             });
         }
 
@@ -714,7 +775,8 @@ namespace acc_finance.Pages.Giving
                     Solomon = request.Input.Solomon,
                     Noah = request.Input.Noah,
                     Mission = request.Input.Mission,
-                    Others = request.Input.Others
+                    Others = request.Input.Others,
+                    OthersFund = request.Input.OthersFund
                 };
 
                 drafts.Add(existingDraft);
@@ -729,6 +791,7 @@ namespace acc_finance.Pages.Giving
                 existingDraft.Noah = request.Input.Noah;
                 existingDraft.Mission = request.Input.Mission;
                 existingDraft.Others = request.Input.Others;
+                existingDraft.OthersFund = request.Input.OthersFund;
             }
 
             SaveDraftEntries(request.RecordId, drafts);
@@ -809,17 +872,20 @@ namespace acc_finance.Pages.Giving
                 });
             }
 
+            // --- N+1 FIX: FETCH ALL EXISTING ENTRIES ONCE BEFORE THE LOOP ---
+            var existingEntriesResponse = await _supabase.Client
+                .From<GivingEntry>()
+                .Filter("giving_record_id", Operator.Equals, request.RecordId.ToString())
+                .Get();
+
+            var allExistingEntries = existingEntriesResponse.Models;
+
             foreach (var draft in drafts)
             {
                 if (draft.MemberId.HasValue)
                 {
-                    var existingResponse = await _supabase.Client
-                        .From<GivingEntry>()
-                        .Filter("giving_record_id", Operator.Equals, request.RecordId.ToString())
-                        .Filter("member_id", Operator.Equals, draft.MemberId.Value.ToString())
-                        .Get();
-
-                    var existing = existingResponse.Models.FirstOrDefault();
+                    // Look it up in memory instead of pinging the database again!
+                    var existing = allExistingEntries.FirstOrDefault(e => e.MemberId == draft.MemberId.Value);
 
                     if (existing == null)
                     {
@@ -834,6 +900,7 @@ namespace acc_finance.Pages.Giving
                             Noah = draft.Noah,
                             Mission = draft.Mission,
                             Others = draft.Others,
+                            OthersFund = draft.OthersFund,
                             Total = draft.Total,
                             CreatedAt = DateTime.UtcNow,
                             UpdatedAt = DateTime.UtcNow
@@ -848,6 +915,7 @@ namespace acc_finance.Pages.Giving
                         existing.Noah = draft.Noah;
                         existing.Mission = draft.Mission;
                         existing.Others = draft.Others;
+                        existing.OthersFund = draft.OthersFund;
                         existing.Total = draft.Total;
                         existing.UpdatedAt = DateTime.UtcNow;
 
@@ -867,6 +935,7 @@ namespace acc_finance.Pages.Giving
                         Noah = draft.Noah,
                         Mission = draft.Mission,
                         Others = draft.Others,
+                        OthersFund = draft.OthersFund,
                         Total = draft.Total,
                         CreatedAt = DateTime.UtcNow,
                         UpdatedAt = DateTime.UtcNow
@@ -897,6 +966,7 @@ namespace acc_finance.Pages.Giving
 
             await _supabase.Client.From<GivingRecord>().Update(refreshedRecord);
             ClearDraftEntries(request.RecordId);
+            HttpContext.Session.Remove("ActiveGivingRecordId");
 
             var summaryRows = await BuildSummaryRowsAsync(request.RecordId);
             var totals = BuildTotals(summaryRows);
@@ -952,6 +1022,7 @@ namespace acc_finance.Pages.Giving
             }
 
             RecordId = record.Id;
+            HttpContext.Session.SetString("ActiveGivingRecordId", RecordId.ToString());
             await LoadPageDataForRecordAsync(record.Id);
 
             var responseData = await BuildRecordPayloadAsync();
@@ -1026,6 +1097,7 @@ namespace acc_finance.Pages.Giving
                         Data = null
                     });
                 }
+                HttpContext.Session.SetString("ActiveGivingRecordId", newRecordId.ToString());
 
                 await LoadPageDataForRecordAsync(newRecordId);
 
@@ -1127,8 +1199,6 @@ namespace acc_finance.Pages.Giving
         }
     }
 
-    // request inputs classess
-
     public class RecordHeaderInput
     {
         public string RecordCode { get; set; } = "";
@@ -1146,14 +1216,13 @@ namespace acc_finance.Pages.Giving
         public long RecordId { get; set; }
     }
 
-    public class SaveDenominationAjaxRequest()
+    public class SaveDenominationAjaxRequest
     {
         public int RecordId { get; set; }
-        public GivingDenominationInput Denomination { get; set; }
+        public GivingDenominationInput Denomination { get; set; } = new();
         public decimal TargetTotal { get; set; }
     }
 
-    // page/view models/helper methods 
     public class GivingInput
     {
         public string? RowKey { get; set; }
@@ -1166,6 +1235,7 @@ namespace acc_finance.Pages.Giving
         public decimal Noah { get; set; }
         public decimal Mission { get; set; }
         public decimal Others { get; set; }
+        public string OthersFund { get; set; } = "General"; // NEW FIELD
 
         public string DisplayName =>
             !string.IsNullOrWhiteSpace(CustomName) ? CustomName! : "";
@@ -1186,6 +1256,7 @@ namespace acc_finance.Pages.Giving
         public decimal Noah { get; set; }
         public decimal Mission { get; set; }
         public decimal Others { get; set; }
+        public string OthersFund { get; set; } = "General"; // NEW FIELD
 
         public decimal Total =>
             Tithes + Offerings + Solomon + Noah + Mission + Others;
@@ -1205,6 +1276,7 @@ namespace acc_finance.Pages.Giving
         public decimal Noah { get; set; }
         public decimal Mission { get; set; }
         public decimal Others { get; set; }
+        public string OthersFund { get; set; } = "General"; // NEW FIELD
         public decimal Total { get; set; }
     }
 
@@ -1218,8 +1290,6 @@ namespace acc_finance.Pages.Giving
         public decimal TotalOthers { get; set; }
         public decimal GrandTotal { get; set; }
     }
-
-    // denomination helper methods
 
     public class GivingDenominationInput
     {
@@ -1237,6 +1307,7 @@ namespace acc_finance.Pages.Giving
         public int Qty10Cent { get; set; }
         public int Qty5Cent { get; set; }
         public int Qty1Cent { get; set; }
+
         public decimal ComputeTotal()
         {
             return (Qty1000 * 1000m) +
@@ -1254,6 +1325,7 @@ namespace acc_finance.Pages.Giving
                    (Qty5Cent * 0.05m) +
                    (Qty1Cent * 0.01m);
         }
+
         public void ApplyToEntity(GivingDenomination entity)
         {
             entity.Qty1000 = Qty1000;
@@ -1285,8 +1357,6 @@ namespace acc_finance.Pages.Giving
         public bool IsMatched { get; set; }
     }
 
-    // ajax wrapper
-
     public class AjaxResponse<T>
     {
         public bool Success { get; set; }
@@ -1294,7 +1364,6 @@ namespace acc_finance.Pages.Giving
         public T? Data { get; set; }
     }
 
-    // response payload classess (use for frontend - ajax)
     public class SaveMemberAjaxData
     {
         public List<GivingEntryRowVm> SummaryRows { get; set; } = new();
@@ -1335,15 +1404,12 @@ namespace acc_finance.Pages.Giving
         public object? Denomination { get; set; }
     }
 
-    // ajax for DENOMINATION
-
     public class SaveDenominationAjaxData
     {
         public DenominationResultData Denomination { get; set; } = new();
         public DenominationTotalsData Totals { get; set; } = new();
         public bool CanFinalize { get; set; }
     }
-
     public class DenominationResultData
     {
         public decimal Total { get; set; }

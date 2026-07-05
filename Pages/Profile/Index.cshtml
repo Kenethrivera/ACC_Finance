@@ -1,0 +1,206 @@
+﻿@page
+@model acc_finance.Pages.Profile.IndexModel
+@{
+    ViewData["Title"] = "My Profile";
+}
+
+<style>
+    /* Reuse our Dashboard fade-in animation */
+    .fade-in-section {
+        animation: smoothFade 0.25s ease-out forwards;
+    }
+
+    @@keyframes smoothFade {
+        from {
+            opacity: 0;
+            transform: translateY(8px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Checklist smooth transitions */
+    .req-item {
+        transition: color 0.2s ease-in-out;
+    }
+</style>
+
+<div class="container-fluid py-4 fade-in-section" style="max-width: 1000px;">
+
+    <div class="d-flex align-items-center mb-4">
+        <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3 shadow-sm" style="width: 55px; height: 55px; font-size: 1.5rem; font-weight: bold;">
+            @Model.UserInitials
+        </div>
+        <div>
+            <h2 class="fw-bold mb-0 text-dark">My Profile</h2>
+            <p class="text-muted mb-0 fw-semibold text-uppercase" style="letter-spacing: 0.05em; font-size: 0.8rem;">
+                <i class="bi bi-shield-check me-1 text-success"></i> @Model.CurrentRole
+            </p>
+        </div>
+    </div>
+
+    <!-- Alert Messages -->
+    @if (!string.IsNullOrEmpty(Model.SuccessMessage))
+    {
+        <div class="alert alert-success alert-dismissible fade show rounded-4 border-success border-opacity-25 shadow-sm" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i> @Model.SuccessMessage
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+    {
+        <div class="alert alert-danger alert-dismissible fade show rounded-4 border-danger border-opacity-25 shadow-sm" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i> @Model.ErrorMessage
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="row g-4">
+        <!-- 1. PROFILE DETAILS CARD -->
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm rounded-4 h-100 border-start border-4 border-primary">
+                <div class="card-header bg-white border-bottom pt-4 pb-3 px-4">
+                    <h5 class="fw-bold mb-0 text-dark"><i class="bi bi-person-lines-fill me-2 text-primary"></i> Personal Details</h5>
+                </div>
+                <div class="card-body p-4">
+                    <form method="post" asp-page-handler="UpdateProfile">
+
+                        <div class="mb-3">
+                            <label class="form-label text-muted small fw-bold text-uppercase" style="letter-spacing: 0.05em;">Full Name</label>
+                            <div class="input-group shadow-sm rounded-3">
+                                <span class="input-group-text bg-light border-end-0"><i class="bi bi-person text-secondary"></i></span>
+                                <input type="text" asp-for="ProfileInput.FullName" class="form-control border-start-0 ps-0" required>
+                            </div>
+                            <span asp-validation-for="ProfileInput.FullName" class="text-danger small fw-bold mt-1"></span>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label text-muted small fw-bold text-uppercase" style="letter-spacing: 0.05em;">Username</label>
+                            <div class="input-group shadow-sm rounded-3">
+                                <span class="input-group-text bg-light border-end-0"><i class="bi bi-at text-secondary"></i></span>
+                                <input type="text" asp-for="ProfileInput.Username" class="form-control border-start-0 ps-0" required>
+                            </div>
+                            <span asp-validation-for="ProfileInput.Username" class="text-danger small fw-bold mt-1"></span>
+                            <div class="form-text mt-2" style="font-size: 0.75rem;"><i class="bi bi-info-circle me-1"></i> Changing this will alter the username you use to log in.</div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm w-100">
+                            Update Profile
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. SECURITY CARD (Changed from Warning to Info Blue) -->
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm rounded-4 h-100 border-start border-4 border-info">
+                <div class="card-header bg-white border-bottom pt-4 pb-3 px-4">
+                    <h5 class="fw-bold mb-0 text-dark"><i class="bi bi-shield-lock-fill me-2 text-info"></i> Security & Password</h5>
+                </div>
+                <div class="card-body p-4">
+                    <form method="post" asp-page-handler="ChangePassword">
+
+                        <div class="mb-3">
+                            <label class="form-label text-muted small fw-bold text-uppercase" style="letter-spacing: 0.05em;">Current Password</label>
+                            <input type="password" asp-for="PasswordInput.CurrentPassword" class="form-control shadow-sm rounded-3" placeholder="Enter current password to verify" required>
+                            <span asp-validation-for="PasswordInput.CurrentPassword" class="text-danger small fw-bold mt-1"></span>
+                        </div>
+
+                        <hr class="my-4 opacity-25">
+
+                        <div class="mb-3">
+                            <label class="form-label text-muted small fw-bold text-uppercase" style="letter-spacing: 0.05em;">New Password</label>
+                            <input type="password" asp-for="PasswordInput.NewPassword" class="form-control shadow-sm rounded-3" placeholder="Min. 8 characters" required>
+                            <span asp-validation-for="PasswordInput.NewPassword" class="text-danger small fw-bold mt-1"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label text-muted small fw-bold text-uppercase" style="letter-spacing: 0.05em;">Confirm New Password</label>
+                            <input type="password" asp-for="PasswordInput.ConfirmPassword" class="form-control shadow-sm rounded-3" placeholder="Re-type new password" required>
+                            <span asp-validation-for="PasswordInput.ConfirmPassword" class="text-danger small fw-bold mt-1"></span>
+                        </div>
+
+                        <!-- 🚨 LIVE VALIDATION CHECKLIST 🚨 -->
+                        <div class="mb-4 bg-light p-3 rounded-3 border border-secondary border-opacity-25">
+                            <div class="small fw-bold mb-2 text-muted text-uppercase" style="letter-spacing: 0.05em;">Password Requirements:</div>
+                            <div id="req-length" class="req-item text-danger small mb-1">
+                                <i class="bi bi-x-circle-fill me-1"></i> At least 8 characters
+                            </div>
+                            <div id="req-match" class="req-item text-danger small">
+                                <i class="bi bi-x-circle-fill me-1"></i> Passwords must match
+                            </div>
+                        </div>
+                        
+                        <div class="text-center mt-3">
+                            <a href="/Auth/ForgotPassword" class="text-decoration-none text-info small fw-bold"><i class="bi bi-question-circle me-1"></i> Forgot Current Password?</a>
+                        </div>
+
+                        <br />
+
+                        <button type="submit" id="btnChangePassword" class="btn btn-info text-white rounded-pill px-4 fw-bold shadow-sm w-100" disabled>
+                            Change Password
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // LIVE UI PASSWORD VALIDATION
+        document.addEventListener("DOMContentLoaded", function () {
+            const curPass = document.getElementById("PasswordInput_CurrentPassword");
+            const newPass = document.getElementById("PasswordInput_NewPassword");
+            const confPass = document.getElementById("PasswordInput_ConfirmPassword");
+            const btnSubmit = document.getElementById("btnChangePassword");
+
+            const reqLength = document.getElementById("req-length");
+            const reqMatch = document.getElementById("req-match");
+
+            function validatePassword() {
+                let isValid = true;
+                const newV = newPass.value;
+                const confV = confPass.value;
+
+                // Check Length
+                if (newV.length >= 8) {
+                    reqLength.classList.replace("text-danger", "text-success");
+                    reqLength.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i> At least 8 characters';
+                } else {
+                    reqLength.classList.replace("text-success", "text-danger");
+                    reqLength.innerHTML = '<i class="bi bi-x-circle-fill me-1"></i> At least 8 characters';
+                    isValid = false;
+                }
+
+                // Check Match
+                if (newV.length > 0 && newV === confV) {
+                    reqMatch.classList.replace("text-danger", "text-success");
+                    reqMatch.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i> Passwords match';
+                } else {
+                    reqMatch.classList.replace("text-success", "text-danger");
+                    reqMatch.innerHTML = '<i class="bi bi-x-circle-fill me-1"></i> Passwords match';
+                    isValid = false;
+                }
+
+                // Check if current password is typed
+                if (curPass.value.length === 0) {
+                    isValid = false;
+                }
+
+                // Enable/Disable Button
+                btnSubmit.disabled = !isValid;
+            }
+
+            curPass.addEventListener("input", validatePassword);
+            newPass.addEventListener("input", validatePassword);
+            confPass.addEventListener("input", validatePassword);
+        });
+    </script>
+}

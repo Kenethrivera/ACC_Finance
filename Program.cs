@@ -21,6 +21,16 @@ namespace acc_finance
             });
 
             builder.Services.AddSingleton<SupabaseService>();
+            builder.Services.AddHttpClient<AiAuditorService>();
+            builder.Services.AddScoped<AiAssistantService>();
+            builder.Services.AddScoped<FinancialCalculatorService>();
+            builder.Services.AddScoped<SecurityQuestionService>();
+
+            builder.Services.AddMemoryCache(options =>
+            {
+                options.SizeLimit = 1024; 
+            });
+            builder.Services.AddControllers(); 
             builder.Services.AddHttpContextAccessor();
             builder.Services.AddSession(options =>
             {
@@ -81,6 +91,7 @@ namespace acc_finance
             app.MapStaticAssets();
             app.MapRazorPages()
                .WithStaticAssets();
+            app.MapControllers();
 
             app.Run();
         }

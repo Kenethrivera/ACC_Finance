@@ -1,19 +1,24 @@
+﻿using acc_finance.Models;
+using acc_finance.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using acc_finance.Models;
-using acc_finance.Services;
+using Microsoft.Extensions.Caching.Memory;
 using System.Text.Json;
 using static Supabase.Postgrest.Constants;
 
 namespace acc_finance.Pages.Disbursements
 {
+    [Authorize(Roles = "Admin")]
     public class CreateModel : PageModel
     {
         private readonly SupabaseService _supabase;
+        private readonly IMemoryCache _cache;
 
-        public CreateModel(SupabaseService supabase)
+        public CreateModel(SupabaseService supabase, IMemoryCache cache)
         {
             _supabase = supabase;
+            _cache = cache;
         }
 
         [BindProperty(SupportsGet = true)]
@@ -25,11 +30,31 @@ namespace acc_finance.Pages.Disbursements
         public DisbursementSheetVm Sheet { get; set; } = new();
         public List<TemplatePayloadVm> FixedTemplates { get; set; } = new();
 
-        public async Task OnGet()
+        public async Task<IActionResult> OnGetAsync()
         {
             await _supabase.InitializeAsync(true);
+
+            var qsDate = Request.Query["RecordDate"].ToString();
+            if (string.IsNullOrEmpty(qsDate))
+            {
+                var savedDateStr = HttpContext.Session.GetString("ActiveDisbursementDate");
+                if (!string.IsNullOrEmpty(savedDateStr) && DateTime.TryParse(savedDateStr, out DateTime parsedDate))
+                {
+                    if (parsedDate.Date != DateTime.Today)
+                    {
+                        return RedirectToPage(new { RecordDate = parsedDate.ToString("yyyy-MM-dd") });
+                    }
+                }
+            }
+            else
+            {
+                HttpContext.Session.SetString("ActiveDisbursementDate", RecordDate.ToString("yyyy-MM-dd"));
+            }
+
             Sheet = await BuildSheetAsync(RecordDate);
             FixedTemplates = await LoadTemplatesAsync();
+
+            return Page();
         }
 
         public async Task<IActionResult> OnPostAsync()
@@ -39,7 +64,7 @@ namespace acc_finance.Pages.Disbursements
             if (RecordDate == DateTime.MinValue)
             {
                 ModelState.AddModelError(string.Empty, "Please choose a valid date.");
-                Sheet = new DisbursementSheetVm();
+                Sheet = await BuildSheetAsync(RecordDate);
                 return Page();
             }
 
@@ -84,7 +109,7 @@ namespace acc_finance.Pages.Disbursements
 
             var duplicateNumbers = validVouchers
                 .GroupBy(x => x.VoucherNumber.Trim(), StringComparer.OrdinalIgnoreCase)
-                .Where(g => g.Count() > 1)
+                .Where(g => g.Count() > 1 && !string.IsNullOrWhiteSpace(g.Key))
                 .Select(g => g.Key)
                 .ToList();
 
@@ -119,10 +144,33 @@ namespace acc_finance.Pages.Disbursements
                 }
                 else
                 {
-                    await UpdateCashReturnsOnlyAsync(disbursementRecord, validVouchers);
+                    await SyncDisbursementVouchersAsync(disbursementRecord, validVouchers, existingVouchers);
                 }
 
                 await RefreshDisbursementRecordTotalsAsync(disbursementRecord.Id);
+
+                HttpContext.Session.SetString("ActiveDisbursementDate", RecordDate.ToString("yyyy-MM-dd"));
+
+                // COMPREHENSIVE CACHE INVALIDATION
+                string targetMonth = RecordDate.ToString("yyyy-MM");
+                DateTime firstDay = new DateTime(RecordDate.Year, RecordDate.Month, 1);
+                DateTime lastDay = firstDay.AddMonths(1).AddDays(-1);
+
+                _cache.Remove("Dashboard_Live_Setup");
+                _cache.Remove($"SystemReport_{targetMonth}");
+                _cache.Remove($"SummaryTable_{RecordDate.Year}");
+                _cache.Remove($"DashBalances_ExtraCash_{DateTime.Today:yyyyMMdd}");
+
+                _cache.Remove($"WalletMonthData_{targetMonth}");
+                _cache.Remove($"PledgeHistory_{targetMonth}");
+                _cache.Remove($"PledgeExp_{lastDay:yyyyMMdd}");
+
+                _cache.Remove($"DashInc_{firstDay:yyyyMMdd}_{lastDay:yyyyMMdd}");
+                _cache.Remove($"DashExp_{firstDay:yyyyMMdd}_{lastDay:yyyyMMdd}");
+
+                DateTime epochStart = new DateTime(2000, 1, 1);
+                _cache.Remove($"DashExp_{epochStart:yyyyMMdd}_{firstDay.AddDays(-1):yyyyMMdd}");
+                _cache.Remove($"DashInc_{epochStart:yyyyMMdd}_{firstDay.AddDays(-1):yyyyMMdd}");
 
                 return RedirectToPage("./Create", new { RecordDate = RecordDate.ToString("yyyy-MM-dd") });
             }
@@ -134,119 +182,128 @@ namespace acc_finance.Pages.Disbursements
             }
         }
 
-        private async Task SaveInitialDisbursementAsync(
-            DisbursementRecord disbursementRecord,
-            List<VoucherPostVm> validVouchers)
-                {
-                    foreach (var voucherVm in validVouchers)
-                    {
-                        var totalReleased = voucherVm.Items.Sum(x => x.Amount);
-                        var totalReturned = voucherVm.Items.Sum(x => x.AmountReturned);
-
-                        var newVoucher = new Voucher
-                        {
-                            DisbursementRecordId = disbursementRecord.Id,
-                            VoucherNumber = voucherVm.VoucherNumber.Trim(),
-                            Ministry = voucherVm.Ministry.Trim(),
-                            Payee = voucherVm.Payee.Trim(),
-                            AmountReleased = totalReleased,
-                            AmountReturned = totalReturned,
-                            CreatedAt = DateTime.UtcNow.AddHours(12),
-                            UpdatedAt = DateTime.UtcNow.AddHours(12)
-                        };
-
-                        var insertVoucherResponse = await _supabase.Client
-                            .From<Voucher>()
-                            .Insert(newVoucher);
-
-                        var savedVoucher = insertVoucherResponse.Models.FirstOrDefault();
-
-                        if (savedVoucher == null || savedVoucher.Id <= 0)
-                        {
-                            throw new Exception($"Failed to save voucher #{voucherVm.VoucherNumber}");
-                        }
-
-                        var items = voucherVm.Items
-                            .Where(i => !string.IsNullOrWhiteSpace(i.Particular) && (i.Amount > 0 || i.AmountReturned > 0))
-                            .Select(i => new VoucherItem
-                            {
-                                VoucherId = savedVoucher.Id,
-                                Particular = i.Particular.Trim(),
-                                Amount = i.Amount,
-                                AmountReturned = i.AmountReturned,
-                                CreatedAt = DateTime.UtcNow.AddHours(12)
-                            })
-                            .ToList();
-
-                        if (items.Any())
-                        {
-                            await _supabase.Client
-                                .From<VoucherItem>()
-                                .Insert(items);
-                        }
-                    }
-                }
-
-        private async Task UpdateCashReturnsOnlyAsync(
-            DisbursementRecord disbursementRecord,
-            List<VoucherPostVm> postedVouchers)
+        private async Task SaveInitialDisbursementAsync(DisbursementRecord disbursementRecord, List<VoucherPostVm> validVouchers)
         {
-            var voucherResponse = await _supabase.Client
-                .From<Voucher>()
-                .Filter("disbursement_record_id", Operator.Equals, disbursementRecord.Id.ToString())
-                .Get();
-
-            var existingVouchers = voucherResponse.Models.ToList();
-
-            foreach (var existingVoucher in existingVouchers)
+            var newVouchers = validVouchers.Select(v => new Voucher
             {
-                var postedVoucher = postedVouchers.FirstOrDefault(x =>
-                    string.Equals(x.VoucherNumber?.Trim(), existingVoucher.VoucherNumber, StringComparison.OrdinalIgnoreCase));
+                DisbursementRecordId = disbursementRecord.Id,
+                VoucherNumber = v.VoucherNumber.Trim(),
+                Ministry = v.Ministry.Trim(),
+                Payee = v.Payee.Trim(),
+                AmountReleased = v.Items.Sum(x => x.Amount),
+                AmountReturned = v.Items.Sum(x => x.AmountReturned),
+                CreatedAt = DateTime.UtcNow.AddHours(12),
+                UpdatedAt = DateTime.UtcNow.AddHours(12)
+            }).ToList();
 
-                if (postedVoucher == null)
-                    continue;
+            if (!newVouchers.Any()) return;
 
-                var itemResponse = await _supabase.Client
-                    .From<VoucherItem>()
-                    .Filter("voucher_id", Operator.Equals, existingVoucher.Id.ToString())
-                    .Get();
+            var insertVoucherResponse = await _supabase.Client.From<Voucher>().Insert(newVouchers);
+            var savedVouchers = insertVoucherResponse.Models;
 
-                var existingItems = itemResponse.Models
-                    .OrderBy(x => x.Id)
-                    .ToList();
+            var allItemsToInsert = new List<VoucherItem>();
 
-                decimal voucherReturnedTotal = 0m;
+            foreach (var originalVm in validVouchers)
+            {
+                var savedVoucher = savedVouchers.FirstOrDefault(v => v.VoucherNumber == originalVm.VoucherNumber.Trim() && v.Payee == originalVm.Payee.Trim());
 
-                foreach (var existingItem in existingItems)
+                if (savedVoucher != null)
                 {
-                    var postedItem = postedVoucher.Items.FirstOrDefault(x =>
-                        string.Equals(x.Particular?.Trim(), existingItem.Particular, StringComparison.OrdinalIgnoreCase));
+                    var itemsForThisVoucher = originalVm.Items
+                        .Where(item => !string.IsNullOrWhiteSpace(item.Particular) && (item.Amount > 0 || item.AmountReturned > 0))
+                        .Select(item => new VoucherItem
+                        {
+                            VoucherId = savedVoucher.Id,
+                            Particular = item.Particular.Trim(),
+                            FundSource = item.FundSource.Trim(),
+                            Amount = item.Amount,
+                            AmountReturned = item.AmountReturned,
+                            CreatedAt = DateTime.UtcNow.AddHours(12)
+                        });
 
-                    if (postedItem == null)
-                        continue;
+                    allItemsToInsert.AddRange(itemsForThisVoucher);
+                }
+            }
 
-                    var safeReturn = postedItem.AmountReturned;
+            if (allItemsToInsert.Any())
+            {
+                await _supabase.Client.From<VoucherItem>().Insert(allItemsToInsert);
+            }
+        }
 
-                    if (safeReturn < 0)
-                        safeReturn = 0;
+        private async Task SyncDisbursementVouchersAsync(DisbursementRecord disbursementRecord, List<VoucherPostVm> postedVouchers, List<Voucher> existingVouchers)
+        {
+            var postedKeys = postedVouchers
+                .Select(x => $"{x.VoucherNumber?.Trim()}|{x.Ministry?.Trim()}|{x.Payee?.Trim()}")
+                .ToList();
 
-                    if (safeReturn > existingItem.Amount)
-                        safeReturn = existingItem.Amount;
+            var toDelete = existingVouchers
+                .Where(v => !postedKeys.Contains($"{v.VoucherNumber}|{v.Ministry}|{v.Payee}"))
+                .ToList();
 
-                    existingItem.AmountReturned = safeReturn;
-                    voucherReturnedTotal += safeReturn;
+            var toDeleteIds = toDelete.Select(v => v.Id).ToList();
 
-                    await _supabase.Client
-                        .From<VoucherItem>()
-                        .Update(existingItem);
+            if (toDeleteIds.Any())
+            {
+                await _supabase.Client.From<VoucherItem>().Filter("voucher_id", Operator.In, toDeleteIds).Delete();
+                await _supabase.Client.From<Voucher>().Filter("id", Operator.In, toDeleteIds).Delete();
+            }
+
+            var vouchersToInsert = new List<VoucherPostVm>();
+            var vouchersToUpdate = new List<Voucher>();
+            var existingIdsToUpdate = new List<long>();
+
+            foreach (var pv in postedVouchers)
+            {
+                var existing = existingVouchers.FirstOrDefault(v =>
+                    v.VoucherNumber == pv.VoucherNumber?.Trim() &&
+                    v.Ministry == pv.Ministry?.Trim() &&
+                    v.Payee == pv.Payee?.Trim());
+
+                if (existing == null)
+                {
+                    vouchersToInsert.Add(pv);
+                }
+                else
+                {
+                    existing.AmountReleased = pv.Items.Sum(x => x.Amount);
+                    existing.AmountReturned = pv.Items.Sum(x => x.AmountReturned);
+                    existing.UpdatedAt = DateTime.UtcNow.AddHours(12);
+
+                    vouchersToUpdate.Add(existing);
+                    existingIdsToUpdate.Add(existing.Id);
+                }
+            }
+
+            if (vouchersToUpdate.Any())
+            {
+                await _supabase.Client.From<Voucher>().Upsert(vouchersToUpdate);
+                await _supabase.Client.From<VoucherItem>().Filter("voucher_id", Operator.In, existingIdsToUpdate).Delete();
+
+                var newItemsForUpdatedVouchers = new List<VoucherItem>();
+                foreach (var existingV in vouchersToUpdate)
+                {
+                    var pv = postedVouchers.First(v => v.VoucherNumber?.Trim() == existingV.VoucherNumber && v.Ministry?.Trim() == existingV.Ministry && v.Payee?.Trim() == existingV.Payee);
+                    newItemsForUpdatedVouchers.AddRange(pv.Items.Select(i => new VoucherItem
+                    {
+                        VoucherId = existingV.Id,
+                        Particular = i.Particular?.Trim(),
+                        FundSource = i.FundSource?.Trim() ?? "General",
+                        Amount = i.Amount,
+                        AmountReturned = i.AmountReturned,
+                        CreatedAt = DateTime.UtcNow.AddHours(12)
+                    }));
                 }
 
-                existingVoucher.AmountReturned = voucherReturnedTotal;
-                existingVoucher.UpdatedAt = DateTime.UtcNow.AddHours(12);
+                if (newItemsForUpdatedVouchers.Any())
+                {
+                    await _supabase.Client.From<VoucherItem>().Insert(newItemsForUpdatedVouchers);
+                }
+            }
 
-                await _supabase.Client
-                    .From<Voucher>()
-                    .Update(existingVoucher);
+            if (vouchersToInsert.Any())
+            {
+                await SaveInitialDisbursementAsync(disbursementRecord, vouchersToInsert);
             }
         }
 
@@ -265,8 +322,7 @@ namespace acc_finance.Pages.Disbursements
                 .Get();
 
             var record = recordResponse.Models.FirstOrDefault();
-            if (record == null)
-                return;
+            if (record == null) return;
 
             var safeRecordDate = record.RecordDate.Date.AddHours(12);
 
@@ -286,11 +342,7 @@ namespace acc_finance.Pages.Disbursements
 
             if (string.IsNullOrWhiteSpace(date))
             {
-                return new JsonResult(new
-                {
-                    success = false,
-                    blessing = 0m
-                });
+                return new JsonResult(new { success = false, blessing = 0m });
             }
 
             var givingResponse = await _supabase.Client
@@ -300,11 +352,7 @@ namespace acc_finance.Pages.Disbursements
 
             var givingRecord = givingResponse.Models.FirstOrDefault();
 
-            return new JsonResult(new
-            {
-                success = true,
-                blessing = givingRecord?.GrandTotal ?? 0m
-            });
+            return new JsonResult(new { success = true, blessing = givingRecord?.GrandTotal ?? 0m });
         }
 
         private async Task<DisbursementRecord?> GetOrCreateDisbursementRecordAsync(DateTime recordDate)
@@ -362,112 +410,14 @@ namespace acc_finance.Pages.Disbursements
             return disbursementRecord;
         }
 
-        public async Task<DisbursementSheetVm> BuildSheetAsync(DateTime recordDate)
-        {
-            var sheet = new DisbursementSheetVm
-            {
-                RecordDate = recordDate.Date.AddHours(12),
-                Vouchers = new List<VoucherVm>()
-            };
-
-            string dateOnly = recordDate.Date.AddHours(12).ToString("yyyy-MM-dd");
-
-            var givingResponse = await _supabase.Client
-                .From<GivingRecord>()
-                .Filter("service_date", Operator.Equals, dateOnly)
-                .Get();
-
-            var givingRecord = givingResponse.Models.FirstOrDefault();
-            sheet.Blessing = givingRecord?.GrandTotal ?? 0m;
-
-            var recordResponse = await _supabase.Client
-                .From<DisbursementRecord>()
-                .Filter("record_date", Operator.Equals, dateOnly)
-                .Get();
-
-            var disbursementRecord = recordResponse.Models.FirstOrDefault();
-
-            if (disbursementRecord == null)
-            {
-                var autoVouchers = await BuildAutoLoadedTemplateVouchersAsync(recordDate.Date);
-
-                sheet.Vouchers = autoVouchers;
-                sheet.TotalReleased = autoVouchers.Sum(v => v.AmountReleased);
-                sheet.TotalReturned = autoVouchers.Sum(v => v.AmountReturned);
-                sheet.AdjustedDisbursement = autoVouchers.Sum(v => v.AdjustedDisbursement);
-                sheet.NetCashBalance = sheet.Blessing - sheet.AdjustedDisbursement;
-                sheet.AutoLoadedTemplateCount = autoVouchers.Count;
-
-                return sheet;
-            }
-
-            sheet.DisbursementRecordId = disbursementRecord.Id;
-
-            var voucherResponse = await _supabase.Client
-                .From<Voucher>()
-                .Filter("disbursement_record_id", Operator.Equals, disbursementRecord.Id.ToString())
-                .Get();
-
-            var vouchers = voucherResponse.Models
-                .OrderBy(v => v.VoucherNumber)
-                .ToList();
-
-            sheet.HasExistingDisbursement = vouchers.Any();
-            sheet.ReturnOnlyMode = vouchers.Any();
-
-            foreach (var voucher in vouchers)
-            {
-                var itemResponse = await _supabase.Client
-                    .From<VoucherItem>()
-                    .Filter("voucher_id", Operator.Equals, voucher.Id.ToString())
-                    .Get();
-
-                var items = itemResponse.Models
-                    .OrderBy(x => x.Id)
-                    .Select(x => new VoucherItemVm
-                    {
-                        Particular = x.Particular,
-                        Amount = x.Amount,
-                        AmountReturned = x.AmountReturned,
-                        NetAmount = x.Amount - x.AmountReturned
-                    })
-                    .ToList();
-
-                var adjustedDisbursement = voucher.AmountReleased - voucher.AmountReturned;
-
-                sheet.Vouchers.Add(new VoucherVm
-                {
-                    VoucherNumber = voucher.VoucherNumber,
-                    Ministry = voucher.Ministry,
-                    Payee = voucher.Payee,
-                    AmountReturned = voucher.AmountReturned,
-                    AmountReleased = voucher.AmountReleased,
-                    AdjustedDisbursement = adjustedDisbursement,
-                    TotalInput = voucher.AmountReleased,
-                    Items = items
-                });
-            }
-            sheet.TotalReleased = sheet.Vouchers.Sum(v => v.AmountReleased);
-            sheet.TotalReturned = sheet.Vouchers.Sum(v => v.AmountReturned);
-            sheet.AdjustedDisbursement = sheet.Vouchers.Sum(v => v.AdjustedDisbursement);
-            sheet.NetCashBalance = sheet.Blessing - sheet.AdjustedDisbursement;
-
-            sheet.HasExistingDisbursement = vouchers.Any();
-            sheet.ReturnOnlyMode = vouchers.Any();
-
-            return sheet;
-        }
-
-        private List<VoucherPostVm>NormalizeAndValidateVouchers(List<VoucherPostVm>? vouchers)
+        private List<VoucherPostVm> NormalizeAndValidateVouchers(List<VoucherPostVm>? vouchers)
         {
             vouchers ??= new List<VoucherPostVm>();
-
             var result = new List<VoucherPostVm>();
 
             foreach (var voucher in vouchers)
             {
-                if (voucher == null)
-                    continue;
+                if (voucher == null) continue;
 
                 voucher.VoucherNumber = voucher.VoucherNumber?.Trim() ?? "";
                 voucher.Ministry = voucher.Ministry?.Trim() ?? "";
@@ -479,6 +429,7 @@ namespace acc_finance.Pages.Disbursements
                     .Select(i => new VoucherItemPostVm
                     {
                         Particular = i.Particular?.Trim() ?? "",
+                        FundSource = string.IsNullOrWhiteSpace(i.FundSource) ? "General" : i.FundSource.Trim(),
                         Amount = i.Amount,
                         AmountReturned = i.AmountReturned
                     })
@@ -486,7 +437,6 @@ namespace acc_finance.Pages.Disbursements
                     .ToList();
 
                 bool hasHeader =
-                    !string.IsNullOrWhiteSpace(voucher.VoucherNumber) &&
                     !string.IsNullOrWhiteSpace(voucher.Ministry) &&
                     !string.IsNullOrWhiteSpace(voucher.Payee);
 
@@ -496,23 +446,16 @@ namespace acc_finance.Pages.Disbursements
                 if (cleanedItems.Count == 1)
                 {
                     var onlyItem = cleanedItems[0];
-
                     decimal lineAmount = onlyItem.Amount;
                     decimal totalInput = voucher.TotalInput ?? 0m;
-
                     decimal effectiveAmount = totalInput > 0 ? totalInput : lineAmount;
 
-                    if (effectiveAmount <= 0)
-                        continue;
+                    if (effectiveAmount <= 0) continue;
 
-                    if (onlyItem.AmountReturned < 0)
-                        onlyItem.AmountReturned = 0;
-
-                    if (onlyItem.AmountReturned > effectiveAmount)
-                        onlyItem.AmountReturned = effectiveAmount;
+                    if (onlyItem.AmountReturned < 0) onlyItem.AmountReturned = 0;
+                    if (onlyItem.AmountReturned > effectiveAmount) onlyItem.AmountReturned = effectiveAmount;
 
                     onlyItem.Amount = effectiveAmount;
-
                     voucher.Items = new List<VoucherItemPostVm> { onlyItem };
                     voucher.TotalInput = effectiveAmount;
 
@@ -525,14 +468,14 @@ namespace acc_finance.Pages.Disbursements
                     .Select(i => new VoucherItemPostVm
                     {
                         Particular = i.Particular,
+                        FundSource = i.FundSource,
                         Amount = i.Amount,
                         AmountReturned = i.AmountReturned > i.Amount ? i.Amount : i.AmountReturned
                     })
                     .Where(i => i.Amount > 0)
                     .ToList();
 
-                if (multiItems.Count < 2)
-                    continue;
+                if (multiItems.Count < 2) continue;
 
                 voucher.Items = multiItems;
                 voucher.TotalInput = multiItems.Sum(i => i.Amount);
@@ -545,50 +488,71 @@ namespace acc_finance.Pages.Disbursements
 
         private async Task<List<TemplatePayloadVm>> LoadTemplatesAsync()
         {
-            var templateResponse = await _supabase.Client
-                .From<DisbursementTemplate>()
-                .Filter("is_active", Operator.Equals, "true")
-                .Get();
-
-            var templates = templateResponse.Models
-                .OrderBy(x => x.TemplateName)
-                .ToList();
-
-            var result = new List<TemplatePayloadVm>();
-
-            foreach (var template in templates)
+            if (!_cache.TryGetValue("DisbursementTemplates", out List<TemplatePayloadVm> cachedTemplates))
             {
-                var itemResponse = await _supabase.Client
-                    .From<DisbursementTemplateItem>()
-                    .Filter("template_id", Operator.Equals, template.Id.ToString())
+                var templateResponse = await _supabase.Client
+                    .From<DisbursementTemplate>()
+                    .Filter("is_active", Operator.Equals, "true")
                     .Get();
 
-                var items = itemResponse.Models
-                    .OrderBy(x => x.LineNo)
-                    .Select(x => new TemplateItemPayloadVm
-                    {
-                        LineNo = x.LineNo,
-                        Particular = x.Particular,
-                        Amount = x.Amount
-                    })
+                var templates = templateResponse.Models
+                    .OrderBy(x => x.RecurrenceType)
+                    .ThenBy(x => x.WeekOfMonth)
+                    .ThenBy(x => x.Ministry)
                     .ToList();
 
-                result.Add(new TemplatePayloadVm
+                var templateIds = templates.Select(t => t.Id).ToList();
+                var allItems = new List<DisbursementTemplateItem>();
+
+                if (templateIds.Any())
                 {
-                    Id = template.Id,
-                    TemplateName = template.TemplateName,
-                    Ministry = template.Ministry,
-                    Payee = template.Payee,
-                    TotalInput = items.Sum(x => x.Amount),
-                    AutoApply = template.AutoApply,
-                    RecurrenceType = template.RecurrenceType ?? "",
-                    WeekOfMonth = template.WeekOfMonth,
-                    Items = items
-                });
+                    var itemResponse = await _supabase.Client
+                        .From<DisbursementTemplateItem>()
+                        .Filter("template_id", Operator.In, templateIds)
+                        .Get();
+                    allItems = itemResponse.Models.ToList();
+                }
+
+                var result = new List<TemplatePayloadVm>();
+
+                foreach (var template in templates)
+                {
+                    var items = allItems
+                        .Where(x => x.TemplateId == template.Id)
+                        .OrderBy(x => x.LineNo)
+                        .Select(x => new TemplateItemPayloadVm
+                        {
+                            LineNo = x.LineNo,
+                            Particular = x.Particular,
+                            FundSource = x.FundSource ?? "General",
+                            Amount = x.Amount
+                        })
+                        .ToList();
+
+                    result.Add(new TemplatePayloadVm
+                    {
+                        Id = template.Id,
+                        TemplateName = template.TemplateName,
+                        Ministry = template.Ministry,
+                        Payee = template.Payee,
+                        TotalInput = items.Sum(x => x.Amount),
+                        AutoApply = template.AutoApply,
+                        RecurrenceType = template.RecurrenceType ?? "",
+                        WeekOfMonth = template.WeekOfMonth,
+                        Items = items
+                    });
+                }
+
+                cachedTemplates = result;
+                var templateOptions = new MemoryCacheEntryOptions()
+                    .SetSize(5)
+                    .SetAbsoluteExpiration(TimeSpan.FromHours(1));
+                _cache.Set("DisbursementTemplates", cachedTemplates, templateOptions);
             }
 
-            return result;
+            return cachedTemplates ?? new List<TemplatePayloadVm>();
         }
+
         public async Task<IActionResult> OnPostSaveTemplateAsync([FromBody] SaveTemplateRequest request)
         {
             await _supabase.InitializeAsync(true);
@@ -598,9 +562,9 @@ namespace acc_finance.Pages.Disbursements
                 return new JsonResult(new { success = false, message = "Invalid template request." });
             }
 
-            request.TemplateName = request.TemplateName?.Trim() ?? "";
             request.Ministry = request.Ministry?.Trim() ?? "";
             request.Payee = request.Payee?.Trim() ?? "";
+            request.RecurrenceType = request.RecurrenceType?.Trim() ?? "";
             request.Items ??= new List<TemplateItemPayloadVm>();
 
             var validItems = request.Items
@@ -609,31 +573,31 @@ namespace acc_finance.Pages.Disbursements
                 {
                     LineNo = idx + 1,
                     Particular = x.Particular.Trim(),
+                    FundSource = string.IsNullOrWhiteSpace(x.FundSource) ? "General" : x.FundSource.Trim(),
                     Amount = x.Amount < 0 ? 0 : x.Amount
                 })
                 .Where(x => x.Amount > 0)
                 .ToList();
 
-            if (string.IsNullOrWhiteSpace(request.TemplateName) ||
+            if (string.IsNullOrWhiteSpace(request.RecurrenceType) ||
+                request.WeekOfMonth <= 0 ||
                 string.IsNullOrWhiteSpace(request.Ministry) ||
                 string.IsNullOrWhiteSpace(request.Payee) ||
                 !validItems.Any())
             {
-                return new JsonResult(new { success = false, message = "Please complete template name, ministry, payee, and at least one valid item." });
+                return new JsonResult(new { success = false, message = "Please select week schedule, complete ministry, payee, and at least one valid item." });
             }
 
             if (request.TemplateId <= 0)
             {
                 var template = new DisbursementTemplate
                 {
-                    TemplateName = request.TemplateName,
+                    TemplateName = "Schedule",
                     Ministry = request.Ministry,
                     Payee = request.Payee,
-                    AutoApply = request.AutoApply,
-                    RecurrenceType = request.AutoApply ? request.RecurrenceType?.Trim() : null,
-                    WeekOfMonth = request.AutoApply && request.RecurrenceType == "monthly_week"
-                        ? request.WeekOfMonth
-                        : null,
+                    AutoApply = true,
+                    RecurrenceType = request.RecurrenceType,
+                    WeekOfMonth = request.WeekOfMonth,
                     IsActive = true,
                     CreatedBy = User.Identity?.Name,
                     CreatedAt = DateTime.UtcNow.AddHours(12),
@@ -655,6 +619,7 @@ namespace acc_finance.Pages.Disbursements
                     TemplateId = savedTemplate.Id,
                     LineNo = x.LineNo,
                     Particular = x.Particular,
+                    FundSource = x.FundSource,
                     Amount = x.Amount
                 }).ToList();
 
@@ -676,14 +641,10 @@ namespace acc_finance.Pages.Disbursements
                     return new JsonResult(new { success = false, message = "Template not found." });
                 }
 
-                existingTemplate.TemplateName = request.TemplateName;
                 existingTemplate.Ministry = request.Ministry;
                 existingTemplate.Payee = request.Payee;
-                existingTemplate.AutoApply = request.AutoApply;
-                existingTemplate.RecurrenceType = request.AutoApply ? request.RecurrenceType?.Trim() : null;
-                existingTemplate.WeekOfMonth = request.AutoApply && request.RecurrenceType == "monthly_week"
-                    ? request.WeekOfMonth
-                    : null;
+                existingTemplate.RecurrenceType = request.RecurrenceType;
+                existingTemplate.WeekOfMonth = request.WeekOfMonth;
                 existingTemplate.UpdatedAt = DateTime.UtcNow.AddHours(12);
 
                 await _supabase.Client
@@ -707,6 +668,7 @@ namespace acc_finance.Pages.Disbursements
                     TemplateId = existingTemplate.Id,
                     LineNo = x.LineNo,
                     Particular = x.Particular,
+                    FundSource = x.FundSource,
                     Amount = x.Amount
                 }).ToList();
 
@@ -714,52 +676,132 @@ namespace acc_finance.Pages.Disbursements
                     .From<DisbursementTemplateItem>()
                     .Insert(newItems);
             }
-
+            _cache.Remove("DisbursementTemplates");
             return new JsonResult(new { success = true, message = "Template saved successfully." });
         }
 
-        public async Task<IActionResult> OnGetTemplatesAsync()
-        {
-            await _supabase.InitializeAsync(true);
-            var templates = await LoadTemplatesAsync();
+        public class DeleteTemplateRequest { public long TemplateId { get; set; } }
 
-            return new JsonResult(new
+        public async Task<DisbursementSheetVm> BuildSheetAsync(DateTime recordDate)
+        {
+            var sheet = new DisbursementSheetVm
             {
-                success = true,
-                data = templates
-            });
-        }
+                RecordDate = recordDate.Date.AddHours(12),
+                Vouchers = new List<VoucherVm>()
+            };
 
-        private int GetWeekOfMonth(DateTime date)
-        {
-            int day = date.Day;
-            return ((day - 1) / 7) + 1;
-        }
+            string dateOnly = recordDate.Date.AddHours(12).ToString("yyyy-MM-dd");
 
-        public bool IsLastWeekOfMonth(DateTime date)
-        {
-            return date.AddDays(7).Month != date.Month;
-        }
+            var givingResponse = await _supabase.Client.From<GivingRecord>()
+                .Filter("service_date", Operator.Equals, dateOnly).Get();
+            var givingRecord = givingResponse.Models.FirstOrDefault();
+            sheet.Blessing = givingRecord?.GrandTotal ?? 0m;
 
-        private bool TemplateMatchesDate(DisbursementTemplate template, DateTime date)
-        {
-            if (!template.AutoApply || string.IsNullOrWhiteSpace(template.RecurrenceType))
-                return false;
+            var recordResponse = await _supabase.Client.From<DisbursementRecord>()
+                .Filter("record_date", Operator.Equals, dateOnly).Get();
+            var disbursementRecord = recordResponse.Models.FirstOrDefault();
 
-            if (template.RecurrenceType == "weekly")
-                return true;
-
-            if (template.RecurrenceType == "monthly_week")
+            if (disbursementRecord == null)
             {
-                if (template.WeekOfMonth == -1)
-                    return IsLastWeekOfMonth(date);
+                var autoVouchers = await BuildAutoLoadedTemplateVouchersAsync(recordDate.Date);
 
-                return GetWeekOfMonth(date) == template.WeekOfMonth;
+                sheet.Vouchers = autoVouchers;
+                sheet.TotalReleased = autoVouchers.Sum(v => v.AmountReleased);
+                sheet.TotalReturned = autoVouchers.Sum(v => v.AmountReturned);
+                sheet.AdjustedDisbursement = autoVouchers.Sum(v => v.AdjustedDisbursement);
+                sheet.NetCashBalance = sheet.Blessing - sheet.AdjustedDisbursement;
+                sheet.AutoLoadedTemplateCount = autoVouchers.Count;
+
+                return sheet;
             }
 
-            return false;
+            sheet.DisbursementRecordId = disbursementRecord.Id;
+
+            var voucherResponse = await _supabase.Client.From<Voucher>()
+                .Filter("disbursement_record_id", Operator.Equals, disbursementRecord.Id.ToString())
+                .Get();
+
+            var vouchers = voucherResponse.Models.OrderBy(v => v.VoucherNumber).ToList();
+
+            sheet.HasExistingDisbursement = vouchers.Any();
+            sheet.ReturnOnlyMode = false;
+
+            var voucherIds = vouchers.Select(v => v.Id).ToList();
+            var allVoucherItems = new List<VoucherItem>();
+
+            if (voucherIds.Any())
+            {
+                var itemResponse = await _supabase.Client.From<VoucherItem>()
+                    .Filter("voucher_id", Operator.In, voucherIds).Get();
+                allVoucherItems = itemResponse.Models.ToList();
+            }
+
+            foreach (var voucher in vouchers)
+            {
+                var items = allVoucherItems
+                    .Where(x => x.VoucherId == voucher.Id)
+                    .OrderBy(x => x.Id)
+                    .Select(x => new VoucherItemVm
+                    {
+                        Particular = x.Particular,
+                        FundSource = x.FundSource ?? "General",
+                        Amount = x.Amount,
+                        AmountReturned = x.AmountReturned,
+                        NetAmount = x.Amount - x.AmountReturned
+                    }).ToList();
+
+                var adjustedDisbursement = voucher.AmountReleased - voucher.AmountReturned;
+
+                sheet.Vouchers.Add(new VoucherVm
+                {
+                    VoucherNumber = voucher.VoucherNumber,
+                    Ministry = voucher.Ministry,
+                    Payee = voucher.Payee,
+                    AmountReturned = voucher.AmountReturned,
+                    AmountReleased = voucher.AmountReleased,
+                    AdjustedDisbursement = adjustedDisbursement,
+                    TotalInput = voucher.AmountReleased,
+                    Items = items
+                });
+            }
+
+            sheet.TotalReleased = sheet.Vouchers.Sum(v => v.AmountReleased);
+            sheet.TotalReturned = sheet.Vouchers.Sum(v => v.AmountReturned);
+            sheet.AdjustedDisbursement = sheet.Vouchers.Sum(v => v.AdjustedDisbursement);
+            sheet.NetCashBalance = sheet.Blessing - sheet.AdjustedDisbursement;
+
+            return sheet;
         }
-        
+
+        private int GetSundaysInMonth(DateTime date)
+        {
+            int count = 0;
+            int days = DateTime.DaysInMonth(date.Year, date.Month);
+            for (int i = 1; i <= days; i++)
+            {
+                if (new DateTime(date.Year, date.Month, i).DayOfWeek == DayOfWeek.Sunday)
+                    count++;
+            }
+            return count;
+        }
+
+        private int GetSundayIndex(DateTime date)
+        {
+            DateTime temp = date;
+            while (temp.DayOfWeek != DayOfWeek.Sunday && temp.Day > 1)
+            {
+                temp = temp.AddDays(-1);
+            }
+
+            int count = 0;
+            for (int i = 1; i <= temp.Day; i++)
+            {
+                if (new DateTime(temp.Year, temp.Month, i).DayOfWeek == DayOfWeek.Sunday)
+                    count++;
+            }
+            return count == 0 ? 1 : count;
+        }
+
         private async Task<List<VoucherVm>> BuildAutoLoadedTemplateVouchersAsync(DateTime recordDate)
         {
             var templateResponse = await _supabase.Client
@@ -770,21 +812,35 @@ namespace acc_finance.Pages.Disbursements
             var templates = templateResponse.Models.ToList();
             var result = new List<VoucherVm>();
 
-            foreach (var template in templates)
-            {
-                if (!TemplateMatchesDate(template, recordDate))
-                    continue;
+            int totalSundaysInMonth = GetSundaysInMonth(recordDate);
+            string expectedRecurrenceType = totalSundaysInMonth == 5 ? "5_week" : "4_week";
+            int currentSundayIndex = GetSundayIndex(recordDate);
 
+            var applicableTemplates = templates
+                .Where(t => t.RecurrenceType == expectedRecurrenceType && t.WeekOfMonth == currentSundayIndex)
+                .ToList();
+
+            var templateIds = applicableTemplates.Select(t => t.Id).ToList();
+            var allItems = new List<DisbursementTemplateItem>();
+
+            if (templateIds.Any())
+            {
                 var itemResponse = await _supabase.Client
                     .From<DisbursementTemplateItem>()
-                    .Filter("template_id", Operator.Equals, template.Id.ToString())
+                    .Filter("template_id", Operator.In, templateIds)
                     .Get();
+                allItems = itemResponse.Models.ToList();
+            }
 
-                var items = itemResponse.Models
+            foreach (var template in applicableTemplates)
+            {
+                var items = allItems
+                    .Where(x => x.TemplateId == template.Id)
                     .OrderBy(x => x.LineNo)
                     .Select(x => new VoucherItemVm
                     {
                         Particular = x.Particular,
+                        FundSource = x.FundSource ?? "General",
                         Amount = x.Amount,
                         AmountReturned = 0,
                         NetAmount = x.Amount
@@ -828,6 +884,7 @@ namespace acc_finance.Pages.Disbursements
         public bool HasAutoLoadedTemplates => AutoLoadedTemplateCount > 0;
     }
 
+    // (VoucherVm, VoucherItemVm, DisbursementSheetPostVm and Templates classes remain exactly the same...)
     public class VoucherVm
     {
         public string VoucherNumber { get; set; } = "";
@@ -843,6 +900,7 @@ namespace acc_finance.Pages.Disbursements
     public class VoucherItemVm
     {
         public string Particular { get; set; } = "";
+        public string FundSource { get; set; } = "General";
         public decimal Amount { get; set; }
         public decimal AmountReturned { get; set; }
         public decimal NetAmount { get; set; }
@@ -864,6 +922,7 @@ namespace acc_finance.Pages.Disbursements
     public class VoucherItemPostVm
     {
         public string Particular { get; set; } = "";
+        public string FundSource { get; set; } = "General";
         public decimal Amount { get; set; }
         public decimal AmountReturned { get; set; }
     }
@@ -884,6 +943,7 @@ namespace acc_finance.Pages.Disbursements
     {
         public int LineNo { get; set; }
         public string Particular { get; set; } = "";
+        public string FundSource { get; set; } = "General";
         public decimal Amount { get; set; }
     }
 

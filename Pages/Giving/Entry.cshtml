@@ -24,150 +24,350 @@
 }
 
 <style>
+    /* --- GLOBAL & CARDS --- */
     .giving-page {
-        font-size: 0.95rem;
+        font-size: 0.9rem;
     }
 
-    .card-soft {
-        border: 1px solid #d9dce7;
-        border-radius: 14px;
-        box-shadow: 0 4px 14px rgba(24, 39, 75, .06);
+    .card-modern {
+        background: #ffffff;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
     }
 
     .section-title {
-        font-size: 1rem;
-        font-weight: 700;
-        color: #24324b;
-        margin-bottom: 0;
-    }
-
-    .member-panel-scroll {
-        max-height: 560px;
-        overflow-y: auto;
-        padding-right: 4px;
-    }
-
-    .member-btn {
-        min-height: 60px;
-        white-space: normal;
-        text-align: left;
+        font-size: 1.1rem;
         font-weight: 600;
-        border-radius: 12px;
-        color: #23314d !important;
-        border-width: 1px;
-        opacity: 1 !important;
-    }
-
-    .chip-person {
-        background: #ffffff;
-        border-color: #cfd6e4;
-    }
-
-    .chip-family {
-        background: #fff4d6;
-        border-color: #f0c36d;
-    }
-
-    .chip-group {
-        background: #e8f3ff;
-        border-color: #7fb2ff;
-    }
-
-    .member-btn.active-member {
-        background: #3658d7 !important;
-        color: #fff !important;
-        border-color: #3658d7 !important;
+        color: #0f172a;
+        letter-spacing: -0.01em;
+        margin-bottom: 0;
     }
 
     .mini-note {
-        font-size: .85rem;
-        color: #667085;
+        font-size: 0.8rem;
+        color: #64748b;
     }
 
-    .excel-wrap {
-        border: 1px solid #aeb6d0;
-        border-radius: 0;
+    /* --- MEMBER CHIPS --- */
+    .member-panel-scroll {
+        max-height: 560px;
+        overflow-y: auto;
+        padding-right: 6px;
+        scrollbar-width: thin;
+    }
+
+        .member-panel-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .member-panel-scroll::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+
+    .member-btn {
+        min-height: 48px;
+        white-space: normal;
+        text-align: left;
+        font-weight: 500;
+        font-size: 0.85rem;
+        border-radius: 8px;
+        border: 1px solid #e2e8f0;
+        transition: all 0.15s ease;
+        padding: 10px 14px;
+        line-height: 1.3;
+    }
+
+        .member-btn:hover {
+            border-color: #cbd5e1;
+            background-color: #f8fafc;
+        }
+
+    .chip-person {
+        background: #ffffff;
+        color: #334155;
+    }
+
+    .chip-family {
+        background: #fffbeb;
+        color: #b45309;
+        border-color: #fde68a;
+    }
+
+    .chip-group {
+        background: #eff6ff;
+        color: #1d4ed8;
+        border-color: #bfdbfe;
+    }
+
+    .member-btn.active-member {
+        background: var(--brand-primary) !important;
+        color: #ffffff !important;
+        border-color: var(--brand-primary) !important;
+        box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.3);
+        font-weight: 600;
+    }
+
+    /* --- INPUTS & FORMS --- */
+    .form-label {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #475569;
+        margin-bottom: 4px;
+    }
+
+    .form-control, .form-select {
+        font-size: 0.9rem;
+        border-radius: 8px;
+        border: 1px solid #cbd5e1;
+        padding: 0.5rem 0.75rem;
+    }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--brand-primary);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+        }
+
+    .custom-entry-box {
+        border: 1px dashed #cbd5e1;
+        background: #f8fafc;
+        border-radius: 8px;
+        padding: 16px;
+    }
+
+    /* --- DATA TABLE --- */
+    .table-modern-wrap {
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
         overflow: hidden;
     }
 
-    .excel-table {
+    .table-modern {
         margin-bottom: 0;
-        font-size: .93rem;
+        font-size: 0.85rem;
     }
 
-        .excel-table thead th {
-            background: #5a64b8;
-            color: #fff;
-            border-color: #7079c7;
-            font-weight: 700;
+        .table-modern thead th {
+            background: #f8fafc;
+            color: #475569;
+            font-weight: 600;
             text-transform: uppercase;
-            font-size: .84rem;
-            letter-spacing: .02em;
-            padding: .45rem .55rem;
+            font-size: 0.75rem;
+            letter-spacing: 0.05em;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 12px 16px;
         }
 
-        .excel-table tbody td {
-            background: #f7f8fc;
-            border-color: #e2e6f0;
-            padding: .32rem .5rem;
-            color: #24324b;
-        }
-
-        .excel-table tbody tr:nth-child(even) td {
-            background: #eef1f8;
-        }
-
-        .excel-table tfoot td {
+        .table-modern tbody td {
             background: #ffffff;
-            border-top: 2px solid #444;
-            font-weight: 800;
-            color: #1d2433;
-            padding: .4rem .5rem;
+            border-bottom: 1px solid #f1f5f9;
+            padding: 12px 16px;
+            color: #1e293b;
+            vertical-align: middle;
+        }
+
+        .table-modern tbody tr:hover td {
+            background: #f8fafc;
+        }
+
+        .table-modern tfoot td {
+            background: #f8fafc;
+            border-top: 2px solid #cbd5e1;
+            font-weight: 700;
+            color: #0f172a;
+            padding: 14px 16px;
         }
 
     .name-cell {
         font-weight: 600;
-        color: #22304c !important;
+        color: #0f172a;
     }
 
     .name-family {
-        background: #fff7df !important;
+        border-left: 4px solid #f59e0b;
     }
 
     .name-group {
-        background: #eaf4ff !important;
+        border-left: 4px solid #3b82f6;
     }
 
-    .summary-edit-btn {
-        padding: .18rem .45rem;
-        font-size: .78rem;
+    .name-person {
+        border-left: 4px solid transparent;
+    }
+    /* align padding */
+
+    /* --- DENOMINATION GRID --- */
+    .denom-compact-wrap {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 300px;
+        gap: 24px;
+        align-items: stretch;
     }
 
-    .toast-container {
-        z-index: 1085;
+    .denom-compact-grid {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 16px 12px;
     }
 
-    .floating-toast {
-        min-width: 300px;
+    .denom-mini {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .denom-mini-label {
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: #475569;
+        text-align: center;
+    }
+
+    .denom-mini-input {
+        width: 100%;
+        text-align: center;
+        font-weight: 600;
+        font-size: 0.95rem;
+        padding: 8px;
+    }
+
+    /* --- DENOMINATION TOTAL BOX --- */
+    .denom-total-box {
+        border: 2px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 24px;
+        background: #ffffff;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        min-height: 100%;
+    }
+
+        .denom-total-box.status-waiting {
+            border-color: #cbd5e1;
+        }
+
+        .denom-total-box.status-match {
+            border-color: #10b981;
+            background: #f0fdf4;
+        }
+
+        .denom-total-box.status-missing {
+            border-color: #f59e0b;
+            background: #fffbeb;
+        }
+
+        .denom-total-box.status-over {
+            border-color: #ef4444;
+            background: #fef2f2;
+        }
+
+    .denom-status {
+        font-size: 0.8rem;
+        font-weight: 600;
+        padding: 4px 12px;
+        border-radius: 999px;
+        display: inline-flex;
+        align-items: center;
+    }
+
+        .denom-status.waiting {
+            background: #f1f5f9;
+            color: #475569;
+        }
+
+        .denom-status.match {
+            background: #d1fae5;
+            color: #047857;
+        }
+
+        .denom-status.missing {
+            background: #fef3c7;
+            color: #b45309;
+        }
+
+        .denom-status.over {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+
+    .denom-total-title {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #64748b;
+        font-weight: 700;
+        margin-bottom: 8px;
+    }
+
+    .denom-total-main {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #0f172a;
+        line-height: 1;
+        margin-bottom: 12px;
+        letter-spacing: -0.02em;
+    }
+
+    .denom-total-helper {
+        font-size: 0.85rem;
+        color: #475569;
+        margin-bottom: 20px;
+    }
+
+    .denom-total-lines {
+        display: grid;
+        gap: 8px;
+        font-size: 0.85rem;
+        border-top: 1px solid #e2e8f0;
+        padding-top: 16px;
+    }
+
+    .denom-total-line {
+        display: flex;
+        justify-content: space-between;
+        color: #475569;
+    }
+
+        .denom-total-line strong {
+            color: #0f172a;
+            font-weight: 600;
+        }
+
+    /* --- BANNERS & UTILS --- */
+    .disabled-panel {
+        opacity: 0.5;
+        pointer-events: none;
+        filter: grayscale(100%);
+    }
+
+    .hidden-soft {
+        display: none !important;
     }
 
     .toolbar-badge {
-        font-size: .8rem;
-        padding: .45rem .7rem;
-        border-radius: 999px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        padding: 6px 12px;
+        border-radius: 6px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
     }
 
-    .custom-entry-box {
-        border: 1px dashed #c8d0e0;
-        background: #fafbff;
-        border-radius: 12px;
-        padding: 12px;
+    .empty-panel-note {
+        color: #64748b;
+        font-size: 0.9rem;
+        padding: 16px 0;
+        text-align: center;
+        border: 1px dashed #cbd5e1;
+        border-radius: 8px;
+        background: #f8fafc;
+        margin-top: 16px;
     }
 
-    .server-banner {
-        border-radius: 12px;
-    }
-
+    /* Banners Logic from original intact */
     .action-banner-wrap {
         position: sticky;
         top: 12px;
@@ -185,494 +385,112 @@
         margin-bottom: 0;
         padding: 0 16px;
         border-width: 0;
-        box-shadow: none;
-        pointer-events: none;
-        transition: opacity 0.25s ease, max-height 0.25s ease, margin-bottom 0.25s ease, padding-top 0.25s ease, padding-bottom 0.25s ease, border-width 0.25s ease, box-shadow 0.25s ease;
+        transition: all 0.25s ease;
+        border-radius: 8px;
     }
 
         .action-banner.show {
             opacity: 1;
             max-height: 120px;
-            margin-bottom: 14px;
+            margin-bottom: 16px;
             padding: 14px 16px;
             border-width: 1px;
-            box-shadow: 0 8px 24px rgba(24, 39, 75, .10);
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
             pointer-events: auto;
         }
 
-    .action-banner-left {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-    }
+        .action-banner.loading {
+            background: #eff6ff;
+            border-color: #bfdbfe;
+            color: #1e3a8a;
+        }
+
+        .action-banner.success {
+            background: #f0fdf4;
+            border-color: #bbf7d0;
+            color: #166534;
+        }
+
+        .action-banner.error {
+            background: #fef2f2;
+            border-color: #fecaca;
+            color: #991b1b;
+        }
 
     .action-banner-title {
         font-weight: 700;
         margin-bottom: 2px;
+        font-size: 0.95rem;
     }
 
     .action-banner-message {
-        font-size: .92rem;
-        color: #475467;
-    }
-
-    .action-banner.loading {
-        background: #eef4ff;
-        border-color: #bfd3ff;
-    }
-
-    .action-banner.success {
-        background: #ecfdf3;
-        border-color: #a6f4c5;
-    }
-
-    .action-banner.error {
-        background: #fef3f2;
-        border-color: #fecdca;
-    }
-
-    .spinner-inline {
-        width: 1.2rem;
-        height: 1.2rem;
-        flex: 0 0 auto;
-    }
-
-    .btn-finalizing {
-        pointer-events: none;
-        opacity: .7;
-    }
-
-    .disabled-panel {
-        opacity: .65;
-        pointer-events: none;
-    }
-
-    .empty-panel-note {
-        color: #667085;
-        font-size: .9rem;
-        padding: 10px 0 0 0;
-    }
-
-    .hidden-soft {
-        display: none !important;
-    }
-
-    .denom-section-compact {
-        border: 1px solid #d9dce7;
-        border-radius: 22px;
-        padding: 16px 18px;
-        background: #fbfcff;
-    }
-
-    .denom-compact-wrap {
-        display: grid;
-        grid-template-columns: minmax(0, 1.9fr) minmax(220px, 280px);
-        gap: 18px;
-        align-items: stretch;
-    }
-
-    .denom-compact-grid {
-        display: grid;
-        grid-template-columns: repeat(5, minmax(70px, 1fr));
-        gap: 10px 12px;
-        align-content: start;
-    }
-
-    .denom-mini {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: flex-start;
-        gap: 6px;
-    }
-
-    .denom-mini-label {
         font-size: 0.85rem;
-        font-weight: 700;
-        color: #4b5875;
-        text-align: center;
-        line-height: 1.1;
-        min-height: 30px;
+        opacity: 0.9;
+    }
+
+    /* Final Summary (Read Only) */
+    .denom-final-wrap {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 300px;
+        gap: 24px;
+    }
+
+    .denom-final-row {
         display: flex;
-        align-items: flex-end; 
-        justify-content: center;
-        padding-bottom: 4px;
+        justify-content: space-between;
+        padding: 10px 16px;
+        border-bottom: 1px solid #f1f5f9;
+        font-size: 0.9rem;
     }
 
-    .denom-total-box.status-waiting {
-        border-color: #cfd6e4;
-        background: linear-gradient(180deg, #f8faff 0%, #ffffff 100%);
-        box-shadow: 0 0 0 3px rgba(207, 214, 228, 0.15);
+        .denom-final-row:last-child {
+            border-bottom: none;
+        }
+
+    .denom-final-bill {
+        font-weight: 600;
+        color: #475569;
+        width: 80px;
+        display: inline-block;
     }
 
-    .denom-status.waiting {
-        background: #f1f3f8;
-        color: #4b5875;
+    .denom-final-times {
+        color: #94a3b8;
     }
 
-    .denom-mini-input {
-        width: 78px;
-        height: 44px;
-        text-align: center;
-        font-weight: 700;
-        font-size: .95rem;
-        border-radius: 10px;
-        border: 1px solid #cfd6e4;
+    .denom-final-row-amount {
+        font-weight: 600;
+        color: #0f172a;
+    }
+
+    .denom-final-list {
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
         background: #fff;
     }
 
-    .denom-total-box {
-        border: 2px solid #d9dce7;
-        border-radius: 18px;
-        padding: 16px;
-        background: linear-gradient(180deg, #f8faff 0%, #ffffff 100%);
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        min-height: 170px;
-    }
-
-        .denom-total-box.status-match {
-            border-color: #a6f4c5;
-            background: linear-gradient(180deg, #ecfdf3 0%, #f8fffb 100%);
-            box-shadow: 0 0 0 3px rgba(18,183,106,.08);
-        }
-
-        .denom-total-box.status-missing {
-            border-color: #fedf89;
-            background: linear-gradient(180deg, #fffaeb 0%, #fffdf7 100%);
-            box-shadow: 0 0 0 3px rgba(247,144,9,.07);
-        }
-
-        .denom-total-box.status-over {
-            border-color: #fecdca;
-            background: linear-gradient(180deg, #fef3f2 0%, #fff9f8 100%);
-            box-shadow: 0 0 0 3px rgba(240,68,56,.07);
-        }
-
-    .denom-total-title {
-        font-size: .78rem;
-        text-transform: uppercase;
-        letter-spacing: .06em;
-        color: #667085;
-        font-weight: 800;
-        margin-bottom: 8px;
-    }
-
-    .denom-total-main {
-        font-size: 1.8rem;
-        font-weight: 800;
-        color: #1f2a44;
-        line-height: 1.05;
-        margin-bottom: 10px;
-    }
-
-    .denom-total-helper {
-        font-size: .88rem;
-        color: #475467;
-        margin-bottom: 12px;
-    }
-
-    .denom-total-lines {
-        display: grid;
-        gap: 6px;
-        font-size: .9rem;
-    }
-
-    .denom-total-line {
-        display: flex;
-        justify-content: space-between;
-        gap: 12px;
-    }
-
-        .denom-total-line strong {
-            color: #1f2a44;
-        }
-
     @@media (max-width: 991.98px) {
-        .denom-compact-wrap {
+        .denom-compact-wrap, .denom-final-wrap {
             grid-template-columns: 1fr;
         }
 
         .denom-compact-grid {
-            grid-template-columns: repeat(4, minmax(70px, 1fr));
+            grid-template-columns: repeat(4, 1fr);
         }
     }
 
     @@media (max-width: 575.98px) {
         .denom-compact-grid {
-            grid-template-columns: repeat(2, minmax(70px, 1fr));
-        }
-
-        .denom-mini-input {
-            width: 100%;
+            grid-template-columns: repeat(2, 1fr);
         }
     }
-
-    .denom-summary-wrap {
-        padding: 4px 2px 2px 2px;
-    }
-
-    .denom-summary-top {
-        display: grid;
-        grid-template-columns: 1.4fr 1fr;
-        gap: 18px;
-        margin-bottom: 18px;
-    }
-
-    .denom-summary-main {
-        background: linear-gradient(135deg, #f8f9ff 0%, #eef2ff 100%);
-        border: 1px solid #d9e1ff;
-        border-radius: 18px;
-        padding: 22px;
-    }
-
-    .denom-summary-label {
-        font-size: .82rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: .06em;
-        color: #5f6b85;
-        margin-bottom: 8px;
-    }
-
-    .denom-summary-total {
-        font-size: 2.2rem;
-        line-height: 1;
-        font-weight: 800;
-        color: #1d2b4f;
-        margin-bottom: 10px;
-    }
-
-    .denom-summary-sub {
-        color: #667085;
-        font-size: .95rem;
-    }
-
-    .denom-summary-side {
-        display: grid;
-        gap: 12px;
-    }
-
-    .denom-metric-card {
-        background: #fff;
-        border: 1px solid #e3e7ef;
-        border-radius: 16px;
-        padding: 14px 16px;
-    }
-
-    .denom-metric-label {
-        font-size: .8rem;
-        font-weight: 700;
-        color: #6b7280;
-        text-transform: uppercase;
-        letter-spacing: .04em;
-        margin-bottom: 6px;
-    }
-
-    .denom-metric-value {
-        font-size: 1.15rem;
-        font-weight: 800;
-        color: #1f2937;
-    }
-
-        .denom-metric-value.ok {
-            color: #1f7a45;
-        }
-
-        .denom-metric-value.bad {
-            color: #b42318;
-        }
-
-    .denom-breakdown-title {
-        font-size: .95rem;
-        font-weight: 700;
-        color: #24324b;
-        margin: 8px 0 12px 0;
-    }
-
-    .denom-summary-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
-        gap: 12px;
-    }
-
-    .denom-summary-item {
-        background: #f8fafc;
-        border: 1px solid #e2e8f0;
-        border-radius: 14px;
-        padding: 12px;
-        text-align: center;
-    }
-
-    .denom-summary-item-label {
-        font-size: .8rem;
-        font-weight: 700;
-        color: #64748b;
-        margin-bottom: 6px;
-    }
-
-    .denom-summary-item-value {
-        font-size: 1.1rem;
-        font-weight: 800;
-        color: #0f172a;
-    }
-
-    @@media (max-width: 768px) {
-        .denom-summary-top
-        {
-            grid-template-columns: 1fr;
-        }
-
-        .denom-summary-total {
-            font-size: 1.8rem;
-        }
-    }
-
-    .denom-final-wrap {
-        display: grid;
-        grid-template-columns: minmax(0, 1.6fr) minmax(240px, 320px);
-        gap: 20px;
-        align-items: start;
-    }
-
-    .denom-final-left {
-        padding: 4px 4px 4px 0;
-    }
-
-    .denom-final-label {
-        font-size: .82rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: .06em;
-        color: #667085;
-        margin-bottom: 12px;
-    }
-
-    .denom-final-list {
-        display: grid;
-        gap: 10px;
-    }
-
-    .denom-final-row {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 14px;
-        padding: 12px 14px;
-        background: #f8fafc;
-        border: 1px solid #e2e8f0;
-        border-radius: 14px;
-    }
-
-    .denom-final-row-left {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        flex-wrap: wrap;
-    }
-
-    .denom-final-bill {
-        font-weight: 800;
-        color: #1f2937;
-        min-width: 70px;
-    }
-
-    .denom-final-times {
-        color: #667085;
-        font-weight: 600;
-    }
-
-    .denom-final-row-amount {
-        font-weight: 800;
-        color: #0f172a;
-    }
-
-    .denom-final-right {
-        display: flex;
-    }
-
-    .denom-final-total-card {
-        width: 100%;
-        background: linear-gradient(135deg, #f8f9ff 0%, #eef6ff 100%);
-        border: 1px solid #d9e6ff;
-        border-radius: 18px;
-        padding: 20px;
-    }
-
-    .denom-final-total-label {
-        font-size: .82rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: .06em;
-        color: #5f6b85;
-        margin-bottom: 8px;
-    }
-
-    .denom-final-total-value {
-        font-size: 2.2rem;
-        line-height: 1;
-        font-weight: 800;
-        color: #1d2b4f;
-        margin-bottom: 16px;
-    }
-
-    .denom-final-total-meta {
-        display: grid;
-        gap: 10px;
-    }
-
-    .denom-final-total-line {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 12px;
-        font-size: .95rem;
-        color: #344054;
-    }
-
-        .denom-final-total-line strong {
-            font-weight: 800;
-            color: #0f172a;
-        }
-
-            .denom-final-total-line strong.ok {
-                color: #1f7a45;
-            }
-
-            .denom-final-total-line strong.bad {
-                color: #b42318;
-            }
-
-    .denom-final-empty {
-        padding: 14px;
-        border: 1px dashed #d0d5dd;
-        border-radius: 14px;
-        color: #667085;
-        background: #fcfcfd;
-    }
-
-    @@media (max-width: 768px) {
-        .denom-final-wrap
-
-    {
-        grid-template-columns: 1fr;
-    }
-
-    .denom-final-total-value {
-        font-size: 1.8rem;
-    }
-
-    }
-
-       
 </style>
 
-<div class="container-fluid py-3 giving-page">
+<div class="container-fluid py-4 giving-page">
     <div class="action-banner-wrap">
         <div id="actionBanner" class="action-banner" role="alert" aria-live="polite">
-            <div class="action-banner-left">
-                <div id="actionBannerSpinner" class="spinner-border spinner-border-sm spinner-inline text-primary" role="status"></div>
+            <div class="d-flex align-items-center gap-3">
+                <div id="actionBannerSpinner" class="spinner-border spinner-border-sm text-primary" role="status"></div>
                 <div>
                     <div id="actionBannerTitle" class="action-banner-title">Processing</div>
                     <div id="actionBannerMessage" class="action-banner-message">Please wait...</div>
@@ -682,26 +500,26 @@
         </div>
     </div>
 
-    <div class="row g-3">
+    <div class="row g-4">
 
         <div class="col-12">
-            <div class="card card-soft">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
+            <div class="card card-modern">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-4">
                         <div>
-                            <h3 class="mb-1 fw-bold">Giving Entry</h3>
-                            <div class="mini-note">Load Existing Records can be done via Date Filter</div>
+                            <h3 class="section-title fs-4">Giving Entry</h3>
+                            <div class="mini-note mt-1">Load Existing Records via Date Filter</div>
                         </div>
 
                         <span id="recordStatusBadge"
-                              class="toolbar-badge @(Model.IsClosed ? "bg-secondary text-white" : "bg-info-subtle text-dark")">
-                            @(Model.IsClosed ? "Finalized" : "Draft")
+                              class="toolbar-badge @(Model.IsClosed ? "bg-secondary text-white" : "bg-primary text-white bg-opacity-75")">
+                            @(Model.IsClosed ? "FINALIZED" : "DRAFT MODE")
                         </span>
                     </div>
 
                     @if (!string.IsNullOrWhiteSpace(Model.Message))
                     {
-                        <div class="alert alert-warning alert-dismissible fade show server-banner mb-3" role="alert">
+                        <div class="alert alert-warning alert-dismissible fade show mb-4" role="alert" style="border-radius: 8px; font-size: 0.9rem;">
                             @Model.Message
                             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                         </div>
@@ -711,23 +529,23 @@
                         @Html.AntiForgeryToken()
 
                         <div class="col-md-3">
-                            <label asp-for="Header.RecordCode" class="form-label fw-semibold">Record Code</label>
-                            <input asp-for="Header.RecordCode" class="form-control" />
+                            <label asp-for="Header.RecordCode" class="form-label">Record Code</label>
+                            <input asp-for="Header.RecordCode" class="form-control" placeholder="CR_01" />
                         </div>
 
                         <div class="col-md-3">
-                            <label asp-for="Header.ServiceDate" class="form-label fw-semibold">Date</label>
+                            <label asp-for="Header.ServiceDate" class="form-label">Service Date</label>
                             <input asp-for="Header.ServiceDate" type="date" class="form-control" />
                         </div>
 
                         <div class="col-md-3">
-                            <button type="button" id="loadRecordBtn" class="btn btn-outline-primary w-100">
+                            <button type="button" id="loadRecordBtn" class="btn btn-outline-secondary w-100 fw-semibold" style="border-radius: 8px; padding: 0.5rem;">
                                 Load Existing
                             </button>
                         </div>
 
                         <div class="col-md-3">
-                            <button type="button" id="createRecordBtn" class="btn btn-primary w-100">
+                            <button type="button" id="createRecordBtn" class="btn btn-primary w-100 fw-semibold" style="border-radius: 8px; padding: 0.5rem;">
                                 Create New
                             </button>
                         </div>
@@ -737,24 +555,24 @@
         </div>
 
         <div id="workPanels" class="col-12 @(Model.IsClosed ? "d-none" : "")">
-            <div class="row g-3">
+            <div class="row g-4">
                 <div class="col-lg-7">
-                    <div class="card card-soft h-100">
-                        <div class="card-header bg-white border-0 pb-0">
-                            <h5 class="section-title">Names / Members</h5>
+                    <div class="card card-modern h-100">
+                        <div class="card-header bg-transparent border-bottom-0 pt-4 pb-2 px-4">
+                            <h5 class="section-title">Names & Members</h5>
                         </div>
 
-                        <div class="card-body">
+                        <div class="card-body px-4 pb-4">
                             <div id="membersPanelBody" class="@(!hasRecord ? "disabled-panel" : "")">
-                                <div class="custom-entry-box mb-3">
-                                    <div class="row g-2 align-items-end">
+                                <div class="custom-entry-box mb-4">
+                                    <div class="row g-3 align-items-end">
                                         <div class="col-md-8">
-                                            <label class="form-label fw-semibold">Add name not in list</label>
+                                            <label class="form-label">Add name not in list</label>
                                             <input id="customNameInput" class="form-control" placeholder="Example: Anonymous, Visitors" />
                                         </div>
                                         <div class="col-md-4">
-                                            <button type="button" id="useCustomNameBtn" class="btn btn-outline-dark w-100">
-                                                Use Custom Name
+                                            <button type="button" id="useCustomNameBtn" class="btn btn-dark w-100 fw-semibold" style="border-radius: 8px;">
+                                                Use Name
                                             </button>
                                         </div>
                                     </div>
@@ -794,7 +612,7 @@
 
                                             <div class="col-md-4 col-sm-6">
                                                 <button type="button"
-                                                        class="btn member-btn w-100 @GetNameChipClass(member.Name) @(isSelected ? "active-member" : "")"
+                                                        class="member-btn w-100 @GetNameChipClass(member.Name) @(isSelected ? "active-member" : "")"
                                                         data-member-id="@member.Id"
                                                         data-member-name="@member.Name"
                                                         data-row-key="">
@@ -807,19 +625,19 @@
                             </div>
 
                             <div id="membersEmptyNote" class="empty-panel-note @((hasRecord) ? "hidden-soft" : "")">
-                                Create or load a record first.
+                                <i class="bi bi-info-circle me-2"></i> Create or load a record first to select members.
                             </div>
                         </div>
                     </div>
                 </div>
 
                 <div class="col-lg-5">
-                    <div class="card card-soft h-100" id="member-entry-section">
-                        <div class="card-header bg-white border-0 pb-0">
-                            <h5 class="section-title">Selected Entry</h5>
+                    <div class="card card-modern h-100" id="member-entry-section">
+                        <div class="card-header bg-transparent border-bottom-0 pt-4 pb-2 px-4">
+                            <h5 class="section-title">Selected Entry Details</h5>
                         </div>
 
-                        <div class="card-body">
+                        <div class="card-body px-4 pb-4">
                             <form id="memberEntryForm" onsubmit="return false;">
                                 @Html.AntiForgeryToken()
 
@@ -828,57 +646,75 @@
                                 <input type="hidden" id="Input_MemberId" value="@(Model.Input.MemberId?.ToString() ?? "")" />
 
                                 <div id="entryFormShell" class="@(!hasRecord ? "disabled-panel" : "")">
-                                    <div class="mb-3">
-                                        <label class="form-label fw-semibold">Selected Name</label>
-                                        <input id="selectedMemberName" class="form-control" value="@Model.Input.DisplayName" readonly />
+                                    <div class="mb-4">
+                                        <label class="form-label text-muted">Currently Editing</label>
+                                        <input id="selectedMemberName" class="form-control bg-light fw-bold text-dark" value="@Model.Input.DisplayName" readonly />
                                     </div>
 
                                     <div class="row g-3">
-                                        <div class="col-md-4">
+                                        <div class="col-6">
                                             <label class="form-label">Tithes</label>
                                             <input id="Input_Tithes" class="form-control money-input" type="number" step="0.01" min="0" value="@Model.Input.Tithes" />
                                         </div>
 
-                                        <div class="col-md-4">
+                                        <div class="col-6">
                                             <label class="form-label">Offerings</label>
                                             <input id="Input_Offerings" class="form-control money-input" type="number" step="0.01" min="0" value="@Model.Input.Offerings" />
                                         </div>
 
-                                        <div class="col-md-4">
+                                        <div class="col-6">
                                             <label class="form-label">Solomon</label>
                                             <input id="Input_Solomon" class="form-control money-input" type="number" step="0.01" min="0" value="@Model.Input.Solomon" />
                                         </div>
 
-                                        <div class="col-md-4">
+                                        <div class="col-6">
                                             <label class="form-label">Noah</label>
                                             <input id="Input_Noah" class="form-control money-input" type="number" step="0.01" min="0" value="@Model.Input.Noah" />
                                         </div>
 
-                                        <div class="col-md-4">
+                                        <div class="col-6">
                                             <label class="form-label">Mission</label>
                                             <input id="Input_Mission" class="form-control money-input" type="number" step="0.01" min="0" value="@Model.Input.Mission" />
                                         </div>
 
-                                        <div class="col-md-4">
-                                            <label class="form-label">Others</label>
-                                            <input id="Input_Others" class="form-control money-input" type="number" step="0.01" min="0" value="@Model.Input.Others" />
+                                        <div class="col-6"></div>
+
+                                        <div class="col-12 my-2">
+                                            <hr class="m-0 border-secondary opacity-25">
+                                        </div>
+
+                                        <div class="col-6">
+                                            <label class="form-label text-primary">Others Amount</label>
+                                            <input id="Input_Others" class="form-control money-input border-primary" type="number" step="0.01" min="0" value="@Model.Input.Others" />
+                                        </div>
+
+                                        <div class="col-6">
+                                            <label class="form-label text-primary">Allocation</label>
+                                            <select id="Input_OthersFund" class="form-select border-primary">
+                                                <option value="General" selected="@(Model.Input.OthersFund == "General")">General</option>
+                                                <option value="Construction" selected="@(Model.Input.OthersFund == "Construction")">Construction</option>
+                                                <option value="Praise & Worship" selected="@(Model.Input.OthersFund == "Praise & Worship")">Praise & Worship</option>
+                                                <option value="Pledges" selected="@(Model.Input.OthersFund == "Pledges")">Pledges</option>
+                                            </select>
                                         </div>
                                     </div>
 
-                                    <div class="mt-3">
-                                        <label class="form-label fw-semibold">Total</label>
-                                        <input id="displayTotal" class="form-control" value="@Model.Input.DisplayTotal.ToString("0.00")" readonly />
+                                    <div class="mt-4 p-3 bg-light border rounded">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <span class="fw-bold text-muted text-uppercase" style="font-size: 0.8rem; letter-spacing: 0.05em;">Total Amount</span>
+                                            <input id="displayTotal" class="form-control-plaintext text-end fs-4 fw-bold text-dark w-50 p-0" value="@Model.Input.DisplayTotal.ToString("0.00")" readonly />
+                                        </div>
                                     </div>
 
                                     <div class="mt-4">
-                                        <button type="button" id="saveMemberBtn" class="btn btn-success w-100">
-                                            Save Row
+                                        <button type="button" id="saveMemberBtn" class="btn btn-primary w-100 fw-bold py-2 shadow-sm" style="border-radius: 8px;">
+                                            <i class="bi bi-check2-circle me-1"></i> Save Row Entry
                                         </button>
                                     </div>
                                 </div>
 
                                 <div id="entryEmptyNote" class="empty-panel-note @((hasRecord) ? "hidden-soft" : "")">
-                                    Create or load a record first.
+                                    <i class="bi bi-arrow-left me-1"></i> Select a member to start encoding.
                                 </div>
                             </form>
                         </div>
@@ -888,28 +724,28 @@
         </div>
 
         <div class="col-12">
-            <div class="card card-soft">
-                <div class="card-header bg-white border-0">
+            <div class="card card-modern">
+                <div class="card-header bg-transparent border-bottom-0 pt-4 pb-3 px-4">
                     <div id="summaryHeaderBar" class="d-flex justify-content-between align-items-center flex-wrap gap-2">
                         <h5 class="section-title">
-                            Sources of Blessings <span id="summaryDateLabel">@Model.Header.ServiceDate.ToString("MM/dd/yyyy")</span>
+                            Sources of Blessings <span id="summaryDateLabel" class="text-muted ms-2 fw-normal fs-6">@Model.Header.ServiceDate.ToString("MM/dd/yyyy")</span>
                         </h5>
 
                         <button type="button"
                                 id="finalizeBtn"
-                                class="btn btn-primary @((!hasRecord || Model.IsClosed) ? "d-none" : "")">
-                            Finalize Record
+                                class="btn btn-success fw-bold shadow-sm @((!hasRecord || Model.IsClosed) ? "d-none" : "")" style="border-radius: 8px;">
+                            <i class="bi bi-lock-fill me-1"></i> Finalize Record
                         </button>
                     </div>
                 </div>
 
-                <div class="card-body">
-                    <div class="excel-wrap">
+                <div class="card-body px-4 pb-4">
+                    <div class="table-modern-wrap">
                         <div class="table-responsive">
-                            <table class="table excel-table align-middle">
+                            <table class="table table-modern align-middle">
                                 <thead>
                                     <tr>
-                                        <th id="summaryTitleCell" style="min-width:260px;">Sources of Blessings @Model.Header.ServiceDate.ToString("MM/dd/yyyy")</th>
+                                        <th id="summaryTitleCell" style="min-width:220px;">Name / Group</th>
                                         <th class="text-end">Tithes</th>
                                         <th class="text-end">Offerings</th>
                                         <th class="text-end">Solomon</th>
@@ -917,7 +753,7 @@
                                         <th class="text-end">Mission</th>
                                         <th class="text-end">Others</th>
                                         <th class="text-end">Total</th>
-                                        <th class="text-center" id="editColumnHeader" style="@(Model.IsClosed ? "display:none;" : "")">Edit</th>
+                                        <th class="text-center" id="editColumnHeader" style="width: 80px; @(Model.IsClosed ? "display:none;" : "")">Action</th>
                                     </tr>
                                 </thead>
 
@@ -926,11 +762,8 @@
                                     {
                                         @foreach (var row in Model.SummaryRows)
                                         {
-                                            var rowClass = "";
-                                            if (row.MemberName.Contains("&"))
-                                            {
-                                                rowClass = "name-family";
-                                            }
+                                            var rowClass = "name-person";
+                                            if (row.MemberName.Contains("&")) rowClass = "name-family";
                                             else
                                             {
                                                 var lower = row.MemberName.ToLower();
@@ -943,16 +776,23 @@
 
                                             <tr>
                                                 <td class="name-cell @rowClass">@row.MemberName</td>
-                                                <td class="text-end">@(row.Tithes == 0 ? "" : row.Tithes.ToString("0.00"))</td>
-                                                <td class="text-end">@(row.Offerings == 0 ? "" : row.Offerings.ToString("0.00"))</td>
-                                                <td class="text-end">@(row.Solomon == 0 ? "" : row.Solomon.ToString("0.00"))</td>
-                                                <td class="text-end">@(row.Noah == 0 ? "" : row.Noah.ToString("0.00"))</td>
-                                                <td class="text-end">@(row.Mission == 0 ? "" : row.Mission.ToString("0.00"))</td>
-                                                <td class="text-end">@(row.Others == 0 ? "" : row.Others.ToString("0.00"))</td>
-                                                <td class="text-end fw-bold">@(row.Total == 0 ? "" : row.Total.ToString("#,##0.00"))</td>
+                                                <td class="text-end text-muted">@(row.Tithes == 0 ? "-" : row.Tithes.ToString("0.00"))</td>
+                                                <td class="text-end text-muted">@(row.Offerings == 0 ? "-" : row.Offerings.ToString("0.00"))</td>
+                                                <td class="text-end text-muted">@(row.Solomon == 0 ? "-" : row.Solomon.ToString("0.00"))</td>
+                                                <td class="text-end text-muted">@(row.Noah == 0 ? "-" : row.Noah.ToString("0.00"))</td>
+                                                <td class="text-end text-muted">@(row.Mission == 0 ? "-" : row.Mission.ToString("0.00"))</td>
+                                                <td class="text-end">
+                                                    @(row.Others == 0 ? "-" : row.Others.ToString("0.00"))
+                                                    @if (row.Others > 0 && !string.IsNullOrEmpty(row.OthersFund) && row.OthersFund != "General")
+                                                    {
+                                                        <br />
+                                                        <small class="text-primary fw-bold" style="font-size:0.7rem; text-transform:uppercase;">@row.OthersFund</small>
+                                                    }
+                                                </td>
+                                                <td class="text-end fw-bold text-dark">@(row.Total == 0 ? "-" : row.Total.ToString("#,##0.00"))</td>
                                                 <td class="text-center summary-edit-cell" style="@(Model.IsClosed ? "display:none;" : "")">
                                                     <button type="button"
-                                                            class="btn btn-outline-primary summary-edit-btn summary-edit-btn-js"
+                                                            class="btn btn-sm btn-light border summary-edit-btn-js fw-semibold text-secondary"
                                                             data-row-key="@row.RowKey"
                                                             data-member-id="@(row.MemberId?.ToString() ?? "")"
                                                             data-member-name="@row.MemberName">
@@ -965,21 +805,21 @@
                                     else
                                     {
                                         <tr id="noEntriesRow">
-                                            <td colspan="9" class="text-center text-muted py-4">No entries yet.</td>
+                                            <td colspan="9" class="text-center text-muted py-5">No entries have been encoded yet.</td>
                                         </tr>
                                     }
                                 </tbody>
 
                                 <tfoot>
                                     <tr>
-                                        <td>TOTAL</td>
+                                        <td class="text-muted text-uppercase" style="letter-spacing: 0.05em;">Grand Total</td>
                                         <td class="text-end" id="totalTithes">@Model.TotalTithes.ToString("#,##0.00")</td>
                                         <td class="text-end" id="totalOfferings">@Model.TotalOfferings.ToString("#,##0.00")</td>
                                         <td class="text-end" id="totalSolomon">@Model.TotalSolomon.ToString("#,##0.00")</td>
                                         <td class="text-end" id="totalNoah">@Model.TotalNoah.ToString("#,##0.00")</td>
                                         <td class="text-end" id="totalMission">@Model.TotalMission.ToString("#,##0.00")</td>
                                         <td class="text-end" id="totalOthers">@Model.TotalOthers.ToString("#,##0.00")</td>
-                                        <td class="text-end" id="grandTotal">@Model.GrandTotal.ToString("#,##0.00")</td>
+                                        <td class="text-end fs-6" id="grandTotal">@Model.GrandTotal.ToString("#,##0.00")</td>
                                         <td id="tfootEditSpacer" style="@(Model.IsClosed ? "display:none;" : "")"></td>
                                     </tr>
                                 </tfoot>
@@ -987,148 +827,131 @@
                         </div>
                     </div>
 
-                    <div id="finalizedNote" class="mt-3 alert alert-secondary mb-0 @(Model.IsClosed ? "" : "d-none")">
-                        This record is finalized. Only the summary table is shown.
+                    <div id="finalizedNote" class="mt-4 alert alert-secondary mb-0 border-0 bg-light text-center @(Model.IsClosed ? "" : "d-none")">
+                        <i class="bi bi-file-earmark-lock me-1"></i> This record is finalized. Only the summary is visible.
                     </div>
                 </div>
             </div>
         </div>
 
         <div class="col-12">
-            <div class="card card-soft mb-3">
-                <div class="card-header bg-white border-0">
+            <div class="card card-modern mb-4">
+                <div class="card-header bg-transparent border-bottom-0 pt-4 pb-2 px-4">
                     <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
-                        <h5 class="section-title mb-0">Denomination of Money</h5>
+                        <h5 class="section-title">Denomination of Money</h5>
 
                         @if (Model.IsClosed)
                         {
-                            <div class="denom-status match">Finalized</div>
+                            <div class="denom-status match"><i class="bi bi-check-circle-fill me-1"></i> Finalized</div>
                         }
                         else
                         {
                             <div id="denomStatusPill"
                                  class="denom-status @(Model.GrandTotal <= 0 ? "waiting" : (Model.IsDenominationMatched ? "match" : (Model.DenominationDifference < 0 ? "missing" : "over")))">
-                                @(Model.GrandTotal <= 0 ? "Waiting" : (Model.IsDenominationMatched ? "Matched" : (Model.DenominationDifference < 0 ? "Missing" : "Over")))
+                                @(Model.GrandTotal <= 0 ? "Waiting for Entries" : (Model.IsDenominationMatched ? "Matched" : (Model.DenominationDifference < 0 ? "Missing Funds" : "Over Target")))
                             </div>
                         }
                     </div>
                 </div>
 
-                <div class="card-body">
-
+                <div class="card-body px-4 pb-4">
                     <div id="denomInputSection" class="@(Model.IsClosed ? "d-none" : "")">
-                        <div class="denom-section-compact">
-                            <div class="denom-compact-wrap">
-                                <div>
-                                    <div class="denom-compact-grid">
-                                        <div class="denom-mini">
-                                            <div class="denom-mini-label">1000</div>
-                                            <input id="Denom_1000" class="form-control denom-input denom-mini-input" type="number" min="0" value="@Model.Denomination.Qty1000" />
-                                        </div>
-
-                                        <div class="denom-mini">
-                                            <div class="denom-mini-label">500</div>
-                                            <input id="Denom_500" class="form-control denom-input denom-mini-input" type="number" min="0" value="@Model.Denomination.Qty500" />
-                                        </div>
-
-                                        <div class="denom-mini">
-                                            <div class="denom-mini-label">200</div>
-                                            <input id="Denom_200" class="form-control denom-input denom-mini-input" type="number" min="0" value="@Model.Denomination.Qty200" />
-                                        </div>
-
-                                        <div class="denom-mini">
-                                            <div class="denom-mini-label">100</div>
-                                            <input id="Denom_100" class="form-control denom-input denom-mini-input" type="number" min="0" value="@Model.Denomination.Qty100" />
-                                        </div>
-
-                                        <div class="denom-mini">
-                                            <div class="denom-mini-label">50</div>
-                                            <input id="Denom_50" class="form-control denom-input denom-mini-input" type="number" min="0" value="@Model.Denomination.Qty50" />
-                                        </div>
-
-                                        <div class="denom-mini">
-                                            <div class="denom-mini-label">20 Coins</div>
-                                            <input id="Denom_20Coin" class="form-control denom-input denom-mini-input" type="number" min="0" value="@Model.Denomination.Qty20Coin" />
-                                        </div>
-
-                                        <div class="denom-mini">
-                                            <div class="denom-mini-label">20 Paper</div>
-                                            <input id="Denom_20Paper" class="form-control denom-input denom-mini-input" type="number" min="0" value="@Model.Denomination.Qty20Paper" />
-                                        </div>
-
-                                        <div class="denom-mini">
-                                            <div class="denom-mini-label">10</div>
-                                            <input id="Denom_10" class="form-control denom-input denom-mini-input" type="number" min="0" value="@Model.Denomination.Qty10" />
-                                        </div>
-
-                                        <div class="denom-mini">
-                                            <div class="denom-mini-label">5</div>
-                                            <input id="Denom_5" class="form-control denom-input denom-mini-input" type="number" min="0" value="@Model.Denomination.Qty5" />
-                                        </div>
-
-                                        <div class="denom-mini">
-                                            <div class="denom-mini-label">1</div>
-                                            <input id="Denom_1" class="form-control denom-input denom-mini-input" type="number" min="0" value="@Model.Denomination.Qty1" />
-                                        </div>
-
-                                        <div class="denom-mini">
-                                            <div class="denom-mini-label">25c</div>
-                                            <input id="Denom_25Cent" class="form-control denom-input denom-mini-input" type="number" min="0" value="@Model.Denomination.Qty25Cent" />
-                                        </div>
-
-                                        <div class="denom-mini">
-                                            <div class="denom-mini-label">10c</div>
-                                            <input id="Denom_10Cent" class="form-control denom-input denom-mini-input" type="number" min="0" value="@Model.Denomination.Qty10Cent" />
-                                        </div>
-
-                                        <div class="denom-mini">
-                                            <div class="denom-mini-label">5c</div>
-                                            <input id="Denom_5Cent" class="form-control denom-input denom-mini-input" type="number" min="0" value="@Model.Denomination.Qty5Cent" />
-                                        </div>
-
-                                        <div class="denom-mini">
-                                            <div class="denom-mini-label">1c</div>
-                                            <input id="Denom_1Cent" class="form-control denom-input denom-mini-input" type="number" min="0" value="@Model.Denomination.Qty1Cent" />
-                                        </div>
+                        <div class="denom-compact-wrap">
+                            <div>
+                                <div class="denom-compact-grid">
+                                    <div class="denom-mini">
+                                        <div class="denom-mini-label">1000</div>
+                                        <input id="Denom_1000" class="form-control denom-input denom-mini-input" type="number" min="0" value="@Model.Denomination.Qty1000" />
                                     </div>
-
-                                    <div class="denom-save-hint mt-3">
-                                        Finalize only works when total denomination exactly matches the target.
+                                    <div class="denom-mini">
+                                        <div class="denom-mini-label">500</div>
+                                        <input id="Denom_500" class="form-control denom-input denom-mini-input" type="number" min="0" value="@Model.Denomination.Qty500" />
+                                    </div>
+                                    <div class="denom-mini">
+                                        <div class="denom-mini-label">200</div>
+                                        <input id="Denom_200" class="form-control denom-input denom-mini-input" type="number" min="0" value="@Model.Denomination.Qty200" />
+                                    </div>
+                                    <div class="denom-mini">
+                                        <div class="denom-mini-label">100</div>
+                                        <input id="Denom_100" class="form-control denom-input denom-mini-input" type="number" min="0" value="@Model.Denomination.Qty100" />
+                                    </div>
+                                    <div class="denom-mini">
+                                        <div class="denom-mini-label">50</div>
+                                        <input id="Denom_50" class="form-control denom-input denom-mini-input" type="number" min="0" value="@Model.Denomination.Qty50" />
+                                    </div>
+                                    <div class="denom-mini">
+                                        <div class="denom-mini-label">20 Coins</div>
+                                        <input id="Denom_20Coin" class="form-control denom-input denom-mini-input" type="number" min="0" value="@Model.Denomination.Qty20Coin" />
+                                    </div>
+                                    <div class="denom-mini">
+                                        <div class="denom-mini-label">20 Paper</div>
+                                        <input id="Denom_20Paper" class="form-control denom-input denom-mini-input" type="number" min="0" value="@Model.Denomination.Qty20Paper" />
+                                    </div>
+                                    <div class="denom-mini">
+                                        <div class="denom-mini-label">10</div>
+                                        <input id="Denom_10" class="form-control denom-input denom-mini-input" type="number" min="0" value="@Model.Denomination.Qty10" />
+                                    </div>
+                                    <div class="denom-mini">
+                                        <div class="denom-mini-label">5</div>
+                                        <input id="Denom_5" class="form-control denom-input denom-mini-input" type="number" min="0" value="@Model.Denomination.Qty5" />
+                                    </div>
+                                    <div class="denom-mini">
+                                        <div class="denom-mini-label">1</div>
+                                        <input id="Denom_1" class="form-control denom-input denom-mini-input" type="number" min="0" value="@Model.Denomination.Qty1" />
+                                    </div>
+                                    <div class="denom-mini">
+                                        <div class="denom-mini-label">25c</div>
+                                        <input id="Denom_25Cent" class="form-control denom-input denom-mini-input" type="number" min="0" value="@Model.Denomination.Qty25Cent" />
+                                    </div>
+                                    <div class="denom-mini">
+                                        <div class="denom-mini-label">10c</div>
+                                        <input id="Denom_10Cent" class="form-control denom-input denom-mini-input" type="number" min="0" value="@Model.Denomination.Qty10Cent" />
+                                    </div>
+                                    <div class="denom-mini">
+                                        <div class="denom-mini-label">5c</div>
+                                        <input id="Denom_5Cent" class="form-control denom-input denom-mini-input" type="number" min="0" value="@Model.Denomination.Qty5Cent" />
+                                    </div>
+                                    <div class="denom-mini">
+                                        <div class="denom-mini-label">1c</div>
+                                        <input id="Denom_1Cent" class="form-control denom-input denom-mini-input" type="number" min="0" value="@Model.Denomination.Qty1Cent" />
                                     </div>
                                 </div>
+                                <div class="mini-note mt-3">
+                                    <i class="bi bi-info-circle"></i> Denominations auto-save. You can only finalize when Difference is 0.00.
+                                </div>
+                            </div>
 
-                                <div>
-                                    <div id="denomSidebox"
-                                         class="denom-total-box @(Model.GrandTotal <= 0 ? "status-waiting" : (Model.IsDenominationMatched ? "status-match" : (Model.DenominationDifference < 0 ? "status-missing" : "status-over")))">
-                                        <div class="denom-total-title">Total / Target</div>
+                            <div>
+                                <div id="denomSidebox"
+                                     class="denom-total-box @(Model.GrandTotal <= 0 ? "status-waiting" : (Model.IsDenominationMatched ? "status-match" : (Model.DenominationDifference < 0 ? "status-missing" : "status-over")))">
+                                    <div class="denom-total-title">Remaining to Match</div>
 
-                                        <div id="denomRemaining" class="denom-total-main">
-                                            @((Model.GrandTotal - Model.DenominationTotal).ToString("0.00"))
+                                    <div id="denomRemaining" class="denom-total-main">
+                                        @((Model.GrandTotal - Model.DenominationTotal).ToString("0.00"))
+                                    </div>
+
+                                    <div id="denomHelperText" class="denom-total-helper">
+                                        @(Model.GrandTotal <= 0
+                                            ? "Add entries first, then enter the denomination."
+                                            : (Model.IsDenominationMatched
+                                            ? "Exact match. You can finalize this record."
+                                            : (Model.DenominationDifference > 0
+                                            ? "Denomination is over the target."
+                                            : "Keep entering denomination until remaining is 0.00.")))
+                                    </div>
+
+                                    <div class="denom-total-lines">
+                                        <div class="denom-total-line">
+                                            <span>Target Required</span>
+                                            <strong id="denomTarget">@Model.GrandTotal.ToString("0.00")</strong>
                                         </div>
-
-                                        <div id="denomHelperText" class="denom-total-helper">
-                                            @(Model.GrandTotal <= 0
-                                                ? "Add entries first, then enter the denomination."
-                                                : (Model.IsDenominationMatched
-                                                ? "Exact match. You can finalize this record."
-                                                : (Model.DenominationDifference > 0
-                                                ? "Denomination is over the target."
-                                                : "Keep entering denomination until the remaining target becomes 0.00.")))
+                                        <div class="denom-total-line">
+                                            <span>Amount Entered</span>
+                                            <strong id="denomTotal">@Model.DenominationTotal.ToString("0.00")</strong>
                                         </div>
-
-                                        <div class="denom-total-lines">
-                                            <div class="denom-total-line">
-                                                <span>Target</span>
-                                                <strong id="denomTarget">@Model.GrandTotal.ToString("0.00")</strong>
-                                            </div>
-                                            <div class="denom-total-line">
-                                                <span>Entered</span>
-                                                <strong id="denomTotal">@Model.DenominationTotal.ToString("0.00")</strong>
-                                            </div>
-                                            <div class="denom-total-line">
-                                                <span>Difference</span>
-                                                <strong id="denomDifference">@Model.DenominationDifference.ToString("0.00")</strong>
-                                            </div>
+                                        <div class="denom-total-line">
+                                            <span>Variance</span>
+                                            <strong id="denomDifference">@Model.DenominationDifference.ToString("0.00")</strong>
                                         </div>
                                     </div>
                                 </div>
@@ -1138,29 +961,27 @@
 
                     <div id="denomSummarySection" class="@(Model.IsClosed ? "" : "d-none")">
                         <div class="denom-final-wrap">
-                            <div class="denom-final-left">
-                                <div class="denom-final-label">Denomination Summary</div>
-
+                            <div>
+                                <div class="form-label text-muted text-uppercase mb-3" style="letter-spacing: 0.05em;">Breakdown</div>
                                 <div id="denomSummaryRows">
                                     @{
                                         var denomItems = new List<(string Label, int Qty, decimal Amount)>
-                                        {
-                                            ("1000", Model.Denomination.Qty1000, Model.Denomination.Qty1000 * 1000m),
-                                            ("500", Model.Denomination.Qty500, Model.Denomination.Qty500 * 500m),
-                                            ("200", Model.Denomination.Qty200, Model.Denomination.Qty200 * 200m),
-                                            ("100", Model.Denomination.Qty100, Model.Denomination.Qty100 * 100m),
-                                            ("50", Model.Denomination.Qty50, Model.Denomination.Qty50 * 50m),
-                                            ("20 Coins", Model.Denomination.Qty20Coin, Model.Denomination.Qty20Coin * 20m),
-                                            ("20 Paper", Model.Denomination.Qty20Paper, Model.Denomination.Qty20Paper * 20m),
-                                            ("10", Model.Denomination.Qty10, Model.Denomination.Qty10 * 10m),
-                                            ("5", Model.Denomination.Qty5, Model.Denomination.Qty5 * 5m),
-                                            ("1", Model.Denomination.Qty1, Model.Denomination.Qty1 * 1m),
-                                            ("25c", Model.Denomination.Qty25Cent, Model.Denomination.Qty25Cent * 0.25m),
-                                            ("10c", Model.Denomination.Qty10Cent, Model.Denomination.Qty10Cent * 0.10m),
-                                            ("5c", Model.Denomination.Qty5Cent, Model.Denomination.Qty5Cent * 0.05m),
-                                            ("1c", Model.Denomination.Qty1Cent, Model.Denomination.Qty1Cent * 0.01m)
-                                        };
-
+                                    {
+                                    ("1000", Model.Denomination.Qty1000, Model.Denomination.Qty1000 * 1000m),
+                                    ("500", Model.Denomination.Qty500, Model.Denomination.Qty500 * 500m),
+                                    ("200", Model.Denomination.Qty200, Model.Denomination.Qty200 * 200m),
+                                    ("100", Model.Denomination.Qty100, Model.Denomination.Qty100 * 100m),
+                                    ("50", Model.Denomination.Qty50, Model.Denomination.Qty50 * 50m),
+                                    ("20 Coins", Model.Denomination.Qty20Coin, Model.Denomination.Qty20Coin * 20m),
+                                    ("20 Paper", Model.Denomination.Qty20Paper, Model.Denomination.Qty20Paper * 20m),
+                                    ("10", Model.Denomination.Qty10, Model.Denomination.Qty10 * 10m),
+                                    ("5", Model.Denomination.Qty5, Model.Denomination.Qty5 * 5m),
+                                    ("1", Model.Denomination.Qty1, Model.Denomination.Qty1 * 1m),
+                                    ("25c", Model.Denomination.Qty25Cent, Model.Denomination.Qty25Cent * 0.25m),
+                                    ("10c", Model.Denomination.Qty10Cent, Model.Denomination.Qty10Cent * 0.10m),
+                                    ("5c", Model.Denomination.Qty5Cent, Model.Denomination.Qty5Cent * 0.05m),
+                                    ("1c", Model.Denomination.Qty1Cent, Model.Denomination.Qty1Cent * 0.01m)
+                                    };
                                         var usedDenoms = denomItems.Where(x => x.Qty > 0).ToList();
                                     }
 
@@ -1170,7 +991,7 @@
                                             @foreach (var item in usedDenoms)
                                             {
                                                 <div class="denom-final-row">
-                                                    <div class="denom-final-row-left">
+                                                    <div>
                                                         <span class="denom-final-bill">@item.Label</span>
                                                         <span class="denom-final-times">× @item.Qty</span>
                                                     </div>
@@ -1181,28 +1002,16 @@
                                     }
                                     else
                                     {
-                                        <div class="denom-final-empty">No denomination recorded.</div>
+                                        <div class="empty-panel-note mt-0">No denomination recorded.</div>
                                     }
                                 </div>
                             </div>
 
-                            <div class="denom-final-right">
-                                <div class="denom-final-total-card">
-                                    <div class="denom-final-total-label">Total Denomination</div>
-                                    <div id="denomSummaryTotal" class="denom-final-total-value">@Model.DenominationTotal.ToString("0.00")</div>
-
-                                    <div class="denom-final-total-meta">
-                                        <div class="denom-final-total-line">
-                                            <span>Target</span>
-                                            <strong id="denomSummaryTarget">@Model.GrandTotal.ToString("0.00")</strong>
-                                        </div>
-                                        <div class="denom-final-total-line">
-                                            <span>Difference</span>
-                                            <strong id="denomSummaryDifference" class="@(Model.DenominationDifference == 0 ? "ok" : "bad")">
-                                                @Model.DenominationDifference.ToString("0.00")
-                                            </strong>
-                                        </div>
-                                    </div>
+                            <div>
+                                <div class="denom-total-box status-match">
+                                    <div class="denom-total-title text-success">Total Verified</div>
+                                    <div id="denomSummaryTotal" class="denom-total-main text-success">@Model.DenominationTotal.ToString("0.00")</div>
+                                    <div class="denom-total-helper text-success"><i class="bi bi-shield-check"></i> Balanced with System Total</div>
                                 </div>
                             </div>
                         </div>
@@ -1211,16 +1020,16 @@
                 </div>
             </div>
         </div>
-        
+
     </div>
 </div>
 
-<div class="toast-container position-fixed bottom-0 end-0 p-3">
-    <div id="floatingToast" class="toast floating-toast border-0 shadow" role="alert" aria-live="assertive" aria-atomic="true">
-        <div id="floatingToastHeader" class="toast-header">
+<div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1085;">
+    <div id="floatingToast" class="toast border-0 shadow" role="alert" aria-live="assertive" aria-atomic="true">
+        <div id="floatingToastHeader" class="toast-header text-white">
             <strong class="me-auto" id="toastTitle">Notice</strong>
-            <small>Now</small>
-            <button type="button" class="btn-close ms-2 mb-1" data-bs-dismiss="toast"></button>
+            <small class="text-white-50">Just now</small>
+            <button type="button" class="btn-close btn-close-white ms-2 mb-1" data-bs-dismiss="toast"></button>
         </div>
         <div class="toast-body" id="toastBody"></div>
     </div>
@@ -1228,327 +1037,41 @@
 
 <div class="modal fade" id="finalizeModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Finalize Record</h5>
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header border-bottom-0 pb-0">
+                <h5 class="modal-title fw-bold text-dark">Finalize Record</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body">
-                Are you sure you want to finalize this record?
-                <div class="mt-2 text-muted small">
-                    After finalizing, the member list and entry form will be hidden.
+            <div class="modal-body pt-2 text-muted">
+                Are you sure you want to finalize this record? <br><br>
+                <div class="p-3 bg-light rounded border border-warning">
+                    <i class="bi bi-exclamation-triangle-fill text-warning me-2"></i> After finalizing, the record will be locked. You will not be able to add or edit members.
                 </div>
             </div>
-            <div class="modal-footer">
-                <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button class="btn btn-primary" id="confirmFinalizeBtn">Yes, Finalize</button>
+            <div class="modal-footer border-top-0 pt-0">
+                <button class="btn btn-light border fw-semibold text-muted" data-bs-dismiss="modal">Cancel</button>
+                <button class="btn btn-success fw-bold" id="confirmFinalizeBtn">Yes, Finalize</button>
             </div>
         </div>
     </div>
 </div>
 
-@section Scripts {
-    <script>
+<script>
+    // Wrap everything in an IIFE (Immediately Invoked Function Expression)
+    // This isolates your variables so they don't crash when HTMX swaps the page back and forth.
+    (function () {
         let isFinalizing = false;
         let isSavingRow = false;
         let actionBannerTimer = null;
         let denominationSaveTimer = null;
         let denominationSaveInFlight = false;
 
-        function applyDenominationMode(isClosed) {
-            const inputSection = document.getElementById("denomInputSection");
-            const summarySection = document.getElementById("denomSummarySection");
-
-            if (inputSection) {
-                inputSection.classList.toggle("d-none", !!isClosed);
-            }
-
-            if (summarySection) {
-                summarySection.classList.toggle("d-none", !isClosed);
-            }
-
-            document.querySelectorAll(".denom-input").forEach(input => {
-                input.disabled = !!isClosed;
-            });
-        }
-
-        function getDenominationPayload() {
-            return {
-                qty1000: parseInt(document.getElementById("Denom_1000")?.value || "0") || 0,
-                qty500: parseInt(document.getElementById("Denom_500")?.value || "0") || 0,
-                qty200: parseInt(document.getElementById("Denom_200")?.value || "0") || 0,
-                qty100: parseInt(document.getElementById("Denom_100")?.value || "0") || 0,
-                qty50: parseInt(document.getElementById("Denom_50")?.value || "0") || 0,
-                qty20Coin: parseInt(document.getElementById("Denom_20Coin")?.value || "0") || 0,
-                qty20Paper: parseInt(document.getElementById("Denom_20Paper")?.value || "0") || 0,
-                qty10: parseInt(document.getElementById("Denom_10")?.value || "0") || 0,
-                qty5: parseInt(document.getElementById("Denom_5")?.value || "0") || 0,
-                qty1: parseInt(document.getElementById("Denom_1")?.value || "0") || 0,
-                qty25Cent: parseInt(document.getElementById("Denom_25Cent")?.value || "0") || 0,
-                qty10Cent: parseInt(document.getElementById("Denom_10Cent")?.value || "0") || 0,
-                qty5Cent: parseInt(document.getElementById("Denom_5Cent")?.value || "0") || 0,
-                qty1Cent: parseInt(document.getElementById("Denom_1Cent")?.value || "0") || 0
-            };
-        }
-
-        function computeDenomTotal(denom) {
-            return (denom.qty1000 * 1000) +
-                   (denom.qty500 * 500) +
-                   (denom.qty200 * 200) +
-                   (denom.qty100 * 100) +
-                   (denom.qty50 * 50) +
-                   (denom.qty20Coin * 20) +
-                   (denom.qty20Paper * 20) +
-                   (denom.qty10 * 10) +
-                   (denom.qty5 * 5) +
-                   (denom.qty1 * 1) +
-                   (denom.qty25Cent * 0.25) +
-                   (denom.qty10Cent * 0.10) +
-                   (denom.qty5Cent * 0.05) +
-                   (denom.qty1Cent * 0.01);
-        }
-
-        function fillDenominationInputs(denom) {
-            const safeDenom = denom || {};
-
-            const setValue = (id, value) => {
-                const el = document.getElementById(id);
-                if (el) el.value = value ?? 0;
-            };
-
-            setValue("Denom_1000", safeDenom.qty1000 || 0);
-            setValue("Denom_500", safeDenom.qty500 || 0);
-            setValue("Denom_200", safeDenom.qty200 || 0);
-            setValue("Denom_100", safeDenom.qty100 || 0);
-            setValue("Denom_50", safeDenom.qty50 || 0);
-            setValue("Denom_20Coin", safeDenom.qty20Coin || 0);
-            setValue("Denom_20Paper", safeDenom.qty20Paper || 0);
-            setValue("Denom_10", safeDenom.qty10 || 0);
-            setValue("Denom_5", safeDenom.qty5 || 0);
-            setValue("Denom_1", safeDenom.qty1 || 0);
-            setValue("Denom_25Cent", safeDenom.qty25Cent || 0);
-            setValue("Denom_10Cent", safeDenom.qty10Cent || 0);
-            setValue("Denom_5Cent", safeDenom.qty5Cent || 0);
-            setValue("Denom_1Cent", safeDenom.qty1Cent || 0);
-        }
-
-        function renderDenominationSummary(denomData, grandTotal) {
-            const denom = denomData || {};
-
-            const items = [
-                { label: "1000", qty: denom.qty1000 || 0, amount: (denom.qty1000 || 0) * 1000 },
-                { label: "500", qty: denom.qty500 || 0, amount: (denom.qty500 || 0) * 500 },
-                { label: "200", qty: denom.qty200 || 0, amount: (denom.qty200 || 0) * 200 },
-                { label: "100", qty: denom.qty100 || 0, amount: (denom.qty100 || 0) * 100 },
-                { label: "50", qty: denom.qty50 || 0, amount: (denom.qty50 || 0) * 50 },
-                { label: "20 Coins", qty: denom.qty20Coin || 0, amount: (denom.qty20Coin || 0) * 20 },
-                { label: "20 Paper", qty: denom.qty20Paper || 0, amount: (denom.qty20Paper || 0) * 20 },
-                { label: "10", qty: denom.qty10 || 0, amount: (denom.qty10 || 0) * 10 },
-                { label: "5", qty: denom.qty5 || 0, amount: (denom.qty5 || 0) * 5 },
-                { label: "1", qty: denom.qty1 || 0, amount: (denom.qty1 || 0) * 1 },
-                { label: "25c", qty: denom.qty25Cent || 0, amount: (denom.qty25Cent || 0) * 0.25 },
-                { label: "10c", qty: denom.qty10Cent || 0, amount: (denom.qty10Cent || 0) * 0.10 },
-                { label: "5c", qty: denom.qty5Cent || 0, amount: (denom.qty5Cent || 0) * 0.05 },
-                { label: "1c", qty: denom.qty1Cent || 0, amount: (denom.qty1Cent || 0) * 0.01 }
-            ];
-
-            const rowsHost = document.getElementById("denomSummaryRows");
-            const totalEl = document.getElementById("denomSummaryTotal");
-            const targetEl = document.getElementById("denomSummaryTarget");
-            const diffEl = document.getElementById("denomSummaryDifference");
-
-            if (rowsHost) {
-                const visibleItems = items.filter(x => x.qty > 0);
-
-                if (visibleItems.length === 0) {
-                    rowsHost.innerHTML = `<div class="denom-final-empty">No denomination recorded.</div>`;
-                } else {
-                    rowsHost.innerHTML = `
-                        <div class="denom-final-list">
-                            ${visibleItems.map(x => `
-                                <div class="denom-final-row">
-                                    <div class="denom-final-row-left">
-                                        <span class="denom-final-bill">${escapeHtml(x.label)}</span>
-                                        <span class="denom-final-times">× ${x.qty}</span>
-                                    </div>
-                                    <div class="denom-final-row-amount">${formatMoney(x.amount)}</div>
-                                </div>
-                            `).join("")}
-                        </div>
-                    `;
-                }
-            }
-
-            const total = denom.total !== undefined && denom.total !== null
-                ? parseFloat(denom.total)
-                : computeDenomTotal(denom);
-
-            const target = parseFloat(grandTotal || 0);
-            const difference = total - target;
-
-            if (totalEl) totalEl.textContent = formatMoney(total);
-            if (targetEl) targetEl.textContent = formatMoney(target);
-
-            if (diffEl) {
-                diffEl.textContent = formatMoney(difference);
-                diffEl.className = difference === 0 ? "ok" : "bad";
-            }
-        }
-
-        function renderDenominationState(denomData, grandTotal) {
-            const denom = denomData || {};
-
-            const target = grandTotal !== undefined && grandTotal !== null
-                ? parseFloat(grandTotal)
-                : parseFloat(denom.target || 0);
-
-            const total = denom.total !== undefined && denom.total !== null
-                ? parseFloat(denom.total)
-                : computeDenomTotal(getDenominationPayload());
-
-            const difference = total - target;
-            const remaining = target - total;
-            const isMatched = target > 0 && difference === 0;
-
-            const targetEl = document.getElementById("denomTarget");
-            const totalEl = document.getElementById("denomTotal");
-            const differenceEl = document.getElementById("denomDifference");
-            const remainingEl = document.getElementById("denomRemaining");
-
-            if (targetEl) targetEl.textContent = formatMoney(target);
-            if (totalEl) totalEl.textContent = formatMoney(total);
-            if (differenceEl) differenceEl.textContent = formatMoney(difference);
-            if (remainingEl) remainingEl.textContent = formatMoney(remaining);
-
-            let statusClass = "waiting";
-            let sideClass = "status-waiting";
-            let statusText = "Waiting";
-            let helperText = "Add entries first, then enter the denomination.";
-
-            if (target > 0) {
-                if (isMatched) {
-                    statusClass = "match";
-                    sideClass = "status-match";
-                    statusText = "Matched";
-                    helperText = "Exact match. You can finalize this record.";
-                } else if (difference > 0) {
-                    statusClass = "over";
-                    sideClass = "status-over";
-                    statusText = "Over";
-                    helperText = "Denomination is over the target.";
-                } else {
-                    statusClass = "missing";
-                    sideClass = "status-missing";
-                    statusText = "Missing";
-                    helperText = "Keep entering denomination until the remaining target becomes 0.00.";
-                }
-            }
-
-            const statusPill = document.getElementById("denomStatusPill");
-            const sideBox = document.getElementById("denomSidebox");
-            const helperTextEl = document.getElementById("denomHelperText");
-
-            if (statusPill) {
-                statusPill.className = "denom-status " + statusClass;
-                statusPill.textContent = statusText;
-            }
-
-            if (sideBox) {
-                sideBox.className = "denom-total-box " + sideClass;
-            }
-
-            if (helperTextEl) {
-                helperTextEl.textContent = helperText;
-            }
-
-            const isAlreadyClosed = (document.getElementById("recordStatusBadge")?.textContent || "").includes("Finalized");
-            const canFinalize = isMatched && target > 0 && !isAlreadyClosed;
-
-            const finalizeBtn = document.getElementById("finalizeBtn");
-            const confirmFinalizeBtn = document.getElementById("confirmFinalizeBtn");
-
-            if (finalizeBtn && !finalizeBtn.classList.contains("d-none")) {
-                finalizeBtn.disabled = !canFinalize;
-            }
-
-            if (confirmFinalizeBtn) {
-                confirmFinalizeBtn.disabled = !canFinalize;
-            }
-        }
-
-        function queueDenominationSave() {
-            if (denominationSaveTimer) clearTimeout(denominationSaveTimer);
-
-            denominationSaveTimer = setTimeout(async () => {
-                if (denominationSaveInFlight) return;
-                denominationSaveInFlight = true;
-                try {
-                    await saveDenominationAjax();
-                } finally {
-                    denominationSaveInFlight = false;
-                }
-            }, 350);
-        }
-
-        async function saveDenominationAjax() {
-            const recordId = parseInt(document.getElementById("RecordId")?.value || "0");
-            if (!recordId) return;
-
-            const targetTotal = parseAmount(document.getElementById("grandTotal")?.textContent || "0");
-
-            try {
-                const response = await fetch("?handler=SaveDenominationAjax", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "RequestVerificationToken": getAntiForgeryToken()
-                    },
-                    body: JSON.stringify({
-                        recordId: recordId,
-                        denomination: getDenominationPayload(),
-                        targetTotal: targetTotal
-                    })
-                });
-
-                const data = await response.json();
-                if (data.success) {
-                    const payload = data.data;
-                    renderDenominationState(payload.denomination, payload.totals?.grandTotal);
-                }
-            } catch (err) {
-                console.error("Denomination save error:", err);
-            }
-        }
-
-                function renderTotals(totals) {
-            const setText = (id, value, useComma = false) => {
-                const el = document.getElementById(id);
-                if (!el) return;
-
-                el.textContent = useComma ? formatMoneyTotal(value) : formatMoney(value);
-            };
-
-            setText("totalTithes", totals.totalTithes, true);
-            setText("totalOfferings", totals.totalOfferings, true);
-            setText("totalSolomon", totals.totalSolomon, true);
-            setText("totalNoah", totals.totalNoah, true);
-            setText("totalMission", totals.totalMission, true);
-            setText("totalOthers", totals.totalOthers, true);
-            setText("grandTotal", totals.grandTotal, true);
-
-            renderDenominationState(null, totals.grandTotal);
-        }
-
-        function setSaveRowBusyState(isBusy) {
-            const saveBtn = document.getElementById("saveMemberBtn");
-            if (!saveBtn) return;
-            saveBtn.disabled = isBusy;
-            saveBtn.classList.toggle("btn-finalizing", isBusy);
-            saveBtn.textContent = isBusy ? "Saving..." : "Save Row";
-        }
+        // ── UTILS ─────────────────────────────────────────────────────────────────
 
         function parseAmount(value) {
-            const num = parseFloat(value);
+            if (!value) return 0;
+            const cleaned = value.toString().replace(/,/g, '').trim();
+            const num = parseFloat(cleaned);
             return isNaN(num) ? 0 : num;
         }
 
@@ -1556,14 +1079,11 @@
             const num = parseFloat(value || 0);
             return num === 0 ? "" : num.toFixed(2);
         }
+
         function formatMoneyTotal(value) {
             const num = parseFloat(value || 0);
             if (num === 0) return "";
-
-            return num.toLocaleString("en-US", {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
-            });
+            return num.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         }
 
         function escapeHtml(text) {
@@ -1589,12 +1109,10 @@
 
         function getRowClassByName(name) {
             const lower = (name || "").toLowerCase();
-            if (lower.includes("kids") || lower.includes("prayer") || lower.includes("youth") || lower.includes("camp") || lower.includes("meeting") || lower.includes("group")) {
+            if (lower.includes("kids") || lower.includes("prayer") || lower.includes("youth") ||
+                lower.includes("camp") || lower.includes("meeting") || lower.includes("group"))
                 return "name-group";
-            }
-            if ((name || "").includes("&")) {
-                return "name-family";
-            }
+            if ((name || "").includes("&")) return "name-family";
             return "";
         }
 
@@ -1605,235 +1123,260 @@
                 || "";
         }
 
-        function updateDisplayTotal() {
-            const total =
-                parseAmount(document.getElementById("Input_Tithes")?.value) +
-                parseAmount(document.getElementById("Input_Offerings")?.value) +
-                parseAmount(document.getElementById("Input_Solomon")?.value) +
-                parseAmount(document.getElementById("Input_Noah")?.value) +
-                parseAmount(document.getElementById("Input_Mission")?.value) +
-                parseAmount(document.getElementById("Input_Others")?.value);
-
-            const totalBox = document.getElementById("displayTotal");
-            if (totalBox) {
-                totalBox.value = total.toFixed(2);
-            }
+        function resolveGrandTotal(totals) {
+            if (!totals) return 0;
+            const val = totals.grandTotal ?? totals.GrandTotal ?? 0;
+            return parseFloat(val) || 0;
         }
 
-        function showToast(title, message, success = true) {
-            const toastEl = document.getElementById("floatingToast");
-            const header = document.getElementById("floatingToastHeader");
-            const body = document.getElementById("toastBody");
-            const titleEl = document.getElementById("toastTitle");
+        // ── DENOMINATION ──────────────────────────────────────────────────────────
 
-            if (!toastEl || !header || !body || !titleEl) return;
-
-            titleEl.textContent = title;
-            body.textContent = message;
-            header.className = "toast-header " + (success ? "text-bg-success" : "text-bg-danger");
-
-            const existingToast = bootstrap.Toast.getInstance(toastEl);
-            if (existingToast) existingToast.dispose();
-
-            const toast = new bootstrap.Toast(toastEl, { autohide: true, delay: 2600 });
-            toast.show();
+        function getDenominationPayload() {
+            const gi = id => parseInt(document.getElementById(id)?.value || "0") || 0;
+            return {
+                qty1000:   gi("Denom_1000"),
+                qty500:    gi("Denom_500"),
+                qty200:    gi("Denom_200"),
+                qty100:    gi("Denom_100"),
+                qty50:     gi("Denom_50"),
+                qty20Coin: gi("Denom_20Coin"),
+                qty20Paper:gi("Denom_20Paper"),
+                qty10:     gi("Denom_10"),
+                qty5:      gi("Denom_5"),
+                qty1:      gi("Denom_1"),
+                qty25Cent: gi("Denom_25Cent"),
+                qty10Cent: gi("Denom_10Cent"),
+                qty5Cent:  gi("Denom_5Cent"),
+                qty1Cent:  gi("Denom_1Cent")
+            };
         }
 
-        function showActionBanner(type, title, message, closable = true) {
-            const banner = document.getElementById("actionBanner");
-            const spinner = document.getElementById("actionBannerSpinner");
-            const titleEl = document.getElementById("actionBannerTitle");
-            const messageEl = document.getElementById("actionBannerMessage");
-            const closeBtn = document.getElementById("actionBannerCloseBtn");
-
-            if (!banner || !spinner || !titleEl || !messageEl || !closeBtn) return;
-
-            if (actionBannerTimer) {
-                clearTimeout(actionBannerTimer);
-                actionBannerTimer = null;
-            }
-
-            banner.className = "action-banner " + type;
-            titleEl.textContent = title || "";
-            messageEl.textContent = message || "";
-
-            if (type === "loading") spinner.classList.remove("d-none");
-            else spinner.classList.add("d-none");
-
-            closeBtn.style.display = closable ? "inline-block" : "none";
-
-            requestAnimationFrame(() => {
-                banner.classList.add("show");
-            });
-
-            if (type !== "loading") {
-                actionBannerTimer = setTimeout(() => { hideActionBanner(); }, 3600);
-            }
+        function computeDenomTotal(denom) {
+            return (denom.qty1000   * 1000)
+                 + (denom.qty500    * 500)
+                 + (denom.qty200    * 200)
+                 + (denom.qty100    * 100)
+                 + (denom.qty50     * 50)
+                 + (denom.qty20Coin * 20)
+                 + (denom.qty20Paper* 20)
+                 + (denom.qty10     * 10)
+                 + (denom.qty5      * 5)
+                 + (denom.qty1      * 1)
+                 + (denom.qty25Cent * 0.25)
+                 + (denom.qty10Cent * 0.10)
+                 + (denom.qty5Cent  * 0.05)
+                 + (denom.qty1Cent  * 0.01);
         }
 
-        function hideActionBanner() {
-            const banner = document.getElementById("actionBanner");
-            if (!banner) return;
-
-            if (actionBannerTimer) {
-                clearTimeout(actionBannerTimer);
-                actionBannerTimer = null;
-            }
-
-            banner.classList.remove("show");
-            setTimeout(() => {
-                if (banner) banner.className = "action-banner";
-            }, 250);
+        function fillDenominationInputs(denom) {
+            const d = denom || {};
+            const set = (id, val) => { const el = document.getElementById(id); if (el) el.value = val ?? 0; };
+            set("Denom_1000",   d.qty1000   || 0);
+            set("Denom_500",    d.qty500    || 0);
+            set("Denom_200",    d.qty200    || 0);
+            set("Denom_100",    d.qty100    || 0);
+            set("Denom_50",     d.qty50     || 0);
+            set("Denom_20Coin", d.qty20Coin || 0);
+            set("Denom_20Paper",d.qty20Paper|| 0);
+            set("Denom_10",     d.qty10     || 0);
+            set("Denom_5",      d.qty5      || 0);
+            set("Denom_1",      d.qty1      || 0);
+            set("Denom_25Cent", d.qty25Cent || 0);
+            set("Denom_10Cent", d.qty10Cent || 0);
+            set("Denom_5Cent",  d.qty5Cent  || 0);
+            set("Denom_1Cent",  d.qty1Cent  || 0);
         }
 
-        function setDraftModeBadge(isClosed) {
-            const badge = document.getElementById("recordStatusBadge");
-            if (!badge) return;
+        function renderDenominationSummary(denomData, grandTotal) {
+            const denom = denomData || {};
+            const items = [
+                { label: "1000",     qty: denom.qty1000    || 0, amount: (denom.qty1000    || 0) * 1000  },
+                { label: "500",      qty: denom.qty500     || 0, amount: (denom.qty500     || 0) * 500   },
+                { label: "200",      qty: denom.qty200     || 0, amount: (denom.qty200     || 0) * 200   },
+                { label: "100",      qty: denom.qty100     || 0, amount: (denom.qty100     || 0) * 100   },
+                { label: "50",       qty: denom.qty50      || 0, amount: (denom.qty50      || 0) * 50    },
+                { label: "20 Coins", qty: denom.qty20Coin  || 0, amount: (denom.qty20Coin  || 0) * 20    },
+                { label: "20 Paper", qty: denom.qty20Paper || 0, amount: (denom.qty20Paper || 0) * 20    },
+                { label: "10",       qty: denom.qty10      || 0, amount: (denom.qty10      || 0) * 10    },
+                { label: "5",        qty: denom.qty5       || 0, amount: (denom.qty5       || 0) * 5     },
+                { label: "1",        qty: denom.qty1       || 0, amount: (denom.qty1       || 0) * 1     },
+                { label: "25c",      qty: denom.qty25Cent  || 0, amount: (denom.qty25Cent  || 0) * 0.25  },
+                { label: "10c",      qty: denom.qty10Cent  || 0, amount: (denom.qty10Cent  || 0) * 0.10  },
+                { label: "5c",       qty: denom.qty5Cent   || 0, amount: (denom.qty5Cent   || 0) * 0.05  },
+                { label: "1c",       qty: denom.qty1Cent   || 0, amount: (denom.qty1Cent   || 0) * 0.01  }
+            ];
 
-            badge.textContent = isClosed ? "Finalized" : "Draft";
-            badge.className = "toolbar-badge " + (isClosed ? "bg-secondary text-white" : "bg-info-subtle text-dark");
-        }
+            const rowsHost = document.getElementById("denomSummaryRows");
+            const totalEl  = document.getElementById("denomSummaryTotal");
 
-        function setFinalizeBusyState(isBusy) {
-            const finalizeBtn = document.getElementById("finalizeBtn");
-            const confirmFinalizeBtn = document.getElementById("confirmFinalizeBtn");
-
-            if (finalizeBtn) {
-                finalizeBtn.disabled = isBusy;
-                finalizeBtn.classList.toggle("btn-finalizing", isBusy);
-                finalizeBtn.textContent = isBusy ? "Finalizing..." : "Finalize Record";
-            }
-
-            if (confirmFinalizeBtn) {
-                confirmFinalizeBtn.disabled = isBusy;
-                confirmFinalizeBtn.classList.toggle("btn-finalizing", isBusy);
-                confirmFinalizeBtn.textContent = isBusy ? "Finalizing..." : "Yes, Finalize";
-            }
-        }
-
-        function setHeaderButtonsBusy(isBusy) {
-            const loadBtn = document.getElementById("loadRecordBtn");
-            const createBtn = document.getElementById("createRecordBtn");
-
-            if (loadBtn) {
-                loadBtn.disabled = isBusy;
-                loadBtn.textContent = isBusy ? "Loading..." : "Load Existing";
+            if (rowsHost) {
+                const visible = items.filter(x => x.qty > 0);
+                rowsHost.innerHTML = visible.length === 0
+                    ? `<div class="denom-final-empty">No denomination recorded.</div>`
+                    : `<div class="denom-final-list">${visible.map(x => `
+                        <div class="denom-final-row">
+                            <div class="denom-final-row-left">
+                                <span class="denom-final-bill">${escapeHtml(x.label)}</span>
+                                <span class="denom-final-times">× ${x.qty}</span>
+                            </div>
+                            <div class="denom-final-row-amount">${x.amount.toFixed(2)}</div>
+                        </div>`).join("")}</div>`;
             }
 
-            if (createBtn) {
-                createBtn.disabled = isBusy;
-                createBtn.textContent = isBusy ? "Processing..." : "Create New";
-            }
+            const total  = (denom.total != null ? parseFloat(denom.total) : computeDenomTotal(denom));
+            if (totalEl)  totalEl.textContent  = total.toFixed(2);
         }
 
-        function setRecordId(recordId) {
-            const recordIdInput = document.getElementById("RecordId");
-            if (recordIdInput) {
-                recordIdInput.value = recordId || 0;
-            }
-        }
+        function renderDenominationState(denomData, grandTotal) {
+            const denom  = denomData || {};
+            const target = parseFloat(grandTotal) || parseFloat(denom.target) || 0;
+            const total  = (denom.total != null ? parseFloat(denom.total) : computeDenomTotal(getDenominationPayload()));
 
-        function updateHeaderFromAjax(data) {
-            const recordCodeInput = document.querySelector('input[name="Header.RecordCode"]');
-            const serviceDateInput = document.querySelector('input[name="Header.ServiceDate"]');
-            const summaryDateLabel = document.getElementById("summaryDateLabel");
-            const summaryTitleCell = document.getElementById("summaryTitleCell");
+            const diff      = total - target;
+            const remaining = target - total;
+            const isMatched = target > 0 && diff === 0;
 
-            if (recordCodeInput) recordCodeInput.value = data.recordCode || "";
-            if (serviceDateInput) serviceDateInput.value = data.serviceDate || "";
+            const el = id => document.getElementById(id);
+            if (el("denomTarget"))     el("denomTarget").textContent     = target.toFixed(2);
+            if (el("denomTotal"))      el("denomTotal").textContent      = total.toFixed(2);
+            if (el("denomDifference")) el("denomDifference").textContent = diff.toFixed(2);
+            if (el("denomRemaining"))  el("denomRemaining").textContent  = remaining.toFixed(2);
 
-            const prettyDate = formatDateLabel(data.serviceDate);
-            if (summaryDateLabel) summaryDateLabel.textContent = prettyDate;
-            if (summaryTitleCell) summaryTitleCell.textContent = `Sources of Blessings ${prettyDate}`;
-        }
+            let statusClass = "waiting", sideClass = "status-waiting";
+            let statusText  = "Waiting";
+            let helperText  = "Add entries first, then enter the denomination.";
 
-        function updateUrlRecordId(recordId) {
-            const url = new URL(window.location.href);
-            url.searchParams.set("RecordId", recordId);
-            window.history.replaceState({}, "", url.toString());
-        }
-
-        function setEntrySectionEnabled(enabled) {
-            document.getElementById("membersPanelBody")?.classList.toggle("disabled-panel", !enabled);
-            document.getElementById("entryFormShell")?.classList.toggle("disabled-panel", !enabled);
-            document.getElementById("membersEmptyNote")?.classList.toggle("hidden-soft", enabled);
-            document.getElementById("entryEmptyNote")?.classList.toggle("hidden-soft", enabled);
-        }
-
-        function applyClosedState(isClosed) {
-            const workPanels = document.getElementById("workPanels");
-            const finalizeBtn = document.getElementById("finalizeBtn");
-            const finalizedNote = document.getElementById("finalizedNote");
-            const editHeader = document.getElementById("editColumnHeader");
-            const tfootEditSpacer = document.getElementById("tfootEditSpacer");
-
-            if (workPanels) workPanels.classList.toggle("d-none", isClosed);
-            if (finalizeBtn) finalizeBtn.classList.toggle("d-none", isClosed || !document.getElementById("RecordId")?.value || document.getElementById("RecordId")?.value === "0");
-            if (finalizedNote) finalizedNote.classList.toggle("d-none", !isClosed);
-            if (editHeader) editHeader.style.display = isClosed ? "none" : "";
-            if (tfootEditSpacer) tfootEditSpacer.style.display = isClosed ? "none" : "";
-
-            document.querySelectorAll(".summary-edit-cell").forEach(cell => {
-                cell.style.display = isClosed ? "none" : "";
-            });
-
-            // Locks inputs if the record is closed
-            document.querySelectorAll(".denom-input").forEach(input => {
-                input.disabled = isClosed;
-            });
-        }
-
-        function selectMemberVisual(memberId, rowKey) {
-            document.querySelectorAll(".member-btn").forEach(btn => {
-                btn.classList.remove("active-member");
-                const btnMemberId = btn.dataset.memberId || "";
-                const btnRowKey = btn.dataset.rowKey || "";
-
-                if ((memberId && btnMemberId === String(memberId)) || (rowKey && btnRowKey === rowKey)) {
-                    btn.classList.add("active-member");
+            if (target > 0) {
+                if (isMatched) {
+                    statusClass = "match";   sideClass = "status-match";
+                    statusText  = "Matched"; helperText = "Exact match. You can finalize this record.";
+                } else if (diff > 0) {
+                    statusClass = "over";    sideClass = "status-over";
+                    statusText  = "Over";    helperText = "Denomination is over the target.";
+                } else {
+                    statusClass = "missing"; sideClass = "status-missing";
+                    statusText  = "Missing"; helperText = "Keep entering denomination until the remaining target becomes 0.00.";
                 }
-            });
+            }
+
+            const statusPill = el("denomStatusPill");
+            const sideBox    = el("denomSidebox");
+            const helperEl   = el("denomHelperText");
+
+            if (statusPill) { statusPill.className = "denom-status " + statusClass; statusPill.textContent = statusText; }
+            if (sideBox)    sideBox.className = "denom-total-box " + sideClass;
+            if (helperEl)   helperEl.textContent = helperText;
+
+            const isAlreadyClosed = (el("recordStatusBadge")?.textContent || "").includes("Finalized");
+            const canFinalize = isMatched && target > 0 && !isAlreadyClosed;
+
+            const finalizeBtn        = el("finalizeBtn");
+            const confirmFinalizeBtn = el("confirmFinalizeBtn");
+            if (finalizeBtn && !finalizeBtn.classList.contains("d-none")) finalizeBtn.disabled = !canFinalize;
+            if (confirmFinalizeBtn) confirmFinalizeBtn.disabled = !canFinalize;
+        }
+
+        function applyDenominationMode(isClosed) {
+            const inputSection   = document.getElementById("denomInputSection");
+            const summarySection = document.getElementById("denomSummarySection");
+
+            if (inputSection)   inputSection.classList.toggle("d-none", !!isClosed);
+            if (summarySection) summarySection.classList.toggle("d-none", !isClosed);
+
+            document.querySelectorAll(".denom-input").forEach(input => { input.disabled = !!isClosed; });
+
+            const statusPill = document.getElementById("denomStatusPill");
+            if (statusPill && isClosed) {
+                statusPill.className   = "denom-status match";
+                statusPill.textContent = "Finalized";
+            }
+        }
+
+        function queueDenominationSave() {
+            if (denominationSaveTimer) clearTimeout(denominationSaveTimer);
+            denominationSaveTimer = setTimeout(async () => {
+                if (denominationSaveInFlight) return;
+                denominationSaveInFlight = true;
+                try { await saveDenominationAjax(); } finally { denominationSaveInFlight = false; }
+            }, 350);
+        }
+
+        async function saveDenominationAjax() {
+            const recordId = parseInt(document.getElementById("RecordId")?.value || "0");
+            if (!recordId) return;
+            const targetTotal = parseAmount(document.getElementById("grandTotal")?.textContent || "0");
+            try {
+                const res  = await fetch("?handler=SaveDenominationAjax", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json", "RequestVerificationToken": getAntiForgeryToken() },
+                    body: JSON.stringify({ recordId, denomination: getDenominationPayload(), targetTotal })
+                });
+                const data = await res.json();
+                if (data.success) renderDenominationState(data.data.denomination, resolveGrandTotal(data.data.totals));
+            } catch (err) { console.error("Denomination save error:", err); }
+        }
+
+        // ── ENTRY FORM ────────────────────────────────────────────────────────────
+
+        function updateDisplayTotal() {
+            const ids  = ["Input_Tithes","Input_Offerings","Input_Solomon","Input_Noah","Input_Mission","Input_Others"];
+            const total = ids.reduce((sum, id) => sum + parseAmount(document.getElementById(id)?.value), 0);
+            const box  = document.getElementById("displayTotal");
+            if (box) box.value = total.toFixed(2);
         }
 
         function fillEntryForm(data, displayName) {
-            const rowKey = document.getElementById("Input_RowKey");
-            const memberId = document.getElementById("Input_MemberId");
-            const selectedName = document.getElementById("selectedMemberName");
-            const customName = document.getElementById("customNameInput");
-            const tithes = document.getElementById("Input_Tithes");
-            const offerings = document.getElementById("Input_Offerings");
-            const solomon = document.getElementById("Input_Solomon");
-            const noah = document.getElementById("Input_Noah");
-            const mission = document.getElementById("Input_Mission");
-            const others = document.getElementById("Input_Others");
+            const set = (id, val) => { const el = document.getElementById(id); if (el) el.value = val ?? ""; };
+            set("Input_RowKey",        data.rowKey  || "");
+            set("Input_MemberId",      data.memberId ?? "");
+            set("selectedMemberName",  displayName || data.displayName || data.customName || "");
+            set("customNameInput",     data.customName || "");
+            set("Input_Tithes",        data.tithes     ?? 0);
+            set("Input_Offerings",     data.offerings ?? 0);
+            set("Input_Solomon",       data.solomon   ?? 0);
+            set("Input_Noah",          data.noah      ?? 0);
+            set("Input_Mission",       data.mission   ?? 0);
+            set("Input_Others",        data.others    ?? 0);
 
-            if (rowKey) rowKey.value = data.rowKey || "";
-            if (memberId) memberId.value = data.memberId ?? "";
-            if (selectedName) selectedName.value = displayName || data.displayName || data.customName || "";
-            if (customName) customName.value = data.customName || "";
-            if (tithes) tithes.value = data.tithes ?? 0;
-            if (offerings) offerings.value = data.offerings ?? 0;
-            if (solomon) solomon.value = data.solomon ?? 0;
-            if (noah) noah.value = data.noah ?? 0;
-            if (mission) mission.value = data.mission ?? 0;
-            if (others) others.value = data.others ?? 0;
+            const fundEl = document.getElementById("Input_OthersFund");
+            if (fundEl) fundEl.value = data.othersFund || "General";
 
             updateDisplayTotal();
         }
 
         function resetEntryForm() {
-            fillEntryForm({
-                rowKey: "", memberId: "", customName: "",
-                tithes: 0, offerings: 0, solomon: 0, noah: 0, mission: 0, others: 0
-            }, "");
+            fillEntryForm({ rowKey:"", memberId:"", customName:"",
+                tithes:0, offerings:0, solomon:0, noah:0, mission:0, others:0, othersFund:"General" }, "");
+            document.querySelectorAll(".member-btn").forEach(btn => btn.classList.remove("active-member"));
+        }
 
+        function selectMemberVisual(memberId, rowKey) {
             document.querySelectorAll(".member-btn").forEach(btn => {
-                btn.classList.remove("active-member");
+                const match = (memberId && btn.dataset.memberId === String(memberId))
+                           || (rowKey  && btn.dataset.rowKey    === rowKey);
+                btn.classList.toggle("active-member", match);
             });
         }
 
+        // ── SUMMARY TABLE ─────────────────────────────────────────────────────────
+
+        function renderTotals(totals) {
+            const set = (id, val, comma = false) => {
+                const el = document.getElementById(id);
+                if (el) el.textContent = comma ? formatMoneyTotal(val) : formatMoney(val);
+            };
+            set("totalTithes",    totals.totalTithes    ?? totals.TotalTithes,    true);
+            set("totalOfferings", totals.totalOfferings ?? totals.TotalOfferings, true);
+            set("totalSolomon",   totals.totalSolomon   ?? totals.TotalSolomon,   true);
+            set("totalNoah",      totals.totalNoah      ?? totals.TotalNoah,      true);
+            set("totalMission",   totals.totalMission   ?? totals.TotalMission,   true);
+            set("totalOthers",    totals.totalOthers    ?? totals.TotalOthers,    true);
+            set("grandTotal",     resolveGrandTotal(totals),                      true);
+            renderDenominationState(null, resolveGrandTotal(totals));
+        }
+
         function renderSummaryRows(rows, isClosed) {
-            const tbody = document.getElementById("summaryTableBody");
+            const tbody   = document.getElementById("summaryTableBody");
             tbody.innerHTML = "";
             const colSpan = isClosed ? 8 : 9;
 
@@ -1844,153 +1387,238 @@
 
             rows.forEach(row => {
                 const rowClass = getRowClassByName(row.memberName);
-                const editButton = isClosed ? "" : `<td class="text-center summary-edit-cell">
-                            <button type="button" class="btn btn-outline-primary summary-edit-btn summary-edit-btn-js"
-                                    data-row-key="${escapeHtml(row.rowKey || "")}" data-member-id="${row.memberId ?? ""}"
-                                    data-member-name="${escapeHtml(row.memberName)}">Edit</button></td>`;
+                const editBtn  = isClosed ? "" : `<td class="text-center summary-edit-cell">
+                    <button type="button" class="btn btn-sm btn-light border summary-edit-btn-js fw-semibold text-secondary"
+                        data-row-key="${escapeHtml(row.rowKey||"")}"
+                        data-member-id="${row.memberId??""}"
+                        data-member-name="${escapeHtml(row.memberName)}">Edit</button></td>`;
+
+                let othersHtml = formatMoney(row.others);
+                const fund = row.othersFund || row.OthersFund || "";
+                if ((row.others || 0) > 0 && fund && fund !== "General") {
+                    othersHtml += `<br><small class="text-primary fw-bold" style="font-size:0.75rem; text-transform:uppercase;">${escapeHtml(fund)}</small>`;
+                }
 
                 tbody.insertAdjacentHTML("beforeend", `
                     <tr>
                         <td class="name-cell ${rowClass}">${escapeHtml(row.memberName)}</td>
-                        <td class="text-end">${formatMoney(row.tithes)}</td>
-                        <td class="text-end">${formatMoney(row.offerings)}</td>
-                        <td class="text-end">${formatMoney(row.solomon)}</td>
-                        <td class="text-end">${formatMoney(row.noah)}</td>
-                        <td class="text-end">${formatMoney(row.mission)}</td>
-                            <td class="text-end">${formatMoney(row.others)}</td>
-                            <td class="text-end fw-bold">${formatMoneyTotal(row.total)}</td>
-                        ${editButton}
-                    </tr>
-                `);
+                        <td class="text-end text-muted">${formatMoney(row.tithes) || "-"}</td>
+                        <td class="text-end text-muted">${formatMoney(row.offerings) || "-"}</td>
+                        <td class="text-end text-muted">${formatMoney(row.solomon) || "-"}</td>
+                        <td class="text-end text-muted">${formatMoney(row.noah) || "-"}</td>
+                        <td class="text-end text-muted">${formatMoney(row.mission) || "-"}</td>
+                        <td class="text-end">${othersHtml || "-"}</td>
+                        <td class="text-end fw-bold text-dark">${formatMoneyTotal(row.total) || "-"}</td>
+                        ${editBtn}
+                    </tr>`);
             });
         }
 
+        // ── UI STATE ──────────────────────────────────────────────────────────────
+
+        function setDraftModeBadge(isClosed) {
+            const badge = document.getElementById("recordStatusBadge");
+            if (!badge) return;
+            badge.textContent = isClosed ? "FINALIZED" : "DRAFT MODE";
+            badge.className = "toolbar-badge " + (isClosed ? "bg-secondary text-white" : "bg-primary text-white bg-opacity-75");
+        }
+
+        function applyClosedState(isClosed) {
+            const el = id => document.getElementById(id);
+            const recordId = el("RecordId")?.value;
+
+            el("workPanels")?.classList.toggle("d-none", isClosed);
+            el("finalizeBtn")?.classList.toggle("d-none", isClosed || !recordId || recordId === "0");
+            el("finalizedNote")?.classList.toggle("d-none", !isClosed);
+
+            const editHeader = el("editColumnHeader");
+            const tfootSpacer = el("tfootEditSpacer");
+            if (editHeader)  editHeader.style.display  = isClosed ? "none" : "";
+            if (tfootSpacer) tfootSpacer.style.display = isClosed ? "none" : "";
+
+            document.querySelectorAll(".summary-edit-cell").forEach(c => c.style.display = isClosed ? "none" : "");
+            document.querySelectorAll(".denom-input").forEach(i => i.disabled = isClosed);
+        }
+
+        function setEntrySectionEnabled(enabled) {
+            document.getElementById("membersPanelBody")?.classList.toggle("disabled-panel", !enabled);
+            document.getElementById("entryFormShell")?.classList.toggle("disabled-panel", !enabled);
+            document.getElementById("membersEmptyNote")?.classList.toggle("hidden-soft", enabled);
+            document.getElementById("entryEmptyNote")?.classList.toggle("hidden-soft", enabled);
+        }
+
+        function setRecordId(id) {
+            const el = document.getElementById("RecordId");
+            if (el) el.value = id || 0;
+        }
+
+        function updateHeaderFromAjax(data) {
+            const codeEl  = document.querySelector('input[name="Header.RecordCode"]');
+            const dateEl  = document.querySelector('input[name="Header.ServiceDate"]');
+            const labelEl = document.getElementById("summaryDateLabel");
+            const titleEl = document.getElementById("summaryTitleCell");
+            if (codeEl)  codeEl.value  = data.recordCode  || "";
+            if (dateEl)  dateEl.value  = data.serviceDate || "";
+            const pretty = formatDateLabel(data.serviceDate);
+            if (labelEl) labelEl.textContent = pretty;
+            if (titleEl) titleEl.textContent = `Sources of Blessings ${pretty}`;
+        }
+
+        function updateUrlRecordId(id) {
+            const url = new URL(window.location.href);
+            url.searchParams.set("RecordId", id);
+            window.history.replaceState({}, "", url.toString());
+        }
+
+        function setSaveRowBusyState(busy) {
+            const btn = document.getElementById("saveMemberBtn");
+            if (!btn) return;
+            btn.disabled = busy;
+            btn.classList.toggle("btn-finalizing", busy);
+            btn.innerHTML = busy ? `<i class="bi bi-arrow-repeat me-1"></i> Saving...` : `<i class="bi bi-check2-circle me-1"></i> Save Row Entry`;
+        }
+
+        function setHeaderButtonsBusy(busy) {
+            const loadBtn   = document.getElementById("loadRecordBtn");
+            const createBtn = document.getElementById("createRecordBtn");
+            if (loadBtn)   { loadBtn.disabled   = busy; loadBtn.textContent   = busy ? "Loading..."    : "Load Existing"; }
+            if (createBtn) { createBtn.disabled = busy; createBtn.textContent = busy ? "Processing..." : "Create New"; }
+        }
+
+        function setFinalizeBusyState(busy) {
+            [document.getElementById("finalizeBtn"), document.getElementById("confirmFinalizeBtn")].forEach(btn => {
+                if (!btn) return;
+                btn.disabled = busy;
+                btn.classList.toggle("btn-finalizing", busy);
+                if (btn.id === "finalizeBtn") {
+                    btn.innerHTML = busy ? `<i class="bi bi-arrow-repeat me-1"></i> Finalizing...` : `<i class="bi bi-lock-fill me-1"></i> Finalize Record`;
+                } else {
+                    btn.textContent = busy ? "Finalizing..." : "Yes, Finalize";
+                }
+            });
+        }
+
+        // ── TOASTS & BANNERS ──────────────────────────────────────────────────────
+
+        function showToast(title, message, success = true) {
+            const toastEl = document.getElementById("floatingToast");
+            const header  = document.getElementById("floatingToastHeader");
+            const body    = document.getElementById("toastBody");
+            const titleEl = document.getElementById("toastTitle");
+            if (!toastEl || !header || !body || !titleEl) return;
+            titleEl.textContent = title;
+            body.textContent    = message;
+            header.className    = "toast-header " + (success ? "text-bg-success" : "text-bg-danger");
+            const existing = bootstrap.Toast.getInstance(toastEl);
+            if (existing) existing.dispose();
+            new bootstrap.Toast(toastEl, { autohide: true, delay: 2600 }).show();
+        }
+
+        function showActionBanner(type, title, message, closable = true) {
+            const banner   = document.getElementById("actionBanner");
+            const spinner  = document.getElementById("actionBannerSpinner");
+            const titleEl  = document.getElementById("actionBannerTitle");
+            const msgEl    = document.getElementById("actionBannerMessage");
+            const closeBtn = document.getElementById("actionBannerCloseBtn");
+            if (!banner || !spinner || !titleEl || !msgEl || !closeBtn) return;
+            if (actionBannerTimer) { clearTimeout(actionBannerTimer); actionBannerTimer = null; }
+            banner.className  = "action-banner " + type;
+            titleEl.textContent = title  || "";
+            msgEl.textContent   = message || "";
+            spinner.classList.toggle("d-none", type !== "loading");
+            closeBtn.style.display = closable ? "inline-block" : "none";
+            requestAnimationFrame(() => banner.classList.add("show"));
+            if (type !== "loading") actionBannerTimer = setTimeout(hideActionBanner, 3600);
+        }
+
+        function hideActionBanner() {
+            const banner = document.getElementById("actionBanner");
+            if (!banner) return;
+            if (actionBannerTimer) { clearTimeout(actionBannerTimer); actionBannerTimer = null; }
+            banner.classList.remove("show");
+            setTimeout(() => { if (banner) banner.className = "action-banner"; }, 250);
+        }
+
+        // ── AJAX ACTIONS ──────────────────────────────────────────────────────────
+
         async function loadMemberEntryByMember(memberId, memberName) {
             const recordId = document.getElementById("RecordId")?.value;
-            if (!recordId || recordId === "0") {
-                showToast("Error", "Create or load a record first.", false);
-                return;
-            }
-
+            if (!recordId || recordId === "0") { showToast("Error", "Create or load a record first.", false); return; }
             try {
-                const response = await fetch(`?handler=MemberEntry&recordId=${recordId}&memberId=${memberId}`);
-                const data = await response.json();
-
-                if (!data.success) {
-                    showToast("Error", data.message || "Unable to load entry.", false);
-                    return;
-                }
-
+                const res  = await fetch(`?handler=MemberEntry&recordId=${recordId}&memberId=${memberId}`);
+                const data = await res.json();
+                if (!data.success) { showToast("Error", data.message || "Unable to load entry.", false); return; }
                 fillEntryForm(data, memberName);
                 selectMemberVisual(memberId, data.rowKey || "");
-                document.getElementById("member-entry-section")?.scrollIntoView({ behavior: "smooth", block: "start" });
-            } catch {
-                showToast("Error", "Failed to load member entry.", false);
-            }
+                document.getElementById("member-entry-section")?.scrollIntoView({ behavior:"smooth", block:"start" });
+            } catch { showToast("Error", "Failed to load member entry.", false); }
         }
 
         async function loadEntryByRow(rowKey, memberName) {
             const recordId = document.getElementById("RecordId")?.value;
             if (!recordId || recordId === "0" || !rowKey) return;
-
             try {
-                const response = await fetch(`?handler=EntryRow&recordId=${recordId}&rowKey=${encodeURIComponent(rowKey)}`);
-                const data = await response.json();
-
-                if (!data.success) {
-                    showToast("Error", data.message || "Unable to load row.", false);
-                    return;
-                }
-
+                const res  = await fetch(`?handler=EntryRow&recordId=${recordId}&rowKey=${encodeURIComponent(rowKey)}`);
+                const data = await res.json();
+                if (!data.success) { showToast("Error", data.message || "Unable to load row.", false); return; }
                 fillEntryForm(data, memberName);
                 selectMemberVisual(data.memberId, rowKey);
-                document.getElementById("member-entry-section")?.scrollIntoView({ behavior: "smooth", block: "start" });
-            } catch {
-                showToast("Error", "Failed to load selected row.", false);
-            }
+                document.getElementById("member-entry-section")?.scrollIntoView({ behavior:"smooth", block:"start" });
+            } catch { showToast("Error", "Failed to load selected row.", false); }
         }
 
         function useCustomName() {
-            const recordId = document.getElementById("RecordId")?.value;
-            if (!recordId || recordId === "0") {
-                showToast("Error", "Create or load a record first.", false);
-                return;
-            }
-
+            const recordId   = document.getElementById("RecordId")?.value;
+            if (!recordId || recordId === "0") { showToast("Error", "Create or load a record first.", false); return; }
             const customName = document.getElementById("customNameInput")?.value.trim();
-
-            if (!customName) {
-                showToast("Error", "Please type a custom name first.", false);
-                return;
-            }
-
-            fillEntryForm({
-                rowKey: "", memberId: null, customName: customName,
-                tithes: 0, offerings: 0, solomon: 0, noah: 0, mission: 0, others: 0
-            }, customName);
-
+            if (!customName) { showToast("Error", "Please type a custom name first.", false); return; }
+            fillEntryForm({ rowKey:"", memberId:null, customName, tithes:0, offerings:0, solomon:0, noah:0, mission:0, others:0, othersFund:"General" }, customName);
             selectMemberVisual("", "");
-            document.getElementById("member-entry-section")?.scrollIntoView({ behavior: "smooth", block: "start" });
+            document.getElementById("member-entry-section")?.scrollIntoView({ behavior:"smooth", block:"start" });
         }
 
         async function saveRowAjax() {
             if (isSavingRow) return;
-
             const recordId = parseInt(document.getElementById("RecordId")?.value || "0");
-            if (!recordId) {
-                showToast("Error", "Create or load a record first.", false);
-                return;
-            }
+            if (!recordId) { showToast("Error", "Create or load a record first.", false); return; }
 
             isSavingRow = true;
             setSaveRowBusyState(true);
             showActionBanner("loading", "Saving row...", "Please wait while the entry is being saved.", false);
 
-            const requestPayload = {
-                recordId: recordId,
+            const payload = {
+                recordId,
                 input: {
-                    rowKey: document.getElementById("Input_RowKey")?.value || "",
-                    memberId: document.getElementById("Input_MemberId")?.value ? parseInt(document.getElementById("Input_MemberId").value) : null,
+                    rowKey:     document.getElementById("Input_RowKey")?.value    || "",
+                    memberId:   document.getElementById("Input_MemberId")?.value ? parseInt(document.getElementById("Input_MemberId").value) : null,
                     customName: document.getElementById("customNameInput")?.value.trim() || "",
-                    tithes: parseAmount(document.getElementById("Input_Tithes")?.value),
-                    offerings: parseAmount(document.getElementById("Input_Offerings")?.value),
-                    solomon: parseAmount(document.getElementById("Input_Solomon")?.value),
-                    noah: parseAmount(document.getElementById("Input_Noah")?.value),
-                    mission: parseAmount(document.getElementById("Input_Mission")?.value),
-                    others: parseAmount(document.getElementById("Input_Others")?.value)
+                    tithes:     parseAmount(document.getElementById("Input_Tithes")?.value),
+                    offerings:  parseAmount(document.getElementById("Input_Offerings")?.value),
+                    solomon:    parseAmount(document.getElementById("Input_Solomon")?.value),
+                    noah:       parseAmount(document.getElementById("Input_Noah")?.value),
+                    mission:    parseAmount(document.getElementById("Input_Mission")?.value),
+                    others:     parseAmount(document.getElementById("Input_Others")?.value),
+                    othersFund: document.getElementById("Input_OthersFund")?.value || "General"
                 }
             };
 
             try {
-                const response = await fetch("?handler=SaveMemberAjax", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "RequestVerificationToken": getAntiForgeryToken()
-                    },
-                    body: JSON.stringify(requestPayload)
+                const res  = await fetch("?handler=SaveMemberAjax", {
+                    method:"POST",
+                    headers:{ "Content-Type":"application/json", "RequestVerificationToken": getAntiForgeryToken() },
+                    body: JSON.stringify(payload)
                 });
-
-                const data = await response.json();
-
-                if (!data.success) {
-                    showActionBanner("error", "Save failed", data.message || "Unable to save row.", true);
-                    return;
-                }
-
-                const payload = data.data;
-
-                renderSummaryRows(payload.summaryRows, payload.isClosed);
-                renderTotals(payload.totals);
-                renderDenominationState(null, payload.totals?.grandTotal);
-                setDraftModeBadge(payload.isClosed);
-                applyClosedState(payload.isClosed);
-
+                const data = await res.json();
+                if (!data.success) { showActionBanner("error", "Save failed", data.message || "Unable to save row.", true); return; }
+                const p = data.data;
+                renderSummaryRows(p.summaryRows, p.isClosed);
+                renderTotals(p.totals);
+                renderDenominationState(null, resolveGrandTotal(p.totals));
+                setDraftModeBadge(p.isClosed);
+                applyClosedState(p.isClosed);
                 resetEntryForm();
-
                 showActionBanner("success", "Row saved", data.message || "Row saved successfully.", true);
                 showToast("Saved", data.message || "Row saved.", true);
-
             } catch (err) {
                 showActionBanner("error", "Save failed", err.message || "Failed to save row.", true);
             } finally {
@@ -2000,264 +1628,251 @@
         }
 
         async function loadRecordAjax() {
-            const recordCode = document.querySelector('input[name="Header.RecordCode"]')?.value || "";
+            const recordCode  = document.querySelector('input[name="Header.RecordCode"]')?.value  || "";
             const serviceDate = document.querySelector('input[name="Header.ServiceDate"]')?.value || "";
-
-            if (!serviceDate) {
-                showActionBanner("error", "Load failed", "Please choose a valid date.", true);
-                return;
-            }
+            if (!serviceDate) { showActionBanner("error", "Load failed", "Please choose a valid date.", true); return; }
 
             setHeaderButtonsBusy(true);
             showActionBanner("loading", "Loading record...", "Please wait while the record is being loaded.", false);
 
             try {
-                const response = await fetch("?handler=LoadRecordAjax", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "RequestVerificationToken": getAntiForgeryToken()
-                    },
-                    body: JSON.stringify({ recordCode: recordCode, serviceDate: serviceDate })
+                const res  = await fetch("?handler=LoadRecordAjax", {
+                    method:"POST",
+                    headers:{ "Content-Type":"application/json", "RequestVerificationToken": getAntiForgeryToken() },
+                    body: JSON.stringify({ recordCode, serviceDate })
                 });
-
-                const data = await response.json();
-
-                if (!data.success) {
-                    showActionBanner("error", "Load failed", data.message || "Unable to load record.", true);
-                    return;
-                }
-
-                const payload = data.data;
-
-                setRecordId(payload.recordId);
-                updateHeaderFromAjax(payload);
-                updateUrlRecordId(payload.recordId);
-                renderSummaryRows(payload.summaryRows, payload.isClosed);
-                renderTotals(payload.totals);
-
-                fillDenominationInputs(payload.denomination);
-                renderDenominationState(payload.denomination, payload.totals?.grandTotal);
-                renderDenominationSummary(payload.denomination, payload.totals?.grandTotal);
-                applyDenominationMode(payload.isClosed);
-
-                setDraftModeBadge(payload.isClosed);
+                const data = await res.json();
+                if (!data.success) { showActionBanner("error", "Load failed", data.message || "Unable to load record.", true); return; }
+                const p = data.data;
+                setRecordId(p.recordId);
+                updateHeaderFromAjax(p);
+                updateUrlRecordId(p.recordId);
+                renderSummaryRows(p.summaryRows, p.isClosed);
+                renderTotals(p.totals);
+                fillDenominationInputs(p.denomination);
+                renderDenominationState(p.denomination, resolveGrandTotal(p.totals));
+                renderDenominationSummary(p.denomination, resolveGrandTotal(p.totals));
+                applyDenominationMode(p.isClosed);
+                setDraftModeBadge(p.isClosed);
                 setEntrySectionEnabled(true);
                 resetEntryForm();
-                applyClosedState(payload.isClosed);
-
+                applyClosedState(p.isClosed);
                 showActionBanner("success", "Record loaded", data.message || "Record loaded successfully.", true);
             } catch (err) {
                 showActionBanner("error", "Load failed", err.message || "Failed to load record. Please try again.", true);
-            } finally {
-                setHeaderButtonsBusy(false);
-            }
+            } finally { setHeaderButtonsBusy(false); }
         }
 
         async function createRecordAjax() {
-            const recordCode = document.querySelector('input[name="Header.RecordCode"]')?.value || "";
+            const recordCode  = document.querySelector('input[name="Header.RecordCode"]')?.value  || "";
             const serviceDate = document.querySelector('input[name="Header.ServiceDate"]')?.value || "";
-
-            if (!serviceDate) {
-                showActionBanner("error", "Create failed", "Please choose a valid date.", true);
-                return;
-            }
+            if (!serviceDate) { showActionBanner("error", "Create failed", "Please choose a valid date.", true); return; }
 
             setHeaderButtonsBusy(true);
             showActionBanner("loading", "Creating record...", "Please wait while the record is being created.", false);
 
             try {
-                const response = await fetch("?handler=CreateRecordAjax", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "RequestVerificationToken": getAntiForgeryToken()
-                    },
-                    body: JSON.stringify({ recordCode: recordCode, serviceDate: serviceDate })
+                const res  = await fetch("?handler=CreateRecordAjax", {
+                    method:"POST",
+                    headers:{ "Content-Type":"application/json", "RequestVerificationToken": getAntiForgeryToken() },
+                    body: JSON.stringify({ recordCode, serviceDate })
                 });
-
-                const data = await response.json();
-
-                if (!data.success) {
-                    showActionBanner("error", "Create failed", data.message || "Unable to create record.", true);
-                    return;
-                }
-
-                const payload = data.data;
-
-                setRecordId(payload.recordId);
-                updateHeaderFromAjax(payload);
-                updateUrlRecordId(payload.recordId);
-                renderSummaryRows(payload.summaryRows, payload.isClosed);
-                renderTotals(payload.totals);
-
-                fillDenominationInputs(payload.denomination);
-                renderDenominationState(payload.denomination, payload.totals?.grandTotal);
-                renderDenominationSummary(payload.denomination, payload.totals?.grandTotal);
-                applyDenominationMode(payload.isClosed);
-
-                setDraftModeBadge(payload.isClosed);
+                const data = await res.json();
+                if (!data.success) { showActionBanner("error", "Create failed", data.message || "Unable to create record.", true); return; }
+                const p = data.data;
+                setRecordId(p.recordId);
+                updateHeaderFromAjax(p);
+                updateUrlRecordId(p.recordId);
+                renderSummaryRows(p.summaryRows, p.isClosed);
+                renderTotals(p.totals);
+                fillDenominationInputs(p.denomination);
+                renderDenominationState(p.denomination, resolveGrandTotal(p.totals));
+                renderDenominationSummary(p.denomination, resolveGrandTotal(p.totals));
+                applyDenominationMode(p.isClosed);
+                setDraftModeBadge(p.isClosed);
                 setEntrySectionEnabled(true);
                 resetEntryForm();
-                applyClosedState(payload.isClosed);
-
+                applyClosedState(p.isClosed);
                 showActionBanner("success", "Record created", data.message || "Record created successfully.", true);
             } catch (err) {
                 showActionBanner("error", "Create failed", err.message || "Failed to create record. Please try again.", true);
-            } finally {
-                setHeaderButtonsBusy(false);
-            }
+            } finally { setHeaderButtonsBusy(false); }
         }
 
         async function finalizeAjax() {
             if (isFinalizing) return;
-
             const recordId = parseInt(document.getElementById("RecordId")?.value || "0");
-            if (!recordId) {
-                showToast("Error", "Invalid record.", false);
-                return;
-            }
+            if (!recordId) { showToast("Error", "Invalid record.", false); return; }
 
             isFinalizing = true;
             setFinalizeBusyState(true);
-
-            const finalizeModalEl = document.getElementById("finalizeModal");
-            bootstrap.Modal.getInstance(finalizeModalEl)?.hide();
-
+            bootstrap.Modal.getInstance(document.getElementById("finalizeModal"))?.hide();
             showActionBanner("loading", "Finalizing record...", "Please wait while the entries are being saved and locked.", false);
 
             try {
-                const response = await fetch("?handler=FinalizeAjax", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "RequestVerificationToken": getAntiForgeryToken()
-                    },
-                    body: JSON.stringify({ recordId: recordId })
+                const res  = await fetch("?handler=FinalizeAjax", {
+                    method:"POST",
+                    headers:{ "Content-Type":"application/json", "RequestVerificationToken": getAntiForgeryToken() },
+                    body: JSON.stringify({ recordId })
                 });
+                const data = await res.json();
+                if (!data.success) { showActionBanner("error", "Finalize failed", data.message || "Unable to finalize this record.", true); return; }
 
-                const data = await response.json();
-
-                if (!data.success) {
-                    showActionBanner("error", "Finalize failed", data.message || "Unable to finalize this record.", true);
-                    return;
-                }
-
+                // Reload the page fully to cleanly exit draft mode
                 window.location.replace(`/Giving/Entry?RecordId=${recordId}&refresh=${Date.now()}`);
-                return;
+            } catch(err) {
+                showActionBanner("error", "Finalize failed", "Unable to finalize this record. Please try again.", true);
             } finally {
                 isFinalizing = false;
                 setFinalizeBusyState(false);
             }
         }
 
-        document.addEventListener("click", function (e) {
-            const memberBtn = e.target.closest(".member-btn");
-            if (memberBtn && !memberBtn.closest(".disabled-panel")) {
-                loadMemberEntryByMember(memberBtn.dataset.memberId, memberBtn.dataset.memberName);
-            }
+        // ── INITIALIZATION ────────────────────────────────────────────────────────
 
-            const editBtn = e.target.closest(".summary-edit-btn-js");
-            if (editBtn) {
-                loadEntryByRow(editBtn.dataset.rowKey, editBtn.dataset.memberName);
-            }
-        });
+        function initGivingPage() {
+            // Attach input formatting listeners
+            document.querySelectorAll(".money-input").forEach(i => i.addEventListener("input", updateDisplayTotal));
 
-        document.addEventListener("DOMContentLoaded", function () {
-            document.querySelectorAll(".money-input").forEach(input => {
-                input.addEventListener("input", updateDisplayTotal);
-            });
+            document.querySelectorAll(".denom-input").forEach(i => i.addEventListener("input", function () {
+                const target = parseAmount(document.getElementById("grandTotal")?.textContent);
+                renderDenominationState({ total: computeDenomTotal(getDenominationPayload()) }, target);
+                queueDenominationSave();
+            }));
 
-            document.querySelectorAll(".denom-input").forEach(input => {
-                input.addEventListener("input", function () {
-                    const targetTotal = parseAmount(document.getElementById("grandTotal")?.textContent);
-                    renderDenominationState({ total: computeDenomTotal(getDenominationPayload()) }, targetTotal);
-                    queueDenominationSave();
-                });
-            });
-
+            // Attach core action buttons
             document.getElementById("useCustomNameBtn")?.addEventListener("click", useCustomName);
             document.getElementById("saveMemberBtn")?.addEventListener("click", saveRowAjax);
             document.getElementById("loadRecordBtn")?.addEventListener("click", loadRecordAjax);
             document.getElementById("createRecordBtn")?.addEventListener("click", createRecordAjax);
-
-            document.getElementById("finalizeBtn")?.addEventListener("click", async function () {
-                if (isFinalizing) return;
-
-                if (denominationSaveTimer) {
-                    clearTimeout(denominationSaveTimer);
-                    await saveDenominationAjax();
-                }
-
-                const target = parseAmount(document.getElementById("denomTarget")?.textContent);
-                const total = parseAmount(document.getElementById("denomTotal")?.textContent);
-
-                if (target <= 0) {
-                    showToast("Error", "Please add giving entries first.", false);
-                    return;
-                }
-                if (total !== target) {
-                    showActionBanner("error", "Cannot finalize", "Denomination must exactly match the target total before finalizing.", true);
-                    return;
-                }
-
-                const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById("finalizeModal"));
-                modal.show();
-            });
-
             document.getElementById("confirmFinalizeBtn")?.addEventListener("click", finalizeAjax);
             document.getElementById("actionBannerCloseBtn")?.addEventListener("click", hideActionBanner);
 
-                    setEntrySectionEnabled(@(hasRecord.ToString().ToLower()));
-        applyClosedState(@(Model.IsClosed.ToString().ToLower()));
-        applyDenominationMode(@(Model.IsClosed.ToString().ToLower()));
-        updateDisplayTotal();
+            document.addEventListener("keydown", function (e) {
+                // Check if the Enter key was pressed
+                if (e.code === "Enter") {
+                    const entryShell = document.getElementById("entryFormShell");
 
-        renderDenominationState(
-        {
-            qty1000: @Model.Denomination.Qty1000,
-            qty500: @Model.Denomination.Qty500,
-            qty200: @Model.Denomination.Qty200,
-            qty100: @Model.Denomination.Qty100,
-            qty50: @Model.Denomination.Qty50,
-            qty20Coin: @Model.Denomination.Qty20Coin,
-            qty20Paper: @Model.Denomination.Qty20Paper,
-            qty10: @Model.Denomination.Qty10,
-            qty5: @Model.Denomination.Qty5,
-            qty1: @Model.Denomination.Qty1,
-            qty25Cent: @Model.Denomination.Qty25Cent,
-            qty10Cent: @Model.Denomination.Qty10Cent,
-            qty5Cent: @Model.Denomination.Qty5Cent,
-            qty1Cent: @Model.Denomination.Qty1Cent,
-            total: @Model.DenominationTotal,
-            difference: @Model.DenominationDifference,
-            isMatched: @(Model.IsDenominationMatched.ToString().ToLower())
-        },
-        @Model.GrandTotal
-        );
+                    // Do nothing if the form is disabled/hidden
+                    if (!entryShell || entryShell.classList.contains("disabled-panel")) return;
 
-        renderDenominationSummary(
-        {
-            qty1000: @Model.Denomination.Qty1000,
-            qty500: @Model.Denomination.Qty500,
-            qty200: @Model.Denomination.Qty200,
-            qty100: @Model.Denomination.Qty100,
-            qty50: @Model.Denomination.Qty50,
-            qty20Coin: @Model.Denomination.Qty20Coin,
-            qty20Paper: @Model.Denomination.Qty20Paper,
-            qty10: @Model.Denomination.Qty10,
-            qty5: @Model.Denomination.Qty5,
-            qty1: @Model.Denomination.Qty1,
-            qty25Cent: @Model.Denomination.Qty25Cent,
-            qty10Cent: @Model.Denomination.Qty10Cent,
-            qty5Cent: @Model.Denomination.Qty5Cent,
-            qty1Cent: @Model.Denomination.Qty1Cent,
-            total: @Model.DenominationTotal
-        },
-        @Model.GrandTotal
-    );
+                    // Prevent the default browser behavior (stops the page from accidentally refreshing)
+                    e.preventDefault();
+
+                    // Trigger the save action if not already saving
+                    const saveBtn = document.getElementById("saveMemberBtn");
+                    if (saveBtn && !saveBtn.disabled && !isSavingRow) {
+                        saveRowAjax();
+                    }
+                }
+            });
+
+
+            document.getElementById("finalizeBtn")?.addEventListener("click", async function () {
+                if (isFinalizing) return;
+                if (denominationSaveTimer) { clearTimeout(denominationSaveTimer); await saveDenominationAjax(); }
+                const target = parseAmount(document.getElementById("denomTarget")?.textContent);
+                const total  = parseAmount(document.getElementById("denomTotal")?.textContent);
+                if (target <= 0) { showToast("Error", "Please add giving entries first.", false); return; }
+                if (total !== target) { showActionBanner("error", "Cannot finalize", "Denomination must exactly match the target total before finalizing.", true); return; }
+                bootstrap.Modal.getOrCreateInstance(document.getElementById("finalizeModal")).show();
+            });
+
+            // Delegate dynamic click events to the page container instead of document.
+            // This ensures they are cleanly destroyed when HTMX swaps the page, preventing duplicates.
+            const pageContainer = document.querySelector(".giving-page");
+            if (pageContainer) {
+                pageContainer.addEventListener("click", function (e) {
+                    const memberBtn = e.target.closest(".member-btn");
+                    if (memberBtn && !memberBtn.closest(".disabled-panel"))
+                        loadMemberEntryByMember(memberBtn.dataset.memberId, memberBtn.dataset.memberName);
+
+                    const editBtn = e.target.closest(".summary-edit-btn-js");
+                    if (editBtn) loadEntryByRow(editBtn.dataset.rowKey, editBtn.dataset.memberName);
+                });
+            }
+
+            // Fire initial logic based on server-side Razor properties
+            setEntrySectionEnabled(@(hasRecord.ToString().ToLower()));
+            applyClosedState(@(Model.IsClosed.ToString().ToLower()));
+            applyDenominationMode(@(Model.IsClosed.ToString().ToLower()));
+            updateDisplayTotal();
+
+            const initialDenom = {
+                qty1000:    @Model.Denomination.Qty1000,
+                qty500:     @Model.Denomination.Qty500,
+                qty200:     @Model.Denomination.Qty200,
+                qty100:     @Model.Denomination.Qty100,
+                qty50:      @Model.Denomination.Qty50,
+                qty20Coin:  @Model.Denomination.Qty20Coin,
+                qty20Paper: @Model.Denomination.Qty20Paper,
+                qty10:      @Model.Denomination.Qty10,
+                qty5:       @Model.Denomination.Qty5,
+                qty1:       @Model.Denomination.Qty1,
+                qty25Cent:  @Model.Denomination.Qty25Cent,
+                qty10Cent:  @Model.Denomination.Qty10Cent,
+                qty5Cent:   @Model.Denomination.Qty5Cent,
+                qty1Cent:   @Model.Denomination.Qty1Cent,
+                total:      @Model.DenominationTotal.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                difference: @Model.DenominationDifference.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                isMatched:  @(Model.IsDenominationMatched.ToString().ToLower())
+            };
+            const initialGrandTotal = @Model.GrandTotal.ToString(System.Globalization.CultureInfo.InvariantCulture);
+
+            renderDenominationState(initialDenom, initialGrandTotal);
+            renderDenominationSummary(initialDenom, initialGrandTotal);
+        }
+
+        initGivingPage();
+
+    })(); // <-- End of the IIFE
+</script>
+
+<!-- SCROLL PERSISTENCE SCRIPT  -->
+<script>
+    (() => {
+        const scrollKey = "GivingEntry_ScrollPosition";
+        let scrollTimeout;
+
+        // 1. Save scroll position aggressively
+        window.addEventListener("scroll", function () {
+            if (!document.querySelector('.giving-page')) return;
+            clearTimeout(scrollTimeout);
+            scrollTimeout = setTimeout(() => {
+                sessionStorage.setItem(scrollKey, window.scrollY);
+            }, 50);
+        }, { passive: true });
+
+        // Save immediately before navigating away via link clicks
+        document.addEventListener("click", (e) => {
+            if (!document.querySelector('.giving-page')) return;
+            const link = e.target.closest('a');
+            if (link && link.href && !link.getAttribute('href').startsWith('#')) {
+                sessionStorage.setItem(scrollKey, window.scrollY);
+            }
         });
-    </script>
-}
 
-           
+        // 2. Force Restoration function
+        function forceScroll() {
+            const savedScroll = sessionStorage.getItem(scrollKey);
+            if (savedScroll) {
+                const y = parseInt(savedScroll);
+                // Override HTMX's native scroll-to-top by firing multiple times
+                setTimeout(() => window.scrollTo({ top: y, behavior: "instant" }), 10);
+                setTimeout(() => window.scrollTo({ top: y, behavior: "instant" }), 50);
+                setTimeout(() => window.scrollTo({ top: y, behavior: "instant" }), 150);
+            }
+        }
+
+        // 3. Browser lifecycle hooks to intercept HTMX swaps
+        document.addEventListener("DOMContentLoaded", forceScroll);
+
+        document.body.addEventListener('htmx:afterSettle', function() {
+            if (document.querySelector('.giving-page')) forceScroll();
+        });
+
+        document.body.addEventListener('htmx:historyRestore', function() {
+            if (document.querySelector('.giving-page')) forceScroll();
+        });
+    })();
+</script>

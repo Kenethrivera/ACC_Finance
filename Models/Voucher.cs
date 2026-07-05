@@ -32,5 +32,7 @@ namespace acc_finance.Models
 
         [Column("updated_at")]
         public DateTime UpdatedAt { get; set; }
+
+       
     }
 }

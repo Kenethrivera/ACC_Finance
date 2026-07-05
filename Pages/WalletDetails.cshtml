@@ -1,0 +1,390 @@
+﻿@page
+@model acc_finance.Pages.WalletDetailsModel
+@{
+    ViewData["Title"] = $"{Model.FundName} Details";
+}
+<style>
+    .fade-in-section {
+        animation: smoothFade 0.2s ease-in forwards;
+    }
+
+    @@keyframes smoothFade {
+        from {
+            opacity: 0;
+        }
+
+        to {
+            opacity: 1;
+        }
+    }
+</style>
+
+<div class="container-fluid py-4" style="max-width: 1200px;">
+
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+        <div class="d-flex align-items-center">
+            <a href="/Index" class="btn btn-outline-secondary me-3 rounded-circle shadow-sm flex-shrink-0" style="width: 45px; height: 45px; display: flex; align-items: center; justify-content: center;">
+                <i class="bi bi-arrow-left fs-5"></i>
+            </a>
+            <div>
+                <h2 class="fw-bold mb-0 text-dark">@Model.FundName History</h2>
+                <p class="text-muted mb-0 fs-6"><i class="bi bi-shield-check me-1"></i> Isolated ledger view</p>
+            </div>
+        </div>
+
+        <div class="d-flex align-items-center flex-wrap gap-2">
+
+            <a href="/Reports/Monthly?SelectedMonth=@Model.SelectedMonth" target="_blank" class="btn btn-light bg-white border text-secondary fw-semibold rounded-pill px-3 py-2 shadow-sm d-flex align-items-center" style="font-size: 0.85rem; transition: 0.2s;">
+                <i class="bi bi-file-earmark-bar-graph me-2"></i> Report
+            </a>
+
+            <div class="dropdown ms-md-2 mt-2 mt-md-0">
+                <button class="btn btn-white border shadow-sm rounded-pill fw-bold dropdown-toggle px-4 py-2 text-primary bg-white d-flex align-items-center" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="bi bi-calendar2-week me-2 d-none d-sm-inline"></i> @Model.MonthLabel
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end shadow border-0 rounded-4 mt-2">
+                    <li class="px-3 py-2 text-muted small fw-bold text-uppercase border-bottom mb-2">Available History</li>
+                    @if (!Model.AvailableMonths.Contains(Model.SelectedMonth))
+                    {
+                        <li><a class="dropdown-item active bg-primary text-white fw-bold" href="#">@Model.MonthLabel</a></li>
+                    }
+                    @foreach (var m in Model.AvailableMonths)
+                    {
+                        var formatted = DateTime.ParseExact(m + "-01", "yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture).ToString("MMMM yyyy");
+                        <li>
+                            <a class="dropdown-item @(m == Model.SelectedMonth ? "active bg-primary text-white fw-bold" : "text-dark") py-2"
+                               href="?fund=@Uri.EscapeDataString(Model.FundName)&month=@m&SortBy=@Model.SortBy">@formatted</a>
+                        </li>
+                    }
+                </ul>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="alert alert-primary d-flex align-items-start py-2 px-3 mb-4 border border-primary border-opacity-25 shadow-sm" style="background-color: #f0f7ff; font-size: 0.9rem;" role="alert">
+        <i class="bi bi-info-circle-fill me-2 text-primary mt-1"></i>
+        <div class="text-primary">
+            <strong>Note:</strong> You are currently viewing isolated data. This page strictly shows the incomes and expenses explicitly tagged to the <strong>@Model.FundName</strong>.
+        </div>
+    </div>
+
+    @if (Model.FundName == "Pledges")
+    {
+        <div class="card border-0 shadow-sm rounded-4 mb-4 bg-white border-start border-4 border-warning">
+            <div class="card-body p-4">
+
+                <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+                    <div class="text-muted small fw-bold text-uppercase" style="letter-spacing: 0.05em;">
+                        <i class="bi bi-pie-chart-fill me-2 text-warning"></i>ALL Time Pledge Net Distribution
+                    </div>
+                    <button class="btn btn-sm btn-outline-warning fw-bold text-dark rounded-pill shadow-sm px-4" type="button" data-bs-toggle="collapse" data-bs-target="#pledgeHistoryCollapse" aria-expanded="false" aria-controls="pledgeHistoryCollapse">
+                        <i class="bi bi-arrows-expand me-1"></i> Full Details
+                    </button>
+                </div>
+
+                <div class="d-flex gap-3 flex-wrap justify-content-center">
+                    @if (Model.CarriedForwardBalance > 0)
+                    {
+                        <span class="badge bg-secondary bg-opacity-10 text-dark border border-secondary border-opacity-50 px-4 py-2 fs-6 shadow-sm" title="Balance imported from old records"><small class="opacity-75 me-2 text-uppercase">Forwarded</small>₱ @Model.CarriedForwardBalance.ToString("N2")</span>
+                    }
+                    <span class="badge bg-warning bg-opacity-10 text-dark border border-warning border-opacity-50 px-4 py-2 fs-6 shadow-sm"><small class="opacity-75 me-2 text-uppercase">Solomon</small>₱ @Model.LifetimeSolomon.ToString("N2")</span>
+                    <span class="badge bg-warning bg-opacity-10 text-dark border border-warning border-opacity-50 px-4 py-2 fs-6 shadow-sm"><small class="opacity-75 me-2 text-uppercase">Noah</small>₱ @Model.LifetimeNoah.ToString("N2")</span>
+                    <span class="badge bg-warning bg-opacity-10 text-dark border border-warning border-opacity-50 px-4 py-2 fs-6 shadow-sm"><small class="opacity-75 me-2 text-uppercase">Mission</small>₱ @Model.LifetimeMission.ToString("N2")</span>
+                    @if (Model.LifetimeOtherPledges > 0)
+                    {
+                        <span class="badge bg-warning bg-opacity-10 text-dark border border-warning border-opacity-50 px-4 py-2 fs-6 shadow-sm"><small class="opacity-75 me-2 text-uppercase">Others</small>₱ @Model.LifetimeOtherPledges.ToString("N2")</span>
+                    }
+                    @if (Model.LifetimePledgesExpense > 0)
+                    {
+                        <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-50 px-4 py-2 fs-6 shadow-sm"><small class="opacity-75 me-2 text-uppercase">Less Expenses</small>- ₱ @Model.LifetimePledgesExpense.ToString("N2")</span>
+                    }
+                    <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-50 px-4 py-2 fs-6 shadow-sm ms-md-auto"><small class="opacity-75 me-2 text-uppercase">Total Net</small>₱ @Model.AbsoluteLiveEndBalance.ToString("N2")</span>
+                </div>
+
+                <div class="collapse mt-4" id="pledgeHistoryCollapse">
+                    <div class="table-responsive rounded border border-warning border-opacity-25">
+                        <table class="table table-bordered table-sm table-hover align-middle mb-0 font-monospace" style="font-size: 0.85rem;">
+                            <thead class="table-light text-center align-middle small text-muted">
+                                <tr>
+                                    <th rowspan="2" class="text-start px-3" style="width: 110px;">DATE</th>
+                                    <th rowspan="2" style="width: 100px;">RECORD</th>
+                                    <th colspan="4" class="bg-warning bg-opacity-10 text-dark border-bottom-0">DAILY INCOME</th>
+                                    <th colspan="4" class="bg-success bg-opacity-10 text-dark border-bottom-0">CUMULATIVE RUNNING BALANCE</th>
+                                    <th rowspan="2" class="px-3">MONTH</th>
+                                </tr>
+                                <tr>
+                                    <th class="bg-warning bg-opacity-10">SOLOMON</th>
+                                    <th class="bg-warning bg-opacity-10">NOAH</th>
+                                    <th class="bg-warning bg-opacity-10">MISSION</th>
+                                    <th class="bg-warning bg-opacity-10 fw-bold">TOTAL</th>
+                                    <th class="bg-success bg-opacity-10">SOLOMON</th>
+                                    <th class="bg-success bg-opacity-10">NOAH</th>
+                                    <th class="bg-success bg-opacity-10">MISSION</th>
+                                    <th class="bg-success bg-opacity-10 fw-bold">TOTAL</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var row in Model.PledgeHistory)
+                                {
+                                    if (row.MonthLabel == "Beg")
+                                    {
+                                        <tr>
+                                            <td class="text-end fw-bold px-3 text-muted">Beg</td>
+                                            <td></td>
+                                            <td class="text-end">@(row.DailySolomon > 0 ? row.DailySolomon?.ToString("N2") : "")</td>
+                                            <td class="text-end">@(row.DailyNoah > 0 ? row.DailyNoah?.ToString("N2") : "")</td>
+                                            <td class="text-end">@(row.DailyMission > 0 ? row.DailyMission?.ToString("N2") : "")</td>
+                                            <td class="text-end fw-bold">@(row.DailyTotal > 0 ? row.DailyTotal?.ToString("N2") : "")</td>
+                                            <td colspan="5" class="bg-light"></td>
+                                        </tr>
+                                    }
+                                    else if (row.IsMonthlySummary)
+                                    {
+                                        <tr class="table-light fw-bold" style="border-top: 2px solid #dee2e6;">
+                                            <td colspan="2" class="bg-light"></td>
+                                            <td colspan="4" class="bg-light"></td>
+                                            <td class="text-end text-dark">@row.CumulativeSolomon?.ToString("N2")</td>
+                                            <td class="text-end text-dark">@row.CumulativeNoah?.ToString("N2")</td>
+                                            <td class="text-end text-dark">@row.CumulativeMission?.ToString("N2")</td>
+                                            <td class="text-end text-primary fs-6">@row.CumulativeTotal?.ToString("N2")</td>
+                                            <td class="px-3">@row.MonthLabel</td>
+                                        </tr>
+                                    }
+                                    else
+                                    {
+                                        <tr>
+                                            <td class="text-center px-3 text-muted">@row.Date?.ToString("MM-dd-yyyy")</td>
+                                            <td class="text-center">
+                                                <a href="/Giving/Entry?date=@row.Date?.ToString("yyyy-MM-dd")&RecordId=@row.RecordId" target="_blank" class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 text-decoration-none">
+                                                    @row.RecordCode <i class="bi bi-box-arrow-up-right ms-1" style="font-size:0.65rem;"></i>
+                                                </a>
+                                            </td>
+                                            <td class="text-end">@(row.DailySolomon > 0 ? row.DailySolomon?.ToString("N2") : "")</td>
+                                            <td class="text-end">@(row.DailyNoah > 0 ? row.DailyNoah?.ToString("N2") : "")</td>
+                                            <td class="text-end">@(row.DailyMission > 0 ? row.DailyMission?.ToString("N2") : "")</td>
+                                            <td class="text-end fw-bold">@(row.DailyTotal > 0 ? row.DailyTotal?.ToString("N2") : "")</td>
+                                            <td colspan="5" class="bg-light"></td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    }
+    <div class="row g-3 mb-4">
+        @{
+            var colClass = Model.FundName == "General" ? "col-md-3" : "col-md-4";
+        }
+
+        <div class="@colClass">
+            <div class="card border-0 shadow-sm rounded-4 h-100 bg-success bg-opacity-10 text-success p-3">
+                <div class="text-uppercase fw-bold small" style="letter-spacing: 0.05em;">Total Income</div>
+                <h3 class="fw-bold mb-0 mt-2">₱ @Model.TotalIncome.ToString("N2")</h3>
+            </div>
+        </div>
+        <div class="@colClass">
+            <div class="card border-0 shadow-sm rounded-4 h-100 bg-danger bg-opacity-10 text-danger p-3">
+                <div class="text-uppercase fw-bold small" style="letter-spacing: 0.05em;">Total Expense</div>
+                <h3 class="fw-bold mb-0 mt-2">₱ @Model.TotalExpense.ToString("N2")</h3>
+            </div>
+        </div>
+        <div class="@colClass">
+            <div class="card border-0 shadow-sm rounded-4 h-100 bg-primary bg-opacity-10 p-3">
+                <div class="text-uppercase fw-bold small text-primary" style="letter-spacing: 0.05em;">Actual Cash on Hand</div>
+                <h3 class="fw-bold mb-0 mt-2 text-primary">₱ @Model.CashOnHand.ToString("N2")</h3>
+                <small class="fw-bold opacity-75 mt-1 text-primary"><i class="bi bi-wallet2 me-1"></i>Book Bal: ₱ @Model.BookBalance.ToString("N2")</small>
+            </div>
+        </div>
+
+        @if (Model.FundName == "General")
+        {
+            <div class="@colClass">
+                <div class="card border-0 shadow-sm rounded-4 h-100 bg-dark text-white p-3">
+                    <div class="text-uppercase fw-bold small text-light" style="letter-spacing: 0.05em;"><i class="bi bi-stars me-1 text-warning"></i>@Model.InsightTitle</div>
+                    <div class="mt-2">
+                        <span class="d-block small text-light opacity-75">@Model.InsightLabel</span>
+                        <h5 class="fw-bold mb-0 text-white">@Model.InsightAmount</h5>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <div class="row g-4 mb-4">
+        <div class="col-lg-12">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-header bg-white border-bottom pt-4 pb-3 px-4 d-flex justify-content-between align-items-center">
+                    <h5 class="fw-bold mb-0 text-success"><i class="bi bi-box-arrow-in-down me-2"></i> Income Tracking</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light text-muted small text-uppercase">
+                                <tr>
+                                    <th class="px-4 py-3">Date</th>
+                                    <th class="py-3">Record Code</th>
+
+                                    @if (Model.FundName == "Pledges")
+                                    {
+                                        <th class="py-3 text-end">Solomon</th>
+                                        <th class="py-3 text-end">Noah</th>
+                                        <th class="py-3 text-end">Mission</th>
+                                        <th class="py-3 text-end">Other Pledges</th>
+                                    }
+                                    else
+                                    {
+                                        <th class="py-3 text-end">Tithes</th>
+                                        <th class="py-3 text-end">Offerings</th>
+                                        <th class="py-3 text-end">Pledges</th>
+                                        <th class="py-3 text-end">Others</th>
+                                    }
+
+                                    <th class="px-4 py-3 text-end">Subtotal</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (!Model.Incomes.Any())
+                                {
+                                    <tr><td colspan="7" class="text-center py-4 text-muted">No income recorded for this month.</td></tr>
+                                }
+                                @foreach (var inc in Model.Incomes)
+                                {
+                                    <tr>
+                                        <td class="px-4 fw-bold">@inc.Date.ToString("MMM dd, yyyy")</td>
+                                        <td>
+                                            <a href="/Giving/Entry?date=@inc.Date.ToString("yyyy-MM-dd")&RecordId=@inc.RecordId" target="_blank" class="badge bg-secondary bg-opacity-10 text-primary border border-primary border-opacity-25 text-decoration-none px-2 py-1">
+                                                @inc.RecordCode <i class="bi bi-box-arrow-up-right ms-1" style="font-size:0.7rem;"></i>
+                                            </a>
+                                        </td>
+
+                                        @if (Model.FundName == "Pledges")
+                                        {
+                                            <td class="text-end">@(inc.Solomon > 0 ? inc.Solomon.ToString("N2") : "-")</td>
+                                            <td class="text-end">@(inc.Noah > 0 ? inc.Noah.ToString("N2") : "-")</td>
+                                            <td class="text-end">@(inc.Mission > 0 ? inc.Mission.ToString("N2") : "-")</td>
+                                            <td class="text-end">@(inc.OtherPledges > 0 ? inc.OtherPledges.ToString("N2") : "-")</td>
+                                        }
+                                        else
+                                        {
+                                            <td class="text-end">@(inc.Tithes > 0 ? inc.Tithes.ToString("N2") : "-")</td>
+                                            <td class="text-end">@(inc.Offerings > 0 ? inc.Offerings.ToString("N2") : "-")</td>
+                                            <td class="text-end">@(inc.Pledges > 0 ? inc.Pledges.ToString("N2") : "-")</td>
+                                            <td class="text-end">@(inc.Others > 0 ? inc.Others.ToString("N2") : "-")</td>
+                                        }
+
+                                        <td class="px-4 text-end fw-bold text-success">₱ @inc.TotalAmount.ToString("N2")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-12" id="disbursementTrackingSection">
+            <style>
+                #disb-spinner {
+                    display: none !important;
+                }
+
+                    #disb-spinner.htmx-request {
+                        display: inline-block !important;
+                    }
+            </style>
+
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-header bg-white border-bottom pt-4 pb-3 px-4 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+                    <h5 class="fw-bold mb-0 text-danger d-flex align-items-center">
+                        <i class="bi bi-receipt me-2"></i> Disbursement Tracking
+                        <span id="disb-spinner" class="spinner-border spinner-border-sm text-danger ms-3" role="status"></span>
+                    </h5>
+
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="text-muted small fw-semibold d-none d-md-inline">Sort by:</span>
+
+                        <div class="btn-group shadow-sm" role="group"
+                             hx-target="#disbursementTrackingSection"
+                             hx-select="#disbursementTrackingSection"
+                             hx-swap="outerHTML"
+                             hx-push-url="true"
+                             hx-indicator="#disb-spinner">
+
+                            <button type="button" hx-get="?fund=@Uri.EscapeDataString(Model.FundName)&month=@Model.SelectedMonth&SortBy=Date" class="btn btn-sm @(Model.SortBy == "Date" ? "btn-danger" : "btn-outline-danger") fw-bold">By Date</button>
+                            <button type="button" hx-get="?fund=@Uri.EscapeDataString(Model.FundName)&month=@Model.SelectedMonth&SortBy=Ministry" class="btn btn-sm @(Model.SortBy == "Ministry" ? "btn-danger" : "btn-outline-danger") fw-bold">By Ministry</button>
+                            <button type="button" hx-get="?fund=@Uri.EscapeDataString(Model.FundName)&month=@Model.SelectedMonth&SortBy=Highest" class="btn btn-sm @(Model.SortBy == "Highest" ? "btn-danger" : "btn-outline-danger") fw-bold">Highest</button>
+                            <button type="button" hx-get="?fund=@Uri.EscapeDataString(Model.FundName)&month=@Model.SelectedMonth&SortBy=Lowest" class="btn btn-sm @(Model.SortBy == "Lowest" ? "btn-danger" : "btn-outline-danger") fw-bold">Lowest</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-4">
+                    @if (!Model.ExpenseGroups.Any())
+                    {
+                        <div class="text-center py-4 text-muted">No disbursements recorded for this month.</div>
+                    }
+
+                    @foreach (var group in Model.ExpenseGroups)
+                    {
+                        <div class="mb-4">
+                            <h6 class="fw-bold text-primary mb-3 pb-2 border-bottom">
+                                @if (Model.SortBy == "Date")
+                                {
+                                    <i class="bi bi-calendar-event me-2"></i>
+                                    @group.GroupName
+
+                                    var linkDate = group.Expenses.FirstOrDefault()?.Date.ToString("yyyy-MM-dd");
+                                    <a href="/Disbursements/Create?RecordDate=@linkDate" target="_blank" class="badge bg-secondary bg-opacity-10 text-danger border border-danger border-opacity-25 text-decoration-none px-2 py-1 ms-2 align-text-bottom">
+                                        Open Record <i class="bi bi-box-arrow-up-right ms-1" style="font-size:0.7rem;"></i>
+                                    </a>
+                                }
+                                else
+                                {
+                                    <i class="bi bi-folder2-open me-2"></i>
+                                    @group.GroupName
+                                }
+                                <span class="float-end text-dark mt-1">Total: ₱ @group.GroupTotal.ToString("N2")</span>
+                            </h6>
+
+                            <div class="table-responsive rounded border">
+                                <table class="table table-borderless table-striped align-middle mb-0">
+                                    <thead class="table-light small text-muted">
+                                        <tr>
+                                            @if (Model.SortBy != "Date")
+                                            {
+                                                <th class="px-3">Date</th>
+                                            }
+                                            <th class="@(Model.SortBy == "Date" ? "px-3" : "")">Ministry</th>
+                                            <th>Payee</th>
+                                            <th>Particulars</th>
+                                            <th class="text-end px-3">Net Amount</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var exp in group.Expenses)
+                                        {
+                                            <tr>
+                                                @if (Model.SortBy != "Date")
+                                                {
+                                                    <td class="px-3 fw-bold text-muted small">@exp.Date.ToString("MMM dd")</td>
+                                                }
+                                                <td class="@(Model.SortBy == "Date" ? "px-3" : "") fw-semibold">@exp.Ministry</td>
+                                                <td>@exp.Payee</td>
+                                                <td class="text-muted">@exp.Particulars</td>
+                                                <td class="text-end px-3 fw-bold text-danger">@exp.Amount.ToString("N2")</td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

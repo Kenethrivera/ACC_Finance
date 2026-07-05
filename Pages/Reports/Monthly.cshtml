@@ -8,455 +8,241 @@
 @functions {
     public string MoneyOrBlank(decimal value)
     {
-        return value == 0 ? "" : value.ToString("N2");
+        return value == 0 ? "-" : value.ToString("N2");
     }
 }
 
 <style>
+    /* --- GLOBAL & CARDS --- */
     .monthly-page {
-        max-width: 1180px;
+        max-width: 1200px;
         margin: 0 auto;
-        padding: 24px;
-        color: #1f2937;
-        font-size: 14px;
+        color: #0f172a;
+        font-size: 0.9rem;
         line-height: 1.5;
     }
 
-    .monthly-topbar {
-        background: #fff;
-        border: 1px solid #d8dee9;
-        border-radius: 16px;
-        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
-        padding: 16px 22px;
-        margin-bottom: 24px;
+    .card-modern {
+        background: #ffffff;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
     }
 
-    .monthly-filter-form {
+    .section-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #0f172a;
+        letter-spacing: -0.01em;
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid #e2e8f0;
+        text-transform: uppercase;
+    }
+
+    .sub-section-title {
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: #334155;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-top: 1.5rem;
+        margin-bottom: 0.75rem;
+    }
+
+    /* --- TOOLBAR --- */
+    .toolbar-form {
         display: flex;
         gap: 12px;
-        align-items: end;
+        align-items: flex-end;
         flex-wrap: wrap;
     }
 
-    .monthly-filter-group {
-        display: flex;
-        flex-direction: column;
-        gap: 6px;
-        min-width: 220px;
-    }
-
-    .monthly-filter-group label {
-        font-size: 13px;
+    .form-label {
+        font-size: 0.85rem;
         font-weight: 600;
-        color: #334155;
-    }
-
-    .monthly-filter-group input[type="month"] {
-        border: 1px solid #cbd5e1;
-        border-radius: 10px;
-        padding: 10px 12px;
-        font-size: 14px;
-        background: #fff;
-    }
-
-    .btn-month-load {
-        border: 0;
-        border-radius: 10px;
-        padding: 10px 18px;
-        font-size: 14px;
-        font-weight: 600;
-        background: #1d4ed8;
-        color: white;
-        cursor: pointer;
-    }
-
-    .btn-month-load:hover {
-        background: #1e40af;
-    }
-
-    .month-caption {
-        font-size: 13px;
-        color: #64748b;
-        margin-top: 10px;
-    }
-
-    .paper-stack {
-        display: flex;
-        flex-direction: column;
-        gap: 28px;
-    }
-
-    .paper-shell {
-        background: #fff;
-        border: 1px solid #d8dee9;
-        border-radius: 16px;
-        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
-        overflow: hidden;
-    }
-
-    .paper-content {
-        padding: 30px 34px 38px;
-        background: #ffffff;
-    }
-
-    .paper-header {
-        text-align: center;
-        margin-bottom: 28px;
-    }
-
-    .church-name {
-        font-size: 26px;
-        font-weight: 800;
-        letter-spacing: .5px;
-        margin-bottom: 4px;
-        color: #0f172a;
-        text-transform: uppercase;
-    }
-
-    .report-title {
-        font-size: 18px;
-        font-weight: 700;
-        letter-spacing: .4px;
-        color: #334155;
-        text-transform: uppercase;
-    }
-
-    .paper-sunday-note {
-        margin-top: 8px;
-        font-size: 12px;
-        color: #64748b;
-        text-transform: uppercase;
-        letter-spacing: .4px;
-    }
-
-    .report-section {
-        margin-top: 28px;
-    }
-
-    .report-section-title {
-        font-size: 16px;
-        font-weight: 800;
-        color: #111827;
-        text-transform: uppercase;
-        letter-spacing: .4px;
-        margin-bottom: 12px;
-        padding-bottom: 6px;
-        border-bottom: 2px solid #111827;
-    }
-
-    .report-empty,
-    .report-message,
-    .empty-paper-message {
-        padding: 14px 16px;
-        border-radius: 12px;
-        background: #fff7ed;
-        border: 1px solid #fdba74;
-        color: #9a3412;
-    }
-
-    .empty-paper-message {
-        margin-top: 18px;
-    }
-
-    .record-code {
-        font-weight: 600;
-        font-size: 13px;
         color: #475569;
-        margin-left: 6px;
+        margin-bottom: 4px;
     }
 
-    .giving-table-wrap {
-        overflow-x: hidden;
-    }
-
-    .giving-table {
-        width: 100%;
-        table-layout: fixed;
-        border-collapse: collapse;
+    .form-control-modern {
+        font-size: 0.9rem;
+        border-radius: 8px;
         border: 1px solid #cbd5e1;
-    }
-
-    .giving-table th,
-    .giving-table td {
-        overflow: hidden;
-    }
-
-    .giving-table th:first-child,
-    .giving-table td:first-child {
-        width: 30%;
-        white-space: nowrap;
-    }
-
-    .giving-table th:not(:first-child),
-    .giving-table td:not(:first-child) {
-        width: 10%;
-        white-space: nowrap;
-    }
-
-    .giving-table thead th {
-        background: #f1f5f9;
-        color: #0f172a;
-        font-weight: 800;
-        font-size: 13px;
-        text-transform: uppercase;
-        border: 1px solid #cbd5e1;
-        padding: 10px 10px;
-        white-space: nowrap;
-    }
-
-    .giving-table tbody td {
-        border: 1px solid #dbe2ea;
-        padding: 9px 10px;
-        vertical-align: middle;
-    }
-
-    .giving-table .text-right {
-        text-align: right;
-        font-variant-numeric: tabular-nums;
-        overflow: visible;
-        text-overflow: clip;
-    }
-
-    .giving-table .text-left {
-        text-align: left;
-    }
-
-    .giving-table .name-cell {
-        font-weight: 600;
-        white-space: nowrap;
-        overflow: visible;
-        text-overflow: clip;
-    }
-
-    .giving-table .total-row td {
-        font-weight: 800;
-        background: #f8fafc;
-    }
-
-    .denom-box {
-        border: 1px solid #dbe2ea;
-        border-radius: 14px;
-        padding: 16px 18px;
-        background: #fcfcfd;
-    }
-
-    .denom-grid {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(260px, 1fr));
-        gap: 10px 28px;
-    }
-
-    .denom-line {
-        display: flex;
-        align-items: baseline;
-        gap: 10px;
-        font-variant-numeric: tabular-nums;
-    }
-
-    .denom-label {
-        white-space: nowrap;
-        font-weight: 600;
-        color: #1f2937;
-    }
-
-    .denom-dots {
-        flex: 1;
-        border-bottom: 1px dotted #94a3b8;
-        transform: translateY(-3px);
-    }
-
-    .denom-amount {
-        min-width: 110px;
-        text-align: right;
-        font-weight: 700;
-        color: #0f172a;
-    }
-
-    .denom-total {
-        margin-top: 14px;
-        padding-top: 12px;
-        border-top: 1px solid #cbd5e1;
-        display: flex;
-        align-items: baseline;
-        gap: 10px;
-        font-variant-numeric: tabular-nums;
-    }
-
-    .denom-total .label {
-        font-weight: 800;
-        text-transform: uppercase;
-        color: #111827;
-    }
-
-    .denom-total .dots {
-        flex: 1;
-        border-bottom: 1px dotted #64748b;
-        transform: translateY(-3px);
-    }
-
-    .denom-total .amount {
-        min-width: 140px;
-        text-align: right;
-        font-weight: 800;
-        color: #111827;
-    }
-
-    .disbursement-box,
-    .summary-box {
-        border: 1px solid #dbe2ea;
-        border-radius: 14px;
-        padding: 18px 18px 16px;
+        padding: 0.5rem 0.75rem;
         background: #fff;
     }
 
-    .sub-report-title {
-        font-size: 15px;
-        font-weight: 800;
-        color: #111827;
-        text-transform: uppercase;
-        margin-bottom: 12px;
+        .form-control-modern:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+            outline: none;
+        }
+
+    /* --- MODERN TABLES --- */
+    .table-modern-wrap {
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        overflow: hidden;
+        margin-bottom: 1.5rem;
     }
 
-    .summary-spacer {
-        margin-top: 26px;
+    .table-modern {
+        width: 100%;
+        margin-bottom: 0;
+        font-size: 0.85rem;
+        border-collapse: collapse;
     }
 
-    .cash-disbursement-report {
-        margin-bottom: 6px;
+        .table-modern thead th {
+            background: #f8fafc;
+            color: #475569;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.05em;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 12px 16px;
+            white-space: nowrap;
+        }
+
+        .table-modern tbody td {
+            background: #ffffff;
+            border-bottom: 1px solid #f1f5f9;
+            padding: 10px 16px;
+            color: #1e293b;
+            vertical-align: middle;
+        }
+
+        .table-modern tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .table-modern tbody tr:hover td {
+            background: #f8fafc;
+        }
+
+        .table-modern tfoot td {
+            background: #f8fafc;
+            border-top: 2px solid #cbd5e1;
+            font-weight: 700;
+            color: #0f172a;
+            padding: 14px 16px;
+        }
+
+    /* --- DENOMINATION LISTS --- */
+    .clean-list-wrap {
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        background: #fff;
+        max-width: 500px;
     }
 
-    .cash-disbursement-head,
-    .cash-row {
-        display: grid;
-        grid-template-columns: 1.9fr 110px 110px 90px 110px;
-        gap: 12px;
-        align-items: start;
-    }
-
-    .cash-disbursement-head {
-        font-weight: 800;
-        color: #111827;
-        text-transform: uppercase;
-        padding-bottom: 8px;
-        border-bottom: 1px solid #cbd5e1;
-        margin-bottom: 8px;
-    }
-
-    .cash-row {
-        display: grid;
-        grid-template-columns: 1.9fr 110px 110px 90px 110px;
-        gap: 12px;
-        align-items: start;
-        font-variant-numeric: tabular-nums;
-    }
-
-    .voucher-block {
-        margin-top: 14px;
-    }
-
-    .cash-row-main {
-        margin-bottom: 2px;
-    }
-
-    .cash-row-detail {
-        padding: 2px 0;
-    }
-
-    .particulars-cell {
-        padding-left: 10px;
-    }
-
-    .particular-main {
-        font-weight: 400;
-        color: #111827;
-        line-height: 1.5;
-        padding-left: 18px;
-    }
-
-    .particular-sub {
-        color: #111827;
-        line-height: 1.5;
-        padding-left: 48px;
-    }
-
-    .col-amount,
-    .col-total,
-    .col-voucher,
-    .col-return {
-        padding-top: 0;
-    }
-
-    .col-return {
-        color: red;
-    }
-
-    .cash-total-row {
-        display: grid;
-        grid-template-columns: 1.9fr 110px 110px 90px 110px;
-        gap: 12px;
-        align-items: center;
-        margin-top: 10px;
-        padding-top: 6px;
-        font-variant-numeric: tabular-nums;
-    }
-
-    .cash-total-label {
-        font-weight: 800;
-        color: #111827;
-        padding-left: 18px;
-        align-self: start;
-    }
-
-    .cash-total-amount {
-        grid-column: 3;
-        text-align: left;
-        font-weight: 400;
-        color: #111827;
-        border-top: 1px solid #111827;
-        padding-top: 3px;
-        padding-left: 6px;
-    }
-
-    .cash-total-return {
-        grid-column: 5;
-        text-align: left;
-        font-weight: 400;
-        color: red;
-        border-top: 1px solid #111827;
-        padding-top: 3px;
-        padding-left: 6px;
-    }
-
-    .adjusted-row {
+    .clean-list-row {
         display: flex;
         justify-content: space-between;
-        align-items: center;
-        max-width: 560px;
-        margin-top: 18px;
-        padding-left: 18px;
-        font-variant-numeric: tabular-nums;
+        padding: 10px 16px;
+        border-bottom: 1px solid #f1f5f9;
+        font-size: 0.9rem;
     }
 
-    .adjusted-label {
-        font-size: 15px;
-        color: #111827;
+        .clean-list-row:last-child {
+            border-bottom: none;
+        }
+
+    .clean-list-label {
+        font-weight: 600;
+        color: #475569;
     }
 
-    .adjusted-amount {
-        font-size: 18px;
-        font-weight: 800;
-        color: #111827;
-        min-width: 140px;
-        text-align: right;
+    .clean-list-amount {
+        font-weight: 600;
+        color: #0f172a;
     }
 
+    .clean-list-total {
+        background: #f8fafc;
+        border-top: 2px solid #cbd5e1;
+        font-weight: 700;
+        color: #0f172a;
+    }
+
+    /* --- DISBURSEMENT CUSTOM GRID --- */
+    .cash-grid-wrap {
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        background: #fff;
+        margin-bottom: 1.5rem;
+    }
+
+    .cash-grid-header {
+        display: grid;
+        grid-template-columns: 2fr 110px 110px 90px 110px;
+        gap: 12px;
+        background: #f8fafc;
+        color: #475569;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.05em;
+        padding: 12px 16px;
+        border-bottom: 1px solid #e2e8f0;
+        border-radius: 8px 8px 0 0;
+    }
+
+    .cash-grid-row {
+        display: grid;
+        grid-template-columns: 2fr 110px 110px 90px 110px;
+        gap: 12px;
+        padding: 8px 16px;
+        font-size: 0.85rem;
+        align-items: start;
+        border-bottom: 1px solid #f1f5f9;
+    }
+
+        .cash-grid-row:last-child {
+            border-bottom: none;
+        }
+
+        .cash-grid-row.main-row {
+            padding-top: 14px;
+            font-weight: 600;
+            color: #0f172a;
+        }
+
+        .cash-grid-row.detail-row {
+            padding-top: 4px;
+            padding-bottom: 4px;
+            color: #475569;
+        }
+
+            .cash-grid-row.detail-row .particular-text {
+                padding-left: 1.5rem;
+            }
+
+    .cash-grid-footer {
+        display: grid;
+        grid-template-columns: 2fr 110px 110px 90px 110px;
+        gap: 12px;
+        background: #f8fafc;
+        border-top: 2px solid #cbd5e1;
+        padding: 14px 16px;
+        font-weight: 700;
+        font-size: 0.85rem;
+        color: #0f172a;
+        border-radius: 0 0 8px 8px;
+    }
+
+    .cash-return-text {
+        color: #dc2626;
+    }
+
+    /* --- OLD STYLE SUMMARY DISBURSEMENT REVERT --- */
     .summary-disbursement-report {
         margin-top: 6px;
     }
 
-    .summary-disbursement-head,
-    .summary-group-row,
-    .summary-grand-total-row {
+    .summary-disbursement-head, .summary-group-row, .summary-grand-total-row {
         display: grid;
         grid-template-columns: 1fr 110px 110px;
         gap: 10px;
@@ -465,18 +251,21 @@
     }
 
     .summary-disbursement-head {
-        font-weight: 800;
-        color: #111827;
+        font-weight: 700;
+        color: #475569;
         text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.05em;
         margin-bottom: 8px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid #e2e8f0;
     }
 
     .summary-col-text {
         text-align: left;
     }
 
-    .summary-col-amount,
-    .summary-col-total {
+    .summary-col-amount, .summary-col-total {
         text-align: right;
     }
 
@@ -485,188 +274,67 @@
     }
 
     .summary-group-title {
-        font-weight: 400;
-        color: #111827;
-        margin-bottom: 2px;
+        font-weight: 700;
+        color: #0f172a;
+        margin-bottom: 4px;
     }
 
     .summary-group-row {
-        padding: 2px 0;
+        padding: 4px 0;
+        font-size: 0.85rem;
+        color: #475569;
     }
 
     .summary-label-cell {
-        padding-left: 66px;
-        color: #111827;
+        padding-left: 2rem;
     }
 
     .amount-underline {
-        border-bottom: 1px solid #111827;
+        border-bottom: 1px solid #0f172a;
         padding-bottom: 2px;
     }
 
     .summary-grand-total-row {
-        margin-top: 12px;
-        padding-top: 8px;
-        border-top: 1px solid #111827;
+        margin-top: 16px;
+        padding-top: 12px;
+        border-top: 2px solid #cbd5e1;
     }
 
     .summary-total-label {
-        font-weight: 800;
-        color: #111827;
+        font-weight: 700;
+        color: #0f172a;
     }
 
     .summary-grand-total-amount {
-        font-weight: 800;
-        color: #111827;
-    }
-
-    .group-total-line,
-    .grand-total-line,
-    .summary-line {
-        display: flex;
-        align-items: baseline;
-        gap: 10px;
-        font-variant-numeric: tabular-nums;
-    }
-
-    .summary-line + .summary-line {
-        margin-top: 10px;
-    }
-
-    .summary-line.strong {
-        margin-top: 14px;
-        padding-top: 12px;
-        border-top: 1px solid #cbd5e1;
-    }
-
-    .line-label {
-        width: 90px;
-        flex: 0 0 90px;
         font-weight: 700;
-        color: #111827;
+        color: #0f172a;
     }
 
-    .line-dots {
-        flex: 1 1 auto;
-        width: 100%;
-        border-bottom: 1px dotted #64748b;
-        transform: translateY(-3px);
+    /* --- FINAL SUMMARY --- */
+    .final-summary-box {
+        background: #f8fafc;
+        border: 1px solid #cbd5e1;
+        border-radius: 8px;
+        padding: 20px;
+        max-width: 600px;
     }
 
-    .line-amount {
-        width: 140px;
-        flex: 0 0 140px;
-        text-align: right;
-        font-weight: 800;
-        color: #111827;
-    }
-
-    .text-center {
-        text-align: center;
-    }
-
-    @@media print {
-        .monthly-topbar,
-        .navbar,
-        .sidebar,
-        footer {
-            display: none !important;
-        }
-
-        .monthly-page {
-            max-width: none;
-            padding: 0;
-        }
-
-        .paper-shell {
-            border: 0;
-            box-shadow: none;
-            border-radius: 0;
-            page-break-after: always;
-            break-after: page;
-        }
-
-        .paper-shell:last-child {
-            page-break-after: auto;
-            break-after: auto;
-        }
-
-        .paper-content {
-            padding: 0;
-        }
-    }
-
-    @@media (max-width: 900px) {
-        .cash-disbursement-head,
-        .cash-row,
-        .cash-total-row {
-            grid-template-columns: 1.6fr 90px 90px 80px 90px;
-            gap: 8px;
-            font-size: 13px;
-        }
-
-        .particular-sub {
-            padding-left: 30px;
-        }
-    }
-
-    @@media (max-width: 768px) {
-        .monthly-page {
-            padding: 16px;
-        }
-
-        .paper-content {
-            padding: 22px 16px 28px;
-        }
-
-        .church-name {
-            font-size: 22px;
-        }
-
-        .report-title {
-            font-size: 16px;
-        }
-
-        .denom-grid {
-            grid-template-columns: 1fr;
-        }
-    }
-
-    .summary-box-clean {
-        padding: 20px 18px 18px;
-    }
-
-    .summary-line-clean {
-        min-height: 34px;
-        align-items: center;
-    }
-
-    .line-label-clean {
-        min-width: 230px;
-        flex: 0 0 230px;
-        font-weight: 700;
-        color: #111827;
-        white-space: nowrap;
-    }
-
-    .summary-line-net {
+    .final-summary-row {
         display: flex;
-        align-items: center;
-        gap: 10px;
-        font-variant-numeric: tabular-nums;
-        margin-top: 16px;
-        padding-top: 14px;
+        justify-content: space-between;
+        padding: 8px 0;
+        font-size: 0.95rem;
+        color: #334155;
+    }
+
+    .final-summary-net {
+        display: flex;
+        justify-content: space-between;
+        padding-top: 16px;
+        margin-top: 8px;
         border-top: 2px solid #94a3b8;
-        min-height: 42px;
-    }
-
-    .net-dots {
-        border-bottom: 1px dotted #475569;
-    }
-
-    .net-amount {
-        font-size: 20px;
-        font-weight: 900;
+        font-size: 1.1rem;
+        font-weight: 800;
     }
 
     .net-positive {
@@ -677,450 +345,944 @@
         color: #dc2626;
     }
 
-    .net-zero {
-        color: #111827;
+    /* --- PRINT STYLES --- */
+    @@media print {
+        .monthly-topbar, .navbar, .sidebar, footer {
+            display: none !important;
+        }
+
+        .monthly-page {
+            max-width: none;
+            padding: 0;
+        }
+
+        .card-modern {
+            border: none;
+            box-shadow: none;
+            border-radius: 0;
+            page-break-after: always;
+            margin-bottom: 0;
+        }
+
+            .card-modern:last-child {
+                page-break-after: auto;
+            }
+
+        .table-modern-wrap, .clean-list-wrap, .cash-grid-wrap {
+            border: 1px solid #000;
+            border-radius: 0;
+        }
+
+        .table-modern thead th, .cash-grid-header, .summary-disbursement-head {
+            background: #f1f5f9 !important;
+            border-bottom: 1px solid #000;
+            -webkit-print-color-adjust: exact;
+        }
+
+        .summary-grand-total-row {
+            border-top: 2px solid #000;
+        }
+    }
+
+    @@media (max-width: 900px) {
+        .cash-grid-header, .cash-grid-row, .cash-grid-footer {
+            grid-template-columns: 1.6fr 90px 90px 80px 90px;
+            gap: 8px;
+        }
+
+        .summary-disbursement-head, .summary-group-row, .summary-grand-total-row {
+            grid-template-columns: 1fr 80px 80px;
+        }
     }
 </style>
 
-<div class="monthly-page">
-    <div class="monthly-topbar">
-        <form method="get" class="monthly-filter-form">
-            <div class="monthly-filter-group">
-                <label asp-for="SelectedMonth">Month</label>
-                <input asp-for="SelectedMonth" type="month" />
-            </div>
+<div class="monthly-page py-4">
 
-            <button type="submit" class="btn-month-load">
-                Load Month
-            </button>
+    <div class="card card-modern mb-4 border-0 shadow-sm">
+        <div class="card-body p-4">
+            <form id="toolbarForm" method="get" class="row g-3 align-items-end">
+                <div class="col-12 col-lg-auto">
+                    <label asp-for="SelectedMonth" class="form-label text-muted fw-bold text-uppercase mb-2" style="font-size: 0.75rem; letter-spacing: 0.05em;">Select Month</label>
+                    <div class="input-group shadow-sm" style="border-radius: 8px;">
+                        <input asp-for="SelectedMonth" type="month" class="form-control border-secondary border-opacity-25" style="max-width: 220px;" />
+                        <button type="submit" class="btn btn-primary fw-semibold px-4">
+                            Load Data
+                        </button>
+                    </div>
+                </div>
 
-            <button type="submit" name="handler" value="Export" class="btn btn-success">
-                Export Monthly Records
-            </button>
+                <div class="col-12 col-lg-auto ms-lg-auto">
+                    <label class="form-label text-muted fw-bold text-uppercase mb-2" style="font-size: 0.75rem; letter-spacing: 0.05em;">Google Sheets Exports</label>
+                    <div class="d-flex gap-2 flex-wrap">
+                        <button type="submit" name="handler" value="Export" class="btn btn-light border border-secondary border-opacity-25 shadow-sm fw-bold text-success px-3" style="border-radius: 8px; font-size: 0.85rem;">
+                            <i class="bi bi-file-earmark-spreadsheet me-1"></i> DETAILED
+                        </button>
 
-            <button type="submit" name="handler" value="ExportFinancial" class="btn btn-primary" style="background: #0f172a; border-color: #0f172a; color: white;">
-                Export Monthly Financial
-            </button>
-        </form>
+                        <button type="submit" name="handler" value="ExportFinancial" class="btn btn-light border border-secondary border-opacity-25 shadow-sm fw-bold text-dark px-3" style="border-radius: 8px; font-size: 0.85rem;">
+                            <i class="bi bi-file-earmark-bar-graph me-1"></i> FINANCIAL
+                        </button>
 
-        <div class="month-caption">
-            Showing all Sundays for @Model.MonthReport.MonthLabel
+                        <button type="submit" name="handler" value="Explain" class="btn btn-light border border-primary border-opacity-50 shadow-sm text-primary px-3" style="border-radius: 8px;" title="Check Report with AI">
+                            <i class="bi bi-stars"></i>
+                        </button>
+
+                        @if (User.IsInRole("admin") || User.IsInRole("Admin"))
+                        {
+                            <button type="button" class="btn btn-light border border-secondary border-opacity-25 shadow-sm text-secondary px-3" style="border-radius: 8px;" title="Sheet Settings" data-bs-toggle="modal" data-bs-target="#settingsModal">
+                                <i class="bi bi-gear-fill"></i>
+                            </button>
+                        }
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="card-footer bg-light border-top-0 py-2 px-4" style="border-radius: 0 0 12px 12px;">
+            <span class="text-muted" style="font-size: 0.85rem;">
+                <i class="bi bi-calendar3 me-1"></i> Showing finalized records for <strong class="text-dark">@Model.MonthReport.MonthLabel</strong>
+            </span>
         </div>
     </div>
 
+    @if (!string.IsNullOrWhiteSpace(Model.AiSummary))
+    {
+        <div class="card mb-4 border-primary shadow-sm" id="aiReportCard" style="background-color: #f8fafc; border-left: 4px solid #3b82f6 !important;">
+            <div class="card-body p-4">
+
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold mb-0" style="color: #0f172a; text-transform: uppercase;">
+                        <i class="bi bi-google text-primary me-2"></i> GEMINI FINANCIAL REPORT CHECKER
+                    </h5>
+                    <button type="button" class="btn-close" aria-label="Close" onclick="document.getElementById('aiReportCard').style.display='none';"></button>
+                </div>
+
+                <!-- Enhanced AI Auditor Disclaimer -->
+                <div class="alert alert-info mb-4 border-info shadow-sm" style="font-size: 0.85rem; border-radius: 12px; background-color: #f0f9ff;">
+                    <div class="d-flex align-items-start">
+                        <i class="bi bi-shield-shaded fs-3 me-3 text-primary"></i>
+                        <div>
+                            <h6 class="fw-bold text-dark mb-1">Audit Protocol & Data Security</h6>
+                            <p class="mb-2 text-dark">
+                                This report is generated by <strong>Gemini 2.5 Flash</strong> acting as an external Independent Assistant.
+                                To ensure 100% accuracy and privacy, we have implemented a <strong>Zero-PII & Deterministic Math</strong> framework:
+                            </p>
+                            <ul class="mb-2 text-muted" style="padding-left: 1.2rem;">
+                                <li><strong>Privacy:</strong> All names and sensitive identifiers are stripped locally. The AI only sees generic fund labels and numbers.</li>
+                                <li><strong>Math Integrity:</strong> Calculations are performed by our C# backend. The AI is used to <strong>verify the logical consistency</strong> of those results, not to calculate them from scratch, eliminating the risk of "AI hallucinations" in your totals.</li>
+                                <li><strong>Purpose:</strong> By using an external AI to judge the system's output, we provide a second layer of verification to ensure the narrative explanation matches the underlying ledger data.</li>
+                            </ul>
+                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle">Verified Deterministic Flow</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- AI Output (Rendered as Raw HTML to show Tables) -->
+                <div class="ai-report-content" style="color: #334155; font-size: 0.95rem; line-height: 1.6;">
+                    @Html.Raw(Model.AiSummary)
+                </div>
+            </div>
+        </div>
+    }
     @if (!string.IsNullOrWhiteSpace(Model.Message))
     {
-        <div class="report-message">@Model.Message</div>
+        @if (Model.Message.StartsWith("==="))
+        {
+            <pre class="bg-dark text-light p-3 rounded mb-4" style="font-size: 12px; max-height: 400px; overflow-y: auto;">@Model.Message</pre>
+        }
+        else
+        {
+            <div class="alert alert-warning border-warning rounded mb-4">@Model.Message</div>
+        }
     }
 
-    <div class="paper-stack">
-        @foreach (var page in Model.MonthReport.Pages)
-        {
-            <div class="paper-shell">
-                <div class="paper-content">
-                    <div class="paper-header">
-                        <div class="church-name">ADELINA CHRISTIAN CHURCH</div>
-                        <div class="report-title">
-                            FINANCIAL REPORT
-                        </div>
-                        <div >
-                            <h6>@(@page.ReportDate.ToString("MMMM dd, yyyy"))</h6>
+    @foreach (var page in Model.MonthReport.Pages)
+    {
+        <div class="card card-modern mb-5">
+            <div class="card-body p-5">
+
+                <div class="text-center mb-5 border-bottom pb-4">
+                    <h2 class="fw-bold mb-1" style="color: #0f172a; letter-spacing: 0.05em; text-transform: uppercase;">Adelina Christian Church</h2>
+                    <h4 class="fw-semibold text-muted mb-2" style="font-size: 1.1rem; letter-spacing: 0.05em; text-transform: uppercase;">Financial Report</h4>
+                    <div class="text-primary fw-bold fs-5">@(@page.ReportDate.ToString("MMMM dd, yyyy"))</div>
+                </div>
+
+                @if (!page.HasReport)
+                {
+                    <div class="empty-panel-note" style="padding: 16px 0; text-align: center; border: 1px dashed #cbd5e1; border-radius: 8px; background: #f8fafc; color: #64748b;">
+                        <i class="bi bi-info-circle me-1"></i> No finalized records found for this date.
+                    </div>
+                }
+                else
+                {
+                    <div class="mb-5">
+                        <h4 class="section-title">
+                            Sources of Blessings
+                            @if (!string.IsNullOrWhiteSpace(page.Report.Giving.RecordCode))
+                            {
+                                <span class="text-muted fs-6 fw-normal ms-2">Ref: @(@page.Report.Giving.RecordCode)</span>
+                            }
+                        </h4>
+
+                        <div class="table-modern-wrap" id="giving-@(@page.ReportDate.ToString("yyyy-MM-dd"))">
+                            <table class="table-modern">
+                                <thead>
+                                    <tr>
+                                        <th class="text-start">Name</th>
+                                        <th class="text-end">Tithes</th>
+                                        <th class="text-end">Offerings</th>
+                                        <th class="text-end">Solomon</th>
+                                        <th class="text-end">Noah</th>
+                                        <th class="text-end">Mission</th>
+                                        <th class="text-end">Others</th>
+                                        <th class="text-end">Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @if (page.Report.Giving.Rows != null && page.Report.Giving.Rows.Any())
+                                    {
+                                        @foreach (var row in page.Report.Giving.Rows)
+                                        {
+                                            <tr>
+                                                <td class="text-start fw-semibold">@row.Name</td>
+                                                <td class="text-end text-muted">@MoneyOrBlank(row.Tithes)</td>
+                                                <td class="text-end text-muted">@MoneyOrBlank(row.Offerings)</td>
+                                                <td class="text-end text-muted">@MoneyOrBlank(row.Solomon)</td>
+                                                <td class="text-end text-muted">@MoneyOrBlank(row.Noah)</td>
+                                                <td class="text-end text-muted">@MoneyOrBlank(row.Mission)</td>
+                                                <td class="text-end text-muted">@MoneyOrBlank(row.Others)</td>
+                                                <td class="text-end fw-bold text-dark">@MoneyOrBlank(row.Total)</td>
+                                            </tr>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <tr><td colspan="8" class="text-center text-muted py-4">No entries found.</td></tr>
+                                    }
+                                </tbody>
+                                <tfoot>
+                                    <tr>
+                                        <td class="text-start">GRAND TOTAL</td>
+                                        <td class="text-end">@(@page.Report.Giving.TotalTithes.ToString("N2"))</td>
+                                        <td class="text-end">@(@page.Report.Giving.TotalOfferings.ToString("N2"))</td>
+                                        <td class="text-end">@(@page.Report.Giving.TotalSolomon.ToString("N2"))</td>
+                                        <td class="text-end">@(@page.Report.Giving.TotalNoah.ToString("N2"))</td>
+                                        <td class="text-end">@(@page.Report.Giving.TotalMission.ToString("N2"))</td>
+                                        <td class="text-end">@(@page.Report.Giving.TotalOthers.ToString("N2"))</td>
+                                        <td class="text-end fs-6">@(@page.Report.Giving.GrandTotal.ToString("N2"))</td>
+                                    </tr>
+                                </tfoot>
+                            </table>
                         </div>
                     </div>
 
-                    @if (!page.HasReport)
-                    {
-                        <div class="empty-paper-message">
-                            No report yet for this Sunday.
-                        </div>
-                    }
-                    else
-                    {
-                        <section class="report-section">
-                            <div class="report-section-title">
-                                GIVING TABLE
-                                @if (!string.IsNullOrWhiteSpace(page.Report.Giving.RecordCode))
+                    <div class="mb-5">
+                        <h4 class="section-title">Denomination Verified</h4>
+                        @if (page.Report.Denomination.Exists && page.Report.Denomination.Lines.Any())
+                        {
+                            <div class="clean-list-wrap">
+                                @foreach (var line in page.Report.Denomination.Lines)
                                 {
-                                    <span class="record-code">– @(@page.Report.Giving.RecordCode)</span>
-                                }
-                            </div>
-
-                            <div class="giving-table-wrap">
-                                <table class="giving-table">
-                                    <thead>
-                                        <tr>
-                                            <th class="text-left">Name</th>
-                                            <th class="text-right">Tithes</th>
-                                            <th class="text-right">Offerings</th>
-                                            <th class="text-right">Solomon</th>
-                                            <th class="text-right">Noah</th>
-                                            <th class="text-right">Mission</th>
-                                            <th class="text-right">Others</th>
-                                            <th class="text-right">Total</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @if (page.Report.Giving.Rows != null && page.Report.Giving.Rows.Any())
-                                        {
-                                            foreach (var row in page.Report.Giving.Rows)
-                                            {
-                                                <tr>
-                                                    <td class="text-left name-cell">@row.Name</td>
-                                                    <td class="text-right">@MoneyOrBlank(row.Tithes)</td>
-                                                    <td class="text-right">@MoneyOrBlank(row.Offerings)</td>
-                                                    <td class="text-right">@MoneyOrBlank(row.Solomon)</td>
-                                                    <td class="text-right">@MoneyOrBlank(row.Noah)</td>
-                                                    <td class="text-right">@MoneyOrBlank(row.Mission)</td>
-                                                    <td class="text-right">@MoneyOrBlank(row.Others)</td>
-                                                    <td class="text-right">@MoneyOrBlank(row.Total)</td>
-                                                </tr>
-                                            }
-
-                                            <tr class="total-row">
-                                                <td class="text-left">TOTAL</td>
-                                                <td class="text-right">@(@page.Report.Giving.TotalTithes.ToString("N2"))</td>
-                                                <td class="text-right">@(@page.Report.Giving.TotalOfferings.ToString("N2"))</td>
-                                                <td class="text-right">@(@page.Report.Giving.TotalSolomon.ToString("N2"))</td>
-                                                <td class="text-right">@(@page.Report.Giving.TotalNoah.ToString("N2"))</td>
-                                                <td class="text-right">@(@page.Report.Giving.TotalMission.ToString("N2"))</td>
-                                                <td class="text-right">@(@page.Report.Giving.TotalOthers.ToString("N2"))</td>
-                                                <td class="text-right">@(@page.Report.Giving.GrandTotal.ToString("N2"))</td>
-                                            </tr>
-                                        }
-                                        else
-                                        {
-                                            <tr>
-                                                <td colspan="8" class="text-left">No giving entries found.</td>
-                                            </tr>
-                                        }
-                                    </tbody>
-                                </table>
-                            </div>
-                        </section>
-
-                        <section class="report-section">
-                            <div class="report-section-title">Giving Denom</div>
-
-                            <div class="denom-box">
-                                @if (page.Report.Denomination.Exists && page.Report.Denomination.Lines.Any())
-                                {
-                                    <div class="denom-grid">
-                                        @foreach (var line in page.Report.Denomination.Lines)
-                                        {
-                                            <div class="denom-line">
-                                                <span class="denom-label">@line.Label x @line.Quantity</span>
-                                                <span class="denom-dots"></span>
-                                                <span class="denom-amount">@line.LineTotal.ToString("N2")</span>
-                                            </div>
-                                        }
-                                    </div>
-
-                                    <div class="denom-total">
-                                        <span class="label">Total Denomination</span>
-                                        <span class="dots"></span>
-                                        <span class="amount">@(@page.Report.Denomination.Total.ToString("N2"))</span>
+                                    <div class="clean-list-row">
+                                        <div class="clean-list-label">@line.Label <span class="text-muted fw-normal mx-2">×</span> @line.Quantity</div>
+                                        <div class="clean-list-amount">@line.LineTotal.ToString("N2")</div>
                                     </div>
                                 }
-                                else
-                                {
-                                    <div class="report-empty">No denomination summary found.</div>
-                                }
+                                <div class="clean-list-row clean-list-total">
+                                    <div>TOTAL VERIFIED</div>
+                                    <div>@(@page.Report.Denomination.Total.ToString("N2"))</div>
+                                </div>
                             </div>
-                        </section>
+                        }
+                        else
+                        {
+                            <div class="empty-panel-note" style="padding: 16px 0; text-align: center; border: 1px dashed #cbd5e1; border-radius: 8px; background: #f8fafc; color: #64748b;">
+                                No denomination data attached to this record.
+                            </div>
+                        }
+                    </div>
 
-                        <section class="report-section">
-                            <div class="report-section-title">Disbursement</div>
+                    <div class="mb-5">
+                        <h4 class="section-title">Disbursements</h4>
 
-                            <div class="disbursement-box">
-                                @if (page.Report.Disbursement.Vouchers != null && page.Report.Disbursement.Vouchers.Any())
+                        @if (page.Report.Disbursement.Vouchers != null && page.Report.Disbursement.Vouchers.Any())
+                        {
+                            <h5 class="sub-section-title">Cash Disbursements</h5>
+                            <div class="cash-grid-wrap" id="disb-@(@page.ReportDate.ToString("yyyy-MM-dd"))">
+                                <div class="cash-grid-header">
+                                    <div>Particulars</div>
+                                    <div class="text-end">Amount</div>
+                                    <div class="text-end">Total</div>
+                                    <div class="text-center">Voucher #</div>
+                                    <div class="text-end">Return</div>
+                                </div>
+
+                                @foreach (var voucher in page.Report.Disbursement.Vouchers)
                                 {
-                                    <div class="sub-report-title">Cash Disbursements (@(@page.Report.ReportDate.ToString("MM/dd/yyyy")))</div>
-
-                                    <div class="cash-disbursement-report">
-                                        <div class="cash-disbursement-head">
-                                            <div class="col-particulars">Particulars</div>
-                                            <div class="col-amount text-right">Amount</div>
-                                            <div class="col-total text-right">Total</div>
-                                            <div class="col-voucher text-center">Voucher #</div>
-                                            <div class="col-return text-right">Cash Return</div>
-                                        </div>
-
-                                        @foreach (var voucher in page.Report.Disbursement.Vouchers)
+                                    var lines = voucher.Lines ?? new List<acc_finance.Models.Reports.DisbursementLineVm>();
+                                    if (lines.Any())
+                                    {
+                                        @for (int i = 0; i < lines.Count; i++)
                                         {
-                                            var lines = voucher.Lines ?? new List<acc_finance.Models.Reports.DisbursementLineVm>();
+                                            var line = lines[i];
+                                            bool isLast = i == lines.Count - 1;
+                                            bool isSingle = lines.Count == 1;
+                                            bool isFirst = i == 0;
 
-                                            if (lines.Any())
+                                            if (isFirst)
                                             {
-                                                <div class="voucher-block">
-                                                    @for (int i = 0; i < lines.Count; i++)
-                                                    {
-                                                        var line = lines[i];
-                                                        bool isLast = i == lines.Count - 1;
-                                                        bool isSingle = lines.Count == 1;
-                                                        bool isFirst = i == 0;
-
-                                                        if (isFirst)
-                                                        {
-                                                            <div class="cash-row cash-row-main">
-                                                                <div class="col-particulars particulars-cell">
-                                                                    <div class="particular-main">@voucher.Ministry - @voucher.Payee</div>
-                                                                </div>
-                                                                <div class="col-amount"></div>
-                                                                <div class="col-total"></div>
-                                                                <div class="col-voucher"></div>
-                                                                <div class="col-return"></div>
-                                                            </div>
-                                                        }
-
-                                                        <div class="cash-row cash-row-detail">
-                                                            <div class="col-particulars particulars-cell">
-                                                                <div class="particular-sub">@line.Particular</div>
-                                                            </div>
-
-                                                            <div class="col-amount text-right">
-                                                                @if (!isSingle)
-                                                                {
-                                                                    @line.AmountReleased.ToString("N2")
-                                                                }
-                                                            </div>
-
-                                                            <div class="col-total text-right">
-                                                                @if (isSingle || isLast)
-                                                                {
-                                                                    @voucher.VoucherTotalReleased.ToString("N2")
-                                                                }
-                                                            </div>
-
-                                                            <div class="col-voucher text-center">
-                                                                @if (isSingle || isLast)
-                                                                {
-                                                                    @voucher.VoucherNumber
-                                                                }
-                                                            </div>
-
-                                                            <div class="col-return text-right">
-                                                                @if (line.CashReturned > 0)
-                                                                {
-                                                                    @line.CashReturned.ToString("N2")
-                                                                }
-                                                            </div>
-                                                        </div>
-                                                    }
+                                                <div class="cash-grid-row main-row border-bottom-0 pb-1">
+                                                    <div>@voucher.Ministry - @voucher.Payee</div>
+                                                    <div></div><div></div><div></div><div></div>
                                                 </div>
                                             }
+
+                                            <div class="cash-grid-row detail-row @(isLast ? "border-bottom" : "border-bottom-0 pb-1")">
+                                                <div class="particular-text">@line.Particular</div>
+                                                <div class="text-end text-dark fw-semibold">
+                                                    @if (!isSingle)
+                                                    {
+                                                        @line.AmountReleased.ToString("N2")
+                                                    }
+                                                </div>
+                                                <div class="text-end fw-bold text-dark">
+                                                    @if (isSingle || isLast)
+                                                    {
+                                                        @voucher.VoucherTotalReleased.ToString("N2")
+                                                    }
+                                                </div>
+                                                <div class="text-center text-muted">
+                                                    @if (isSingle || isLast)
+                                                    {
+                                                        @voucher.VoucherNumber
+                                                    }
+                                                </div>
+                                                <div class="text-end cash-return-text fw-semibold">
+                                                    @if (line.CashReturned > 0)
+                                                    {
+                                                        @line.CashReturned.ToString("N2")
+                                                    }
+                                                </div>
+                                            </div>
                                         }
+                                    }
+                                }
 
-                                        <div class="cash-total-row">
-                                            <div class="cash-total-label">TOTAL</div>
-                                            <div class="cash-total-amount">@(@page.Report.Disbursement.TotalReleased.ToString("N2"))</div>
-                                            <div class="cash-total-return">@(@page.Report.Disbursement.TotalReturned.ToString("N2"))</div>
-                                        </div>
+                                <div class="cash-grid-footer">
+                                    <div>TOTAL DISBURSED & RETURNED</div>
+                                    <div></div>
+                                    <div class="text-end">@(@page.Report.Disbursement.TotalReleased.ToString("N2"))</div>
+                                    <div></div>
+                                    <div class="text-end cash-return-text">@(@page.Report.Disbursement.TotalReturned.ToString("N2"))</div>
+                                </div>
+                            </div>
 
-                                        <div class="adjusted-row">
-                                            <div class="adjusted-label">Adjusted disbursement</div>
-                                            <div class="adjusted-amount">@(@page.Report.Disbursement.TotalNetDisbursement.ToString("N2"))</div>
-                                        </div>
+                            <div class="clean-list-wrap mb-4">
+                                <div class="clean-list-row clean-list-total">
+                                    <div>ADJUSTED NET DISBURSEMENT</div>
+                                    <div>@(@page.Report.Disbursement.TotalNetDisbursement.ToString("N2"))</div>
+                                </div>
+                            </div>
+
+                            <h5 class="sub-section-title mt-5">Summary Disbursement</h5>
+                            <div class="cash-grid-wrap p-4" style="max-width: 600px;">
+                                <div class="summary-disbursement-report">
+                                    <div class="summary-disbursement-head">
+                                        <div class="summary-col-text">Summary</div>
+                                        <div class="summary-col-amount text-end">Amount</div>
+                                        <div class="summary-col-total text-end">Total</div>
                                     </div>
 
-                                    <div class="sub-report-title summary-spacer">Summary Disbursement</div>
-                                    <hr />
+                                    @foreach (var group in page.Report.Disbursement.Groups)
+                                    {
+                                        var lines = group.Lines ?? new List<acc_finance.Models.Reports.DisbursementLineVm>();
+                                        bool isSingle = lines.Count == 1;
 
-                                    <div class="summary-disbursement-report">
-                                        <div class="summary-disbursement-head">
-                                            <div class="summary-col-text">Summary</div>
-                                            <div class="summary-col-amount text-right">Amount</div>
-                                            <div class="summary-col-total text-right">Total</div>
-                                        </div>
+                                        <div class="summary-group-block">
+                                            <div class="summary-group-title">@group.Ministry Expenses</div>
 
-                                        @foreach (var group in page.Report.Disbursement.Groups)
-                                        {
-                                            var lines = group.Lines ?? new List<acc_finance.Models.Reports.DisbursementLineVm>();
-                                            bool isSingle = lines.Count == 1;
+                                            @for (int i = 0; i < lines.Count; i++)
+                                            {
+                                                var line = lines[i];
+                                                bool isLast = i == lines.Count - 1;
 
-                                            <div class="summary-group-block">
-                                                <div class="summary-group-title"><strong>@group.Ministry Expenses</strong></div>
-
-                                                @for (int i = 0; i < lines.Count; i++)
-                                                {
-                                                    var line = lines[i];
-                                                    bool isLast = i == lines.Count - 1;
-
-                                                    <div class="summary-group-row">
-                                                        <div class="summary-col-text summary-label-cell">
-                                                            @line.SummaryLabel
-                                                        </div>
-
-                                                        <div class="summary-col-amount text-right @(isLast && !isSingle ? "amount-underline" : "")">
-                                                            @if (!isSingle)
-                                                            {
-                                                                @line.NetAmount.ToString("N2")
-                                                            }
-                                                        </div>
-
-                                                        <div class="summary-col-total text-right">
-                                                            @if (isSingle || isLast)
-                                                            {
-                                                                @group.GroupTotal.ToString("N2")
-                                                            }
-                                                        </div>
+                                                <div class="summary-group-row">
+                                                    <div class="summary-col-text summary-label-cell">
+                                                        @line.SummaryLabel
                                                     </div>
-                                                }
-                                            </div>
-                                        }
 
-                                        <div class="summary-grand-total-row">
-                                            <div class="summary-col-text summary-total-label">TOTAL</div>
-                                            <div class="summary-col-amount"></div>
-                                            <div class="summary-col-total text-right summary-grand-total-amount">
-                                                @(@page.Report.Disbursement.TotalNetDisbursement.ToString("N2"))
-                                            </div>
+                                                    <div class="summary-col-amount text-end @(isLast && !isSingle ? "amount-underline" : "")">
+                                                        @if (!isSingle)
+                                                        {
+                                                            @line.NetAmount.ToString("N2")
+                                                        }
+                                                    </div>
+
+                                                    <div class="summary-col-total text-end fw-semibold text-dark">
+                                                        @if (isSingle || isLast)
+                                                        {
+                                                            @group.GroupTotal.ToString("N2")
+                                                        }
+                                                    </div>
+                                                </div>
+                                            }
+                                        </div>
+                                    }
+
+                                    <div class="summary-grand-total-row">
+                                        <div class="summary-col-text summary-total-label">TOTAL</div>
+                                        <div class="summary-col-amount"></div>
+                                        <div class="summary-col-total text-end summary-grand-total-amount fs-6">
+                                            @(@page.Report.Disbursement.TotalNetDisbursement.ToString("N2"))
                                         </div>
                                     </div>
-                                }
-                                else
-                                {
-                                    <div class="report-empty">No disbursement report found.</div>
-                                }
-                            </div>
-                        </section>
-
-                        <section class="report-section">
-                            <div class="report-section-title">Summary</div>
-
-                            <div class="summary-box summary-box-clean">
-                                <div class="summary-line summary-line-clean">
-                                    <div class="line-label-clean">Cash Receipts / Blessings</div>
-                                    <div class="line-dots"></div>
-                                    <div class="line-amount">@(@page.Report.Summary.CashReceiptsOrBlessings.ToString("N2"))</div>
-                                </div>
-
-                                <div class="summary-line summary-line-clean">
-                                    <div class="line-label-clean">Less: Cash Disbursement</div>
-                                    <div class="line-dots"></div>
-                                    <div class="line-amount">@(@page.Report.Summary.LessCashDisbursements.ToString("N2"))</div>
-                                </div>
-
-                                <div class="summary-line summary-line-net">
-                                    <div class="line-label-clean">Net Cash Balance @(@page.Report.ReportDate.ToString("MM/dd/yyyy"))</div>
-                                    <div class="line-dots net-dots"></div>
-                                    <div class="line-amount net-amount @(page.Report.Summary.NetCashBalance < 0 ? "net-negative" : page.Report.Summary.NetCashBalance > 0 ? "net-positive" : "net-zero")">
-                                        @(@page.Report.Summary.NetCashBalance.ToString("N2"))
-                                    </div>
                                 </div>
                             </div>
-                        </section>
-                    }
+                        }
+                        else
+                        {
+                            <div class="empty-panel-note" style="padding: 16px 0; text-align: center; border: 1px dashed #cbd5e1; border-radius: 8px; background: #f8fafc; color: #64748b;">
+                                No disbursement data for this date.
+                            </div>
+                        }
+                    </div>
+
+                    <div>
+                        <h4 class="section-title">Overall Summary</h4>
+                        <div class="final-summary-box">
+                            <div class="final-summary-row">
+                                <span class="fw-semibold">Total Cash Receipts / Blessings</span>
+                                <span class="fw-bold text-dark">@(@page.Report.Summary.CashReceiptsOrBlessings.ToString("N2"))</span>
+                            </div>
+                            <div class="final-summary-row">
+                                <span class="fw-semibold">Less: Total Cash Disbursements</span>
+                                <span class="fw-bold text-dark">@(@page.Report.Summary.LessCashDisbursements.ToString("N2"))</span>
+                            </div>
+
+                            <div class="final-summary-net @(page.Report.Summary.NetCashBalance < 0 ? "net-negative" : page.Report.Summary.NetCashBalance > 0 ? "net-positive" : "")">
+                                <span>NET CASH BALANCE</span>
+                                <span>@(@page.Report.Summary.NetCashBalance.ToString("N2"))</span>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+</div>
+
+    <!-- MONTHLY GRAND SUMMARY -->
+    <div class="card mb-5 border-primary shadow-lg" style="border-width: 2px !important; border-radius: 12px;">
+        <div class="card-body p-5">
+            <h4 class="text-center text-primary mb-4 fw-bold" style="letter-spacing: 0.05em; text-transform: uppercase;">
+                Monthly Grand Summary
+            </h4>
+            
+            <div class="mx-auto" style="max-width: 450px; font-size: 1.05rem; color: #1e293b;">
+                <div class="d-flex justify-content-between py-2">
+                    <span class="fw-semibold">Beg. Balance <span class="text-muted fw-normal" style="font-size: 0.85rem;">(@Model.PreviousMonthLabel)</span></span>
+                    <span class="fw-semibold">@Model.MonthBegBalance.ToString("N2")</span>
+                </div>
+                
+                <div class="d-flex justify-content-between py-2">
+                    <span>Add: Cash Receipts & Blessings</span>
+                    <span>@Model.MonthTotalReceipts.ToString("N2")</span>
+                </div>
+                
+                <div class="d-flex justify-content-between py-2 border-bottom border-dark pb-3 mb-2" style="border-width: 2px !important;">
+                    <span>Less: Disbursements</span>
+                    <span>@Model.MonthTotalDisbursements.ToString("N2")</span>
+                </div>
+                
+                <div class="d-flex justify-content-between fw-bold mt-2" style="font-size: 1.3rem;">
+                    <span class="text-dark">NET CASH BALANCE</span>
+                    <span class="@(Model.MonthNetBalance < 0 ? "text-danger" : "text-success")">
+                        @Model.MonthNetBalance.ToString("N2")
+                    </span>
                 </div>
             </div>
-        }
+        </div>
+    </div>  
+
+<div id="loading-overlay" class="loading-overlay" style="display: none;">
+    <div class="spinner"></div>
+    <div class="loading-text text-center px-4">
+        <div id="loadingMainText" class="fs-4 fw-bold text-dark mb-2">Loading report data...</div>
+        <div id="loadingSubText" class="text-muted fw-normal fs-6" style="max-width: 550px; margin: 0 auto; line-height: 1.6;">
+            Please wait. This may take a minute.
+        </div>
     </div>
 </div>
 
-<div id="loading-overlay" class="loading-overlay">
-    <div class="spinner"></div>
-    <div class="loading-text">Loading report data... Please wait. This may take a minute.</div>
+<div class="modal fade" id="accessDeniedModal" tabindex="-1" aria-labelledby="accessDeniedModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border: 2px solid #dc2626; border-radius: 12px;">
+            <div class="modal-header border-bottom-0 pb-0">
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center pb-5 px-4">
+                <h1 class="display-3 text-danger mb-3"><i class="bi bi-shield-lock-fill"></i></h1>
+                <h3 class="fw-bold text-dark">Access Denied</h3>
+                <p class="text-muted fs-6 mt-3 mb-4">
+                    You do not have the required permissions to export data to Google Sheets. Only <strong>Administrators</strong> can perform this action.
+                </p>
+                <button type="button" class="btn btn-secondary px-5 fw-bold" data-bs-dismiss="modal" style="border-radius: 8px;">Understood</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="settingsModal" tabindex="-1" aria-labelledby="settingsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 12px; border: none; box-shadow: 0 10px 25px rgba(0,0,0,0.1);">
+            <div class="modal-header bg-light border-bottom-0 pb-3" style="border-radius: 12px 12px 0 0;">
+                <h5 class="modal-title fw-bold text-dark" id="settingsModalLabel"><i class="bi bi-google me-2 text-primary"></i> Google Sheets Configuration</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <form method="post" asp-page-handler="SaveSettings">
+                <input type="hidden" asp-for="SelectedMonth" />
+                <div class="modal-body px-4 py-4">
+
+                    <div class="alert border-primary shadow-sm mb-4" style="background-color: #f0f9ff; border-radius: 12px;">
+                        <h6 class="fw-bold text-primary mb-2"><i class="bi bi-info-circle-fill me-1"></i> How to find your Sheet ID</h6>
+                        <ol class="mb-3 ps-3 text-dark" style="font-size: 0.85rem; line-height: 1.6;">
+                            <li>Open your Google Sheet in your web browser.</li>
+                            <li>Look at the URL in the address bar at the very top.</li>
+                            <li>Copy the long code located between <strong>/d/</strong> and <strong>/edit</strong>.</li>
+                        </ol>
+
+                        <div class="p-2 bg-white rounded border text-center font-monospace" style="font-size: 0.75rem; word-break: break-all;">
+                            <span class="text-muted">https://docs.google.com/spreadsheets/d/</span><strong class="text-danger fs-6 bg-danger-subtle px-1 rounded border border-danger">1Ln4Ia6EsZw-0Z6...</strong><span class="text-muted">/edit#gid=0</span>
+                        </div>
+                    </div>
+
+                    <div class="mb-4 p-3 border rounded bg-light">
+                        <label class="form-label fw-bold text-success"><i class="bi bi-file-earmark-spreadsheet me-1"></i> Detailed Report Sheet ID</label>
+                        <input type="text" class="form-control mb-2" asp-for="AppSettings.DetailedSheetId" required placeholder="Paste the ID here..." />
+                        @if (!string.IsNullOrEmpty(Model.AppSettings?.DetailedSheetId))
+                        {
+                            <a href="https://docs.google.com/spreadsheets/d/@Model.AppSettings.DetailedSheetId" target="_blank" class="btn btn-sm btn-outline-success">
+                                <i class="bi bi-box-arrow-up-right me-1"></i> Open Detailed Sheet in New Tab
+                            </a>
+                        }
+                    </div>
+
+                    <div class="mb-2 p-3 border rounded bg-light">
+                        <label class="form-label fw-bold text-dark"><i class="bi bi-file-earmark-bar-graph me-1"></i> Financial Report Sheet ID</label>
+                        <input type="text" class="form-control mb-2" asp-for="AppSettings.FinancialSheetId" required placeholder="Paste the ID here..." />
+                        @if (!string.IsNullOrEmpty(Model.AppSettings?.FinancialSheetId))
+                        {
+                            <a href="https://docs.google.com/spreadsheets/d/@Model.AppSettings.FinancialSheetId" target="_blank" class="btn btn-sm btn-outline-dark">
+                                <i class="bi bi-box-arrow-up-right me-1"></i> Open Financial Sheet in New Tab
+                            </a>
+                        }
+                    </div>
+                </div>
+                <div class="modal-footer border-top-0 pt-0 px-4 pb-4">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary px-4 fw-bold">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
 </div>
 
 <style>
-    /* CSS for the loading screen */
     .loading-overlay {
         position: fixed;
         top: 0;
         left: 0;
         width: 100%;
         height: 100%;
-        background: rgba(255, 255, 255, 0.85);
+        background: rgba(255, 255, 255, 0.9);
         z-index: 9999;
-        display: flex; /* Keep it flex */
         flex-direction: column;
         justify-content: center;
         align-items: center;
         backdrop-filter: blur(4px);
-        /* NEW: Smooth fade transitions */
         visibility: hidden;
         opacity: 0;
-        transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+        transition: opacity 0.3s ease, visibility 0.3s ease;
     }
 
-        /* NEW: Class to trigger the fade in */
         .loading-overlay.show {
+            display: flex !important;
             visibility: visible;
             opacity: 1;
         }
 
     .spinner {
-        border: 5px solid #e2e8f0; /* Light gray border */
-        border-top: 5px solid #1d4ed8; /* Blue spinning part */
+        border: 4px solid #e2e8f0;
+        border-top: 4px solid #3b82f6;
         border-radius: 50%;
-        width: 50px;
-        height: 50px;
+        width: 48px;
+        height: 48px;
         animation: spin 1s linear infinite;
-    }
-
-    .loading-text {
-        margin-top: 16px;
-        font-size: 16px;
-        font-weight: 600;
-        color: #1e293b;
+        margin-bottom: 1rem;
     }
 
     @@keyframes spin {
-        0%
+        0% {
+            transform: rotate(0deg);
+        }
 
-    {
-        transform: rotate(0deg);
-    }
-
-    100% {
-        transform: rotate(360deg);
-    }
-
+        100% {
+            transform: rotate(360deg);
+        }
     }
 </style>
 
+<!-- Wikipedia-Style Hover Card -->
+<div id="wikiHoverCard" class="wiki-hover-card shadow-lg">
+    <div class="wiki-hover-card-header text-primary">
+        <span><i class="bi bi-file-earmark-text"></i> Live Report Snapshot</span>
+        <a id="wikiHoverCardLink" href="#" class="text-decoration-none fw-bold">Jump to section &rarr;</a>
+    </div>
+    <div id="wikiHoverCardBody" class="wiki-hover-card-body bg-white p-0">
+        <!-- JS will inject cloned HTML here -->
+    </div>
+</div>
+
+<style>
+    .wiki-hover-card {
+        position: absolute;
+        z-index: 10000;
+        background: #fff;
+        border: 1px solid #cbd5e1;
+        border-radius: 8px;
+        width: auto; /* REMOVED 380px - Let it shrink-wrap to the content */
+        max-width: 550px; /* Safety cap so it doesn't get ridiculously wide */
+        display: none;
+        opacity: 0;
+        transition: opacity 0.2s ease;
+        pointer-events: none;
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+    }
+
+        .wiki-hover-card.show {
+            display: block;
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+    .wiki-hover-card-header {
+        background: #f8fafc;
+        padding: 8px 12px;
+        border-bottom: 1px solid #e2e8f0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-radius: 8px 8px 0 0;
+        font-size: 0.8rem;
+    }
+
+    /* --- COMPRESS THE TABLE INSIDE THE POPUP --- */
+    .wiki-hover-card-body .table-modern-wrap,
+    .wiki-hover-card-body .cash-grid-wrap {
+        border: none !important;
+        margin-bottom: 0 !important;
+    }
+
+    /* Force the font and padding to be much smaller and prevent text wrapping */
+    .wiki-hover-card-body tfoot td {
+        font-size: 0.7rem !important;
+        padding: 8px 10px !important;
+        white-space: nowrap !important;
+    }
+
+    .wiki-hover-card-body .cash-grid-footer {
+        font-size: 0.7rem !important;
+        padding: 8px 10px !important;
+        gap: 8px !important;
+    }
+</style>
+
+
 <script>
-    document.addEventListener("DOMContentLoaded", function () {
-        const form = document.querySelector(".monthly-filter-form");
-        const overlay = document.getElementById("loading-overlay");
-        const loadingText = document.querySelector(".loading-text");
-        let downloadTimer;
+    (() => {
+        const scrollKey = "MonthlyReport_ScrollPosition";
 
-        if (form) {
-            form.addEventListener("submit", function (event) {
-                // Smoothly fade in the overlay
-                overlay.classList.add("show");
+        // ==========================================
+        // 1. THE MEMORY LEAK FIX (Guard Clauses)
+        // ==========================================
 
-                const clickedButton = event.submitter;
+        // Continually save the scroll position ONLY when looking at the Monthly Report!
+        let scrollTimeout;
+        window.addEventListener("scroll", function () {
+            // 🚨 CRITICAL FIX: Stop tracking if we navigated to a different HTMX page!
+            if (!document.querySelector('.monthly-page')) return;
 
-                if (clickedButton && clickedButton.value === "Export") {
-                    loadingText.innerText = "Generating Excel File... Please wait. Server may take a minute to write the excel.";
-                    startCookieTimer();
-                }
-                else if (clickedButton && clickedButton.value === "ExportFinancial") {
-                    loadingText.innerText = "Generating Financial Report... Please wait.";
-                    startCookieTimer();
-                }
-                else {
-                    loadingText.innerText = "Loading Month Data... Please wait.";
-                }
-            });
+            clearTimeout(scrollTimeout);
+            scrollTimeout = setTimeout(() => {
+                sessionStorage.setItem(scrollKey, window.scrollY);
+            }, 50);
+        }, { passive: true });
+
+        // Save scroll when navigating away manually
+        document.addEventListener("click", (e) => {
+            if (!document.querySelector('.monthly-page')) return;
+
+            const link = e.target.closest('a');
+            if (link && link.href && !link.getAttribute('href').startsWith('#')) {
+                sessionStorage.setItem(scrollKey, window.scrollY);
+            }
+        });
+
+        // ==========================================
+        // 2. AGGRESSIVE SCROLL LOCK
+        // ==========================================
+        function forceScroll() {
+            const savedScroll = sessionStorage.getItem(scrollKey);
+            if (savedScroll) {
+                const y = parseInt(savedScroll);
+                // Override HTMX's native scroll-to-top by firing multiple times instantly
+                setTimeout(() => window.scrollTo({ top: y, behavior: "instant" }), 10);
+                setTimeout(() => window.scrollTo({ top: y, behavior: "instant" }), 50);
+                setTimeout(() => window.scrollTo({ top: y, behavior: "instant" }), 150);
+            }
         }
 
-        function startCookieTimer() {
-            // Clear any old cookies just in case
-            document.cookie = "DownloadComplete=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+        // ==========================================
+        // 3. MAIN INITIALIZER
+        // ==========================================
+        function initializeMonthlyReport() {
+            const monthInput = document.getElementById("SelectedMonth");
+            const currentMonth = monthInput ? monthInput.value : "default";
 
-            // Start checking for the cookie every half-second
-            downloadTimer = window.setInterval(function() {
-                if (document.cookie.indexOf("DownloadComplete=1") !== -1) {
-                    // File is downloaded! Fade out the loader.
-                    overlay.classList.remove("show");
+            const aiStateKey = "MonthlyReport_AiOpen_" + currentMonth;
+            const aiHtmlKey = "MonthlyReport_AiHtml_" + currentMonth;
 
-                    // Delete the cookie so it's ready for next time
-                    document.cookie = "DownloadComplete=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-                    window.clearInterval(downloadTimer);
+            // --- A. SILENT AI RESTORATION ---
+            const wantsAiOpen = sessionStorage.getItem(aiStateKey) === "true";
+            const existingAiCard = document.querySelector(".ai-report-content");
+
+            if (existingAiCard) {
+                sessionStorage.setItem(aiHtmlKey, existingAiCard.closest('.card').outerHTML);
+                sessionStorage.setItem(aiStateKey, "true");
+            }
+            else if (wantsAiOpen) {
+                const savedHtml = sessionStorage.getItem(aiHtmlKey);
+                const toolbarCard = document.querySelector('.card-modern');
+
+                if (toolbarCard && savedHtml) {
+                    // Inject instantly
+                    toolbarCard.insertAdjacentHTML('afterend', savedHtml);
+
+                    // Background Sync
+                    const fetchUrl = new URL(window.location.href);
+                    fetchUrl.searchParams.set("handler", "Explain");
+
+                    fetch(fetchUrl.toString())
+                        .then(res => res.text())
+                        .then(html => {
+                            const parser = new DOMParser();
+                            const doc = parser.parseFromString(html, 'text/html');
+                            const fetchedAiContent = doc.querySelector('.ai-report-content');
+
+                            if (fetchedAiContent) {
+                                const newCard = fetchedAiContent.closest('.card');
+                                const oldCard = document.querySelector(".ai-report-content").closest('.card');
+                                if (oldCard && newCard) {
+                                    oldCard.replaceWith(newCard);
+                                    sessionStorage.setItem(aiHtmlKey, newCard.outerHTML);
+                                }
+                            }
+                        }).catch(() => {});
                 }
-            }, 500);
+            }
+
+            // --- B. TOOLBAR SUBMISSION HANDLING ---
+            const topbarForm = document.getElementById("toolbarForm");
+            if (topbarForm) {
+                topbarForm.replaceWith(topbarForm.cloneNode(true));
+                const newForm = document.getElementById("toolbarForm");
+
+                const isAdmin = @Json.Serialize(User.IsInRole("admin") || User.IsInRole("Admin"));
+
+                newForm.addEventListener("submit", function (e) {
+                    const clickedButton = e.submitter;
+
+                    if (clickedButton && (clickedButton.value === "Export" || clickedButton.value === "ExportFinancial" || clickedButton.value === "DebugExport")) {
+                        if (!isAdmin) {
+                            e.preventDefault(); // Stop the form from submitting!
+
+                            // Pop the modal
+                            const modal = new bootstrap.Modal(document.getElementById('accessDeniedModal'));
+                            modal.show();
+                            return; // Exit out so the loading screen doesn't trigger
+                        }
+                    }
+
+                    // If they are an admin, proceed as normal...
+                    const overlay = document.getElementById("loading-overlay");
+                    const mainText = document.getElementById("loadingMainText");
+                    const subText = document.getElementById("loadingSubText");
+
+                    if (overlay) overlay.classList.add("show");
+
+                    if (clickedButton && clickedButton.value === "Explain") {
+                        sessionStorage.setItem(aiStateKey, "true");
+                        mainText.innerText = "Generating AI Summary...";
+                        subText.innerHTML = "The AI Assistant is reviewing the financial data and writing a summary.<br><strong class='text-primary mt-2 d-block'>Please wait.</strong>";
+                    }
+                    else if (clickedButton && (clickedButton.value === "Export" || clickedButton.value === "ExportFinancial")) {
+                        mainText.innerText = clickedButton.value === "Export" ? "Exporting Detailed Report..." : "Exporting Financial Report...";
+                        subText.innerHTML = "This process requires multiple API calls and writing data directly to Google Sheets.<br><strong class='text-danger fs-5 mt-2 d-block'>Please wait and DO NOT refresh the page.</strong>";
+
+                        document.cookie = "DownloadComplete=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+                        let downloadTimer = window.setInterval(function() {
+                            if (document.cookie.indexOf("DownloadComplete=1") !== -1) {
+                                if (overlay) overlay.classList.remove("show");
+                                document.cookie = "DownloadComplete=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+                                window.clearInterval(downloadTimer);
+                            }
+                        }, 500);
+                    }
+                    else {
+                        sessionStorage.removeItem(aiStateKey);
+                        mainText.innerText = "Fetching Month Data...";
+                        subText.innerHTML = "Please wait. This may take a moment.";
+                    }
+                });
+            }
+
+            // --- C. WIKI HOVER CARD LOGIC ---
+            const hoverCard = document.getElementById('wikiHoverCard');
+            const cardBody = document.getElementById('wikiHoverCardBody');
+            const cardLink = document.getElementById('wikiHoverCardLink');
+            let hideTimeout;
+
+            if (hoverCard) {
+                const existingCards = document.querySelectorAll('.wiki-hover-card');
+                if (existingCards.length > 1) existingCards[0].remove();
+
+                document.body.appendChild(hoverCard);
+
+                window.addEventListener("pagehide", () => {
+                    if(hoverCard.parentNode) hoverCard.remove();
+                });
+
+                document.addEventListener("click", (e) => {
+                    const link = e.target.closest('a');
+                    if (link && link.href && !link.getAttribute('href').startsWith('#') && hoverCard.parentNode) {
+                        hoverCard.remove();
+                    }
+                });
+
+                document.addEventListener("mouseover", function (e) {
+                    const trigger = e.target.closest('.audit-hover-trigger');
+                    const isHoveringCard = e.target.closest('.wiki-hover-card');
+
+                    if (trigger || isHoveringCard) clearTimeout(hideTimeout);
+
+                    if (trigger) {
+                        const targetId = trigger.getAttribute('data-target');
+                        const targetEl = document.getElementById(targetId);
+                        cardLink.innerHTML = "Jump to section &rarr;";
+
+                        if (targetEl) {
+                            let previewHtml = "";
+                            if (targetId.startsWith('giving')) {
+                                const tfoot = targetEl.querySelector('tfoot');
+                                if (tfoot) previewHtml = `<table class="table-modern m-0" style="width:100%"><tfoot>${tfoot.innerHTML}</tfoot></table>`;
+                            } else if (targetId.startsWith('disb')) {
+                                const footer = targetEl.querySelector('.cash-grid-footer');
+                                if (footer) previewHtml = `<div class="cash-grid-wrap m-0"><div class="cash-grid-footer" style="padding: 12px; font-size: 0.8rem;">${footer.innerHTML}</div></div>`;
+                            }
+
+                            if (previewHtml) {
+                                cardBody.innerHTML = previewHtml;
+                                cardLink.href = "#" + targetId;
+                                showAndPositionPopup(trigger);
+                            }
+                        } else if (targetId === 'wallet-dashboard') {
+                            const row = trigger.closest('tr');
+                            const fundName = row.cells[0].textContent.trim();
+                            const balanceText = row.cells[4].innerText.replace('Deficit', '').trim();
+                            const isDeficit = balanceText.includes('-');
+
+                            let icon = "bi-wallet2", color = "#3b82f6";
+                            if (fundName.toLowerCase().includes("pledge")) { icon = "bi-journal-check"; color = "#f59e0b"; }
+                            else if (fundName.toLowerCase().includes("const")) { icon = "bi-tools"; color = "#0ea5e9"; }
+                            else if (fundName.toLowerCase().includes("worship")) { icon = "bi-music-note-beamed"; color = "#22c55e"; }
+
+                            let textColor = isDeficit ? "#ef4444" : "#0f172a";
+                            let cashOnHand = isDeficit ? "0.00" : balanceText;
+
+                            cardBody.innerHTML = `
+                                <div style="padding: 24px; background: #fff; border-radius: 0 0 8px 8px; border-top: 4px solid ${color};">
+                                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px;">
+                                        <div style="width: 48px; height: 48px; border-radius: 12px; background: ${color}15; color: ${color}; display: flex; align-items: center; justify-content: center; font-size: 1.4rem;">
+                                            <i class="bi ${icon}"></i>
+                                        </div>
+                                        <div>
+                                            <div style="font-weight: 800; color: #0f172a; font-size: 1.1rem; line-height: 1.2;">${fundName}</div>
+                                            <div style="font-size: 0.7rem; color: #64748b; font-weight: 600; margin-top: 2px;"><i class="bi bi-display"></i> DASHBOARD PREVIEW</div>
+                                        </div>
+                                    </div>
+                                    <div style="margin-bottom: ${isDeficit ? '12px' : '20px'};">
+                                        <div style="font-size: 0.75rem; color: #64748b; font-weight: 700; letter-spacing: 0.05em; margin-bottom: 4px;">BOOK BALANCE</div>
+                                        <div style="font-size: 2.2rem; font-weight: 800; color: ${textColor}; line-height: 1; font-variant-numeric: tabular-nums;">
+                                            <span style="font-size: 1.4rem; color: #94a3b8; font-weight: 600; margin-right: 4px;">₱</span>${balanceText}
+                                        </div>
+                                    </div>
+                                    ${isDeficit ? `
+                                    <div style="background: #ecfdf5; border: 1px solid #a7f3d0; color: #16a34a; font-size: 0.75rem; padding: 4px 8px; border-radius: 4px; display: inline-block; font-weight: 700; margin-bottom: 16px;">
+                                        <i class="bi bi-arrow-down-left me-1"></i> SUBSIDIZED + ₱ ${balanceText.replace('-', '').trim()}
+                                    </div>` : ''}
+                                    <div style="border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px; background: #f8fafc;">
+                                        <div style="font-size: 0.75rem; color: #64748b; font-weight: 700; letter-spacing: 0.05em; margin-bottom: 4px;">CASH ON HAND</div>
+                                        <div style="font-size: 1.4rem; font-weight: 800; color: #0f172a; line-height: 1;">
+                                            <span style="font-size: 1rem; color: #94a3b8; font-weight: 600; margin-right: 4px;">₱</span>${cashOnHand}
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                            cardLink.innerHTML = "Go to Dashboard &rarr;";
+                            cardLink.href = "/";
+                            showAndPositionPopup(trigger);
+                        }
+                    }
+                });
+
+                document.addEventListener("mouseout", function (e) {
+                    if (e.target.closest('.audit-hover-trigger') || e.target.closest('.wiki-hover-card')) {
+                        hideTimeout = setTimeout(() => hoverCard.classList.remove('show'), 300);
+                    }
+                });
+
+                function showAndPositionPopup(triggerElement) {
+                    hoverCard.classList.add('show');
+                    const rect = triggerElement.getBoundingClientRect();
+                    let leftPos = rect.right - hoverCard.offsetWidth;
+                    if (leftPos < 10) leftPos = 10;
+                    hoverCard.style.left = (leftPos + window.scrollX) + 'px';
+                    hoverCard.style.top = (rect.bottom + 8 + window.scrollY) + 'px';
+                }
+            }
         }
-    });
+
+        // ==========================================
+        // 4. HTMX & BROWSER LIFECYCLE HOOKS
+        // ==========================================
+
+        // Normal browser load
+        document.addEventListener("DOMContentLoaded", () => {
+            initializeMonthlyReport();
+            forceScroll();
+        });
+
+        // When HTMX injects new HTML
+        document.body.addEventListener('htmx:afterSettle', function(event) {
+            if (document.querySelector('.monthly-page')) {
+                initializeMonthlyReport();
+                forceScroll();
+            }
+        });
+
+        // When user hits browser Back/Forward
+        document.body.addEventListener('htmx:historyRestore', function(event) {
+            if (document.querySelector('.monthly-page')) forceScroll();
+        });
+
+    })();
 </script>

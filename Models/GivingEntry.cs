@@ -44,5 +44,8 @@ namespace acc_finance.Models
 
         [Column("updated_at")]
         public DateTime UpdatedAt { get; set; }
+        
+        [Column("others_fund")]
+        public string OthersFund { get; set; } = "General";
     }
 }

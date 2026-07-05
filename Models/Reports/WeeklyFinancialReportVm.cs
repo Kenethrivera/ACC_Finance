@@ -9,7 +9,9 @@
         public DenominationReportSectionVm Denomination { get; set; } = new();
         public DisbursementReportSectionVm Disbursement { get; set; } = new();
         public WeeklySummarySectionVm Summary { get; set; } = new();
+        public decimal OverallBegBalance { get; set; }
     }
+
 
     public class GivingReportSectionVm
     {
