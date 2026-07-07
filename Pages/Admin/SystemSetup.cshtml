@@ -2,10 +2,12 @@
 @model acc_finance.Pages.Admin.SystemSetupModel
 @{
     ViewData["Title"] = "System Command Center";
+
+    // 🚨 BULLETPROOF FALLBACK: Defaults to "calendar" if the URL has no ActiveTab specified
+    string currentTab = string.IsNullOrEmpty(Model.ActiveTab) ? "calendar" : Model.ActiveTab.ToLower();
 }
 
 <style>
-
     .calendar-grid {
         display: grid;
         grid-template-columns: repeat(7, 1fr);
@@ -24,7 +26,7 @@
     .calendar-cell {
         border: 1px solid #e2e8f0;
         border-radius: 8px;
-        min-height: 100px;
+        min-height: 115px;
         padding: 8px;
         background: #fff;
         display: flex;
@@ -33,15 +35,15 @@
         transition: all 0.2s ease;
     }
 
-        .calendar-cell:hover {
-            border-color: #cbd5e1;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
-        }
+    .calendar-cell:hover {
+        border-color: #cbd5e1;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    }
 
-        .calendar-cell.out-of-month {
-            background: #f8fafc;
-            opacity: 0.6;
-        }
+    .calendar-cell.out-of-month {
+        background: #f8fafc;
+        opacity: 0.6;
+    }
 
     .calendar-day-num {
         font-weight: 700;
@@ -54,33 +56,66 @@
         color: #94a3b8;
     }
 
+    #adminTabs .nav-link {
+        color: #495057;
+        background-color: #f8f9fa;
+        border: 1px solid #dee2e6;
+        transition: all 0.2s ease-in-out;
+    }
+
+    /* 🚨 Added !important to guarantee it overrides any other styling conflicts */
+    #adminTabs .nav-link.active {
+        color: #fff !important;
+        background-color: #0d6efd !important;
+        border-color: #0d6efd !important;
+    }
 </style>
 
 <div class="container-fluid py-4" style="max-width: 1200px;">
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+            <div class="alert alert-danger alert-dismissible fade show shadow-sm border-0 mb-4 rounded-3" role="alert">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i> @TempData["ErrorMessage"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+    }
+    @if (TempData["SuccessMessage"] != null)
+    {
+            <div class="alert alert-success alert-dismissible fade show shadow-sm border-0 mb-4 rounded-3" role="alert">
+                <i class="bi bi-check-circle-fill me-2"></i> @TempData["SuccessMessage"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+    }
 
     <div class="mb-4">
         <h2 class="fw-bold text-dark"><i class="bi bi-sliders me-2 text-primary"></i>System Setup</h2>
         <p class="text-muted">Manage core lists, funds, and monitor system-wide activity.</p>
     </div>
 
-    <div class="d-flex gap-2 mb-4" id="adminTabs">
-        <button type="button" class="btn fw-bold px-4 @(Model.ActiveTab == "calendar" ? "btn-primary" : "btn-light border")" id="calendar-tab" data-bs-toggle="pill" data-bs-target="#calendar">
-            <i class="bi bi-calendar3 me-1"></i> Activity Calendar
-        </button>
-        <button type="button" class="btn fw-bold px-4 @(Model.ActiveTab == "members" ? "btn-primary" : "btn-light border")" id="members-tab" data-bs-toggle="pill" data-bs-target="#members">
-            <i class="bi bi-people me-1"></i> Members
-        </button>
-        <button type="button" class="btn fw-bold px-4 @(Model.ActiveTab == "wallets" ? "btn-primary" : "btn-light border")" id="wallets-tab" data-bs-toggle="pill" data-bs-target="#wallets">
-            <i class="bi bi-gear-fill me-1"></i> Integrations
-        </button>
-    </div>
+    <ul class="nav nav-pills gap-2 mb-4" id="adminTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-bold px-4 rounded @(currentTab == "calendar" ? "active" : "")" id="calendar-tab" data-bs-toggle="pill" data-bs-target="#calendar" type="button" role="tab" aria-controls="calendar" aria-selected="@(currentTab == "calendar" ? "true" : "false")">
+                Activity Calendar
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-bold px-4 rounded @(currentTab == "members" ? "active" : "")" id="members-tab" data-bs-toggle="pill" data-bs-target="#members" type="button" role="tab" aria-controls="members" aria-selected="@(currentTab == "members" ? "true" : "false")">
+                Members
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-bold px-4 rounded @(currentTab == "wallets" ? "active" : "")" id="wallets-tab" data-bs-toggle="pill" data-bs-target="#wallets" type="button" role="tab" aria-controls="wallets" aria-selected="@(currentTab == "wallets" ? "true" : "false")">
+                Integrations
+            </button>
+        </li>
+    </ul>
 
     <div class="tab-content" id="adminTabsContent">
 
-        <div class="tab-pane fade @(Model.ActiveTab == "calendar" ? "show active" : "")" id="calendar" role="tabpanel">
+        <div class="tab-pane fade @(currentTab == "calendar" ? "show active" : "")" id="calendar" role="tabpanel" aria-labelledby="calendar-tab">
             <div class="card border-0 shadow-sm rounded-4">
                 <div class="card-header bg-white border-bottom pt-4 pb-3 px-4 d-flex flex-wrap justify-content-between align-items-center gap-3">
-
                     <form method="get" class="d-flex align-items-center gap-2">
                         <input type="hidden" name="ActiveTab" value="calendar" />
                         <h5 class="fw-bold mb-0 text-dark me-2">Live Transactions</h5>
@@ -91,20 +126,20 @@
                         <span class="text-muted fw-bold">EXPORT STATUS:</span>
                         @if (Model.IsDetailedExported)
                         {
-                            <span class="badge bg-success bg-opacity-10 text-success border border-success px-3 py-2 rounded-pill"><i class="bi bi-check-circle-fill me-1"></i> Detailed</span>
+                                <span class="badge bg-success bg-opacity-10 text-success border border-success px-3 py-2 rounded-pill"><i class="bi bi-check-circle-fill me-1"></i> Detailed</span>
                         }
                         else
                         {
-                            <span class="badge bg-light text-muted border px-3 py-2 rounded-pill"><i class="bi bi-x-circle me-1"></i> Detailed</span>
+                                <span class="badge bg-light text-muted border px-3 py-2 rounded-pill"><i class="bi bi-x-circle me-1"></i> Detailed</span>
                         }
 
                         @if (Model.IsFinancialExported)
                         {
-                            <span class="badge bg-success bg-opacity-10 text-success border border-success px-3 py-2 rounded-pill"><i class="bi bi-check-circle-fill me-1"></i> Financial</span>
+                                <span class="badge bg-success bg-opacity-10 text-success border border-success px-3 py-2 rounded-pill"><i class="bi bi-check-circle-fill me-1"></i> Financial</span>
                         }
                         else
                         {
-                            <span class="badge bg-light text-muted border px-3 py-2 rounded-pill"><i class="bi bi-x-circle me-1"></i> Financial</span>
+                                <span class="badge bg-light text-muted border px-3 py-2 rounded-pill"><i class="bi bi-x-circle me-1"></i> Financial</span>
                         }
                     </div>
                 </div>
@@ -121,77 +156,59 @@
 
                         @foreach (var day in Model.CalendarDays)
                         {
-                            <div class="calendar-cell @(day.IsCurrentMonth ? "" : "out-of-month") @(day.Date == DateTime.Today ? "border-primary border-2" : "")">
-                                <span class="calendar-day-num">@day.DayNumber</span>
+                                <div class="calendar-cell @(day.IsCurrentMonth ? "" : "out-of-month") @(day.Date == DateTime.Today ? "border-primary border-2" : "")">
+                                    <span class="calendar-day-num">@day.DayNumber</span>
 
                                 @if (!string.IsNullOrEmpty(day.GivingRecordCode))
                                 {
-                                    <a href="/Giving/Entry?date=@day.Date.ToString("yyyy-MM-dd")&RecordId=@day.GivingRecordId" target="_blank" class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 text-decoration-none text-start d-block text-truncate" title="Giving Record">
-                                        <i class="bi bi-box-arrow-in-down me-1"></i> @day.GivingRecordCode
-                                    </a>
+                                            <a href="/Giving/Entry?date=@day.Date.ToString("yyyy-MM-dd")&RecordId=@day.GivingRecordId" target="_blank" class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 text-decoration-none text-start d-block text-truncate mb-1" title="Giving Record">
+                                                <i class="bi bi-box-arrow-in-down me-1"></i> @day.GivingRecordCode
+                                            </a>
                                 }
 
-                                @if (day.DisbursementCount > 0)
+                                @foreach (var item in day.Disbursements)
                                 {
-                                    <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 text-start d-block text-truncate mt-1">
-                                        <i class="bi bi-receipt me-1"></i> @day.DisbursementCount Disb.
-                                    </span>
+                                            <a href="/Disbursements/Create?RecordDate=@item.RecordDateStr" target="_blank" class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 text-decoration-none text-start d-block text-truncate mb-1" title="Disbursement Record">
+                                                <i class="bi bi-receipt me-1"></i> @item.RecordCode
+                                            </a>
                                 }
-                            </div>
+                                </div>
                         }
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="tab-pane fade @(Model.ActiveTab == "members" ? "show active" : "")" id="members" role="tabpanel">
+        <div class="tab-pane fade @(currentTab == "members" ? "show active" : "")" id="members" role="tabpanel" aria-labelledby="members-tab">
             <div class="card border-0 shadow-sm rounded-4">
                 <div class="card-header bg-white border-bottom pt-4 pb-3 px-4 d-flex justify-content-between align-items-center">
                     <h5 class="fw-bold mb-0 text-dark">Member Directory</h5>
                     <button class="btn btn-primary btn-sm fw-bold rounded-pill px-3 shadow-sm" onclick="openMemberModal('', '', true)"><i class="bi bi-plus-lg me-1"></i> Add Member</button>
                 </div>
-                <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0">
-                            <thead class="table-light text-muted small text-uppercase">
-                                <tr>
-                                    <th class="px-4 py-3">Member Name</th>
-                                    <th class="py-3">Status</th>
-                                    <th class="text-end px-4 py-3">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach (var member in Model.Members)
-                                {
-                                    <tr>
-                                        <td class="px-4 fw-semibold text-dark">
-                                            @member.Name
-                                        </td>
-                                        <td>
-                                            @if (member.Is_Active)
-                                            {
-                                                <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-2 py-1 rounded-pill">Active</span>
-                                            }
-                                            else
-                                            {
-                                                <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 px-2 py-1 rounded-pill">Inactive</span>
-                                            }
-                                        </td>
-                                        <td class="text-end px-4">
-                                            <button class="btn btn-sm btn-light border text-primary" onclick="openMemberModal('@member.Id', '@Html.Raw(System.Web.HttpUtility.JavaScriptStringEncode(member.Name))', @(member.Is_Active.ToString().ToLower()))">
-                                                <i class="bi bi-pencil-fill me-1"></i> Edit
-                                            </button>
-                                        </td>
-                                    </tr>
-                                }
-                            </tbody>
-                        </table>
+
+                <div class="card-body p-4 bg-light bg-opacity-50">
+                    <div class="row g-3">
+                        @foreach (var member in Model.Members)
+                        {
+                                <div class="col-md-6 col-lg-4 col-xl-3">
+                                    <div class="d-flex justify-content-between align-items-center p-3 border rounded-3 bg-white shadow-sm @(!member.Is_Active ? "opacity-50 bg-light" : "")" style="transition: all 0.2s;">
+                                        <span class="fw-semibold text-truncate @(!member.Is_Active ? "text-muted text-decoration-line-through" : "text-dark")" title="@member.Name">
+                                        @member.Name
+                                        </span>
+
+                                        <button class="btn btn-sm rounded-pill p-1 px-2 border-0 flex-shrink-0 ms-2 @(member.Is_Active ? "bg-success-subtle text-success" : "bg-secondary-subtle text-secondary")"
+                                                onclick="openMemberModal('@member.Id', '@Html.Raw(System.Web.HttpUtility.JavaScriptStringEncode(member.Name))', @(member.Is_Active ? "true" : "false"))">
+                                            <i class="bi bi-pencil-fill"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                        }
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="tab-pane fade @(Model.ActiveTab == "wallets" ? "show active" : "")" id="wallets" role="tabpanel">
+        <div class="tab-pane fade @(currentTab == "wallets" ? "show active" : "")" id="wallets" role="tabpanel" aria-labelledby="wallets-tab">
             <div class="card border-0 shadow-sm rounded-4">
                 <div class="card-header bg-white border-bottom pt-4 pb-3 px-4">
                     <h5 class="fw-bold mb-0 text-dark"><i class="bi bi-google text-primary me-2"></i> Google Sheets Integration</h5>
@@ -207,9 +224,9 @@
                                 <input type="text" class="form-control mb-3 shadow-sm" asp-for="AppSettings.DetailedSheetId" required placeholder="e.g. 11zTb5fVncgnsm1lOs6eilf51h..." style="border-radius: 8px;" />
                                 @if (!string.IsNullOrEmpty(Model.AppSettings?.DetailedSheetId))
                                 {
-                                    <a href="https://docs.google.com/spreadsheets/d/@Model.AppSettings.DetailedSheetId" target="_blank" class="btn btn-outline-success rounded-pill fw-bold btn-sm">
-                                        <i class="bi bi-box-arrow-up-right me-1"></i> Open Sheet
-                                    </a>
+                                        <a href="https://docs.google.com/spreadsheets/d/@Model.AppSettings.DetailedSheetId" target="_blank" class="btn btn-outline-success rounded-pill fw-bold btn-sm">
+                                            <i class="bi bi-box-arrow-up-right me-1"></i> Open Sheet
+                                        </a>
                                 }
                             </div>
                             <div class="col-md-6">
@@ -217,9 +234,9 @@
                                 <input type="text" class="form-control mb-3 shadow-sm" asp-for="AppSettings.FinancialSheetId" required placeholder="e.g. 1Ln4Ia6EsZw-0Z64yBRERZ..." style="border-radius: 8px;" />
                                 @if (!string.IsNullOrEmpty(Model.AppSettings?.FinancialSheetId))
                                 {
-                                    <a href="https://docs.google.com/spreadsheets/d/@Model.AppSettings.FinancialSheetId" target="_blank" class="btn btn-outline-dark rounded-pill fw-bold btn-sm">
-                                        <i class="bi bi-box-arrow-up-right me-1"></i> Open Sheet
-                                    </a>
+                                        <a href="https://docs.google.com/spreadsheets/d/@Model.AppSettings.FinancialSheetId" target="_blank" class="btn btn-outline-dark rounded-pill fw-bold btn-sm">
+                                            <i class="bi bi-box-arrow-up-right me-1"></i> Open Sheet
+                                        </a>
                                 }
                             </div>
                         </div>
@@ -250,6 +267,9 @@
                     <div class="mb-3">
                         <label class="form-label fw-bold text-muted small text-uppercase">Full Name</label>
                         <input type="text" class="form-control shadow-sm" asp-for="EditMemberName" id="modalMemberName" required autocomplete="off" style="border-radius: 8px;" />
+                        <div id="duplicateNameError" class="invalid-feedback fw-bold" style="display: none;">
+                            This member name already exists!
+                        </div>
                     </div>
 
                     <div class="form-check form-switch mt-4">
@@ -260,7 +280,7 @@
                 </div>
                 <div class="modal-footer border-top-0 pt-0 px-4 pb-4">
                     <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm">Save Member</button>
+                    <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm" id="saveMemberBtn">Save Member</button>
                 </div>
             </form>
         </div>
@@ -268,26 +288,63 @@
 </div>
 
 <script>
+    // Server data array embedded into JS for instant client-side checking
+    const existingMembers = [
+    @foreach (var m in Model.Members)
+    {
+        <text>{ id: '@m.Id', name: '@Html.Raw(System.Web.HttpUtility.JavaScriptStringEncode(m.Name.ToLower()))' },</text>
+    }
+    ];
+
     function openMemberModal(id, name, isActive) {
         document.getElementById('modalMemberId').value = id;
         document.getElementById('modalMemberName').value = name;
         document.getElementById('modalMemberStatus').checked = isActive;
-
         document.getElementById('memberModalTitle').innerText = id ? 'Edit Member' : 'Add New Member';
+
+        // Wipe any previous errors clean when opening the modal
+        document.getElementById('modalMemberName').classList.remove('is-invalid');
+        document.getElementById('duplicateNameError').style.display = 'none';
+        document.getElementById('saveMemberBtn').disabled = false;
 
         new bootstrap.Modal(document.getElementById('memberModal')).show();
     }
-</script>
 
-<script>
-    document.querySelectorAll('#adminTabs .btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            document.querySelectorAll('#adminTabs .btn').forEach(b => {
-                b.classList.remove('btn-primary');
-                b.classList.add('btn-light', 'border');
-            });
-            btn.classList.remove('btn-light', 'border');
-            btn.classList.add('btn-primary');
-        });
-    });
+    // 🚨 AGGRESSIVE LIVE VALIDATION
+    function validateDuplicate() {
+        const currentInput = document.getElementById('modalMemberName').value.trim().toLowerCase();
+        const currentEditId = document.getElementById('modalMemberId').value;
+        const submitBtn = document.getElementById('saveMemberBtn');
+        const errorMsg = document.getElementById('duplicateNameError');
+
+        const isDuplicate = existingMembers.some(m => m.name === currentInput && m.id !== currentEditId);
+
+        if (isDuplicate) {
+            document.getElementById('modalMemberName').classList.add('is-invalid');
+            errorMsg.style.display = 'block';
+            submitBtn.disabled = true; // Instantly lock saving
+        } else {
+            document.getElementById('modalMemberName').classList.remove('is-invalid');
+            errorMsg.style.display = 'none';
+            submitBtn.disabled = false; // Unlock saving
+        }
+    }
+
+    const nameInput = document.getElementById('modalMemberName');
+    nameInput.addEventListener('input', validateDuplicate);
+    nameInput.addEventListener('keyup', validateDuplicate);
+
+
+    (function() {
+        const targetTab = '@currentTab' + '-tab';
+        const tabBtn = document.getElementById(targetTab);
+
+        if (tabBtn) {
+            tabBtn.classList.add('active'); // forcefully add class just in case
+            if (typeof bootstrap !== 'undefined') {
+                const bsTab = new bootstrap.Tab(tabBtn);
+                bsTab.show();
+            }
+        }
+    })();
 </script>

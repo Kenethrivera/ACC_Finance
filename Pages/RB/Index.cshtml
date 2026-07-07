@@ -2,157 +2,426 @@
 @model acc_finance.Pages.RB.IndexModel
 @{
     ViewData["Title"] = "Running Balance";
+
+    // 🚨 Only used to decide which tab starts active — all tab data is always loaded.
+    string currentFilter = string.IsNullOrEmpty(Model.Filter) ? "COH" : Model.Filter;
 }
 
-<div class="container-fluid py-4">
+<style>
+    /* Match the System Setup Nav Pills styling */
+    #rbTabs .nav-link {
+        color: #495057;
+        background-color: #f8f9fa;
+        border: 1px solid #dee2e6;
+        transition: all 0.2s ease-in-out;
+    }
+
+        #rbTabs .nav-link.active {
+            color: #fff !important;
+            background-color: #0d6efd !important;
+            border-color: #0d6efd !important;
+        }
+</style>
+
+<div class="container-fluid py-4" style="max-width: 1200px;">
 
     @if (!string.IsNullOrEmpty(Model.ErrorMessage))
     {
-        <div class="alert alert-danger mb-4">@Model.ErrorMessage</div>
+            <div class="alert alert-danger mb-4 shadow-sm rounded-3 border-0 fade show" role="alert">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i> @Model.ErrorMessage
+            </div>
     }
 
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h1 class="h3 fw-bold text-dark mb-1">RB (Running Balance) Ledger</h1>
-            <p class="text-muted mb-0">Historical log of all inter-fund balances, pledges, and total cash on hand.</p>
-        </div>
+    <div class="mb-4">
+        <h2 class="fw-bold text-dark"><i class="bi bi-file-earmark-spreadsheet me-2 text-primary"></i>Running Balance Ledger</h2>
+        <p class="text-muted">Track historical cash on hand and inter-fund balances seamlessly.</p>
     </div>
 
-    <!-- Filter Navigation -->
-    <ul class="nav nav-pills mb-4 border-bottom pb-3">
-        <li class="nav-item me-2">
-            <a class="nav-link @(Model.Filter == "COH" ? "active bg-primary text-white fw-semibold" : "text-dark bg-light")" href="?Filter=COH">Total Cash On Hand</a>
+    <ul class="nav nav-pills gap-2 mb-4" id="rbTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-bold px-4 rounded @(currentFilter == "COH" ? "active" : "")" id="coh-tab" data-bs-toggle="pill" data-bs-target="#coh" type="button" role="tab" aria-controls="coh" aria-selected="@(currentFilter == "COH" ? "true" : "false")">
+                Cash On Hand
+            </button>
         </li>
-        <li class="nav-item me-2">
-            <a class="nav-link @(Model.Filter == "General" ? "active bg-primary text-white fw-semibold" : "text-dark bg-light")" href="?Filter=General">General Fund</a>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-bold px-4 rounded @(currentFilter == "General" ? "active" : "")" id="general-tab" data-bs-toggle="pill" data-bs-target="#general" type="button" role="tab" aria-controls="general" aria-selected="@(currentFilter == "General" ? "true" : "false")">
+                General Fund
+            </button>
         </li>
-        <li class="nav-item me-2">
-            <a class="nav-link @(Model.Filter == "Pledges" ? "active bg-primary text-white fw-semibold" : "text-dark bg-light")" href="?Filter=Pledges">Pledges</a>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-bold px-4 rounded @(currentFilter == "Pledges" ? "active" : "")" id="pledges-tab" data-bs-toggle="pill" data-bs-target="#pledges" type="button" role="tab" aria-controls="pledges" aria-selected="@(currentFilter == "Pledges" ? "true" : "false")">
+                Pledges
+            </button>
         </li>
-        <li class="nav-item me-2">
-            <a class="nav-link @(Model.Filter == "Construction" ? "active bg-primary text-white fw-semibold" : "text-dark bg-light")" href="?Filter=Construction">Construction</a>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-bold px-4 rounded @(currentFilter == "Construction" ? "active" : "")" id="construction-tab" data-bs-toggle="pill" data-bs-target="#construction" type="button" role="tab" aria-controls="construction" aria-selected="@(currentFilter == "Construction" ? "true" : "false")">
+                Construction
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-bold px-4 rounded @(currentFilter == "PW" ? "active" : "")" id="pw-tab" data-bs-toggle="pill" data-bs-target="#pw" type="button" role="tab" aria-controls="pw" aria-selected="@(currentFilter == "PW" ? "true" : "false")">
+                Praise & Worship
+            </button>
         </li>
     </ul>
 
-    @if (Model.Filter == "COH")
-    {
-        <!-- DEFAULT VIEW: TOTAL CASH ON HAND (Excel Formatting) -->
-        <div class="row">
-            <div class="col-md-10 col-lg-8">
-                <h5 class="fw-bold mb-1 text-dark">Total cash on hand</h5>
-                <h6 class="mb-4 text-dark" style="font-size: 0.95rem;">Estimated</h6>
+    <!-- 🚨 All five panes are rendered up-front (like #adminTabsContent), each with
+         Bootstrap's .fade so switching between already-loaded panes is a smooth
+         client-side opacity transition — no fetch, no flicker. -->
+    <div class="tab-content" id="rbTabsContent">
 
-                @if (Model.CohSnapshots.Any())
-                {
-                    foreach (var snap in Model.CohSnapshots)
+        <div class="tab-pane fade @(currentFilter == "COH" ? "show active" : "")" id="coh" role="tabpanel" aria-labelledby="coh-tab">
+            <div class="row">
+                <div class="col-12 col-xl-10">
+                    @if (Model.CohSnapshots.Any())
                     {
-                        <div class="mb-5 pb-4 border-bottom">
-                            <!-- Header Line -->
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <span class="text-uppercase text-dark" style="font-size: 1.05rem;">TOTAL COH - @snap.Date.ToString("MM.dd.yyyy")</span>
-                                <span class="text-dark fw-bold" style="font-size: 1.15rem;">@snap.TotalCohAmount.ToString("N2")</span>
-                            </div>
+                        foreach (var snap in Model.CohSnapshots)
+                        {
+                                    <div class="card shadow-sm border-0 mb-4 rounded-4 overflow-hidden">
+                                        <div class="card-header bg-light border-bottom py-3 px-4 d-flex justify-content-between align-items-center">
+                                            <h5 class="fw-bold text-secondary mb-0 text-uppercase" style="letter-spacing: 0.5px;">
+                                        @snap.Date.ToString("MMMM yyyy")
+                                            </h5>
+                                        </div>
 
-                            <!-- Custodian Breakdown -->
-                            <div class="ms-5 ps-5 mb-5" style="max-width: 350px;">
-                                <div class="d-flex justify-content-between mb-1 text-dark" style="font-size: 1rem;">
-                                    <span>c/o Sis. Cora</span>
-                                    <span>@snap.CoSisCora.ToString("N2")</span>
-                                </div>
-                                <div class="d-flex justify-content-between mb-1 text-dark" style="font-size: 1rem;">
-                                    <span>c./o Ptra Es</span>
-                                    <span>@snap.CoPtraEs.ToString("N2")</span>
-                                </div>
-                                <div class="d-flex justify-content-between text-dark" style="font-size: 1rem;">
-                                    <span>c/o P/W</span>
-                                    <span class="border-bottom border-dark pb-1" style="border-width: 1px !important;">@snap.CoPW.ToString("N2")</span>
-                                </div>
-                                <div class="d-flex justify-content-end mt-1 text-dark" style="font-size: 1rem;">
-                                    <span>@((snap.CoSisCora + snap.CoPtraEs + snap.CoPW).ToString("N2"))</span>
-                                </div>
-                            </div>
+                                        <div class="card-body p-4 p-md-5">
+                                            <div class="row">
+                                                <div class="col-md-6 border-end-md pe-md-5 mb-4 mb-md-0">
+                                                    <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
+                                                        <span class="text-muted fw-semibold text-uppercase small me-3">Total COH - @snap.Date.ToString("MM.dd.yyyy")</span>
+                                                        <h3 class="fw-bold text-dark mb-0 text-nowrap">₱@snap.TotalCohAmount.ToString("N2")</h3>
+                                                    </div>
 
-                            <!-- Pledges Breakdown -->
-                            <div class="ms-5 ps-5" style="max-width: 350px;">
-                                <div class="d-flex justify-content-between mb-1 text-dark" style="font-size: 1rem;">
-                                    <span>Pledges should be total</span>
-                                    <span>@snap.PledgesShouldBeTotal.ToString("N2")</span>
-                                </div>
-                                <div class="d-flex justify-content-between text-dark" style="font-size: 1rem;">
-                                    <span>Pledges actual total</span>
-                                    <span class="border-bottom border-dark pb-1" style="border-width: 1px !important;">@snap.PledgesActualTotal.ToString("N2")</span>
-                                </div>
-                                <div class="d-flex justify-content-between mt-1 text-dark @(snap.ShouldReturn > 0 ? "bg-danger-subtle fw-semibold px-2 py-1" : "")" style="font-size: 1rem;">
-                                    <span>Should return</span>
-                                    <span>@snap.ShouldReturn.ToString("N2")</span>
-                                </div>
-                            </div>
-                        </div>
+                                                    <div class="ps-3 border-start border-3 border-light">
+                                                        <div class="d-flex justify-content-between mb-2 text-dark">
+                                                            <span class="fw-medium me-3">c/o Sis. Cora</span>
+                                                            <span class="font-monospace text-nowrap">₱@snap.CoSisCora.ToString("N2")</span>
+                                                        </div>
+                                                        <div class="d-flex justify-content-between mb-2 text-dark">
+                                                            <span class="fw-medium me-3">c/o Ptra. Es</span>
+                                                            <span class="font-monospace text-nowrap">₱@snap.CoPtraEs.ToString("N2")</span>
+                                                        </div>
+                                                        <div class="d-flex justify-content-between text-dark">
+                                                            <span class="fw-medium me-3">c/o P/W</span>
+                                                            <span class="font-monospace border-bottom border-secondary pb-1 text-nowrap">₱@snap.CoPW.ToString("N2")</span>
+                                                        </div>
+                                                        <div class="d-flex justify-content-end mt-2 text-dark fw-bold">
+                                                            <span class="font-monospace text-primary text-nowrap">₱@((snap.CoSisCora + snap.CoPtraEs + snap.CoPW).ToString("N2"))</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div class="col-md-6 ps-md-5">
+
+                                                    <div class="bg-light p-4 rounded-3 border">
+                                                        <div class="d-flex justify-content-between align-items-center mb-2 text-dark">
+                                                            <span class="fw-medium me-3">Pledges should be total</span>
+                                                            <span class="font-monospace text-nowrap">₱@snap.PledgesShouldBeTotal.ToString("N2")</span>
+                                                        </div>
+                                                        <div class="d-flex justify-content-between align-items-center mb-3 text-dark">
+                                                            <span class="fw-medium me-3">Pledges actual total</span>
+                                                            <span class="font-monospace border-bottom border-secondary pb-1 text-nowrap">₱@snap.PledgesActualTotal.ToString("N2")</span>
+                                                        </div>
+
+                                                        <div class="d-flex justify-content-between align-items-center mt-3 p-2 rounded-2 @(snap.ShouldReturn > 0 ? "bg-danger-subtle border border-danger-subtle text-danger" : "text-dark fw-bold")">
+                                                            <span class="fw-bold me-3">Should return</span>
+                                                            <span class="font-monospace fw-bold text-nowrap">₱@snap.ShouldReturn.ToString("N2")</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                        }
                     }
-                }
-                else
-                {
-                    <div class="py-5 text-muted">
-                        No financial data available to calculate Cash On Hand.
-                    </div>
-                }
-            </div>
-        </div>
-    }
-    else
-    {
-        <!-- WALLET VIEW: General, Pledges, Construction -->
-        <div class="card shadow-sm border-0">
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0">
-                        <thead class="table-light">
-                            <tr>
-                                <th class="py-3 px-4 fw-semibold text-secondary" style="width: 20%;">DATE</th>
-                                <th class="py-3 px-4 fw-semibold text-secondary" style="width: 40%;">DESCRIPTION</th>
-                                <th class="py-3 px-4 fw-semibold text-secondary text-end" style="width: 20%;">AMOUNT</th>
-                                <th class="py-3 px-4 fw-semibold text-secondary text-end" style="width: 20%;">RUNNING BALANCE</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @if (Model.WalletEntries.Any())
-                            {
-                                foreach (var entry in Model.WalletEntries)
-                                {
-                                    <tr>
-                                        <td class="py-3 px-4 text-dark">@entry.Date.ToString("MMM dd, yyyy")</td>
-                                        <td class="py-3 px-4 text-dark">
-                                            @if (entry.Amount < 0)
-                                            {
-                                                <span class="badge bg-danger-subtle text-danger border border-danger-subtle me-2">OUT</span>
-                                            }
-                                            else
-                                            {
-                                                <span class="badge bg-success-subtle text-success border border-success-subtle me-2">IN</span>
-                                            }
-                                            @entry.Description
-                                        </td>
-                                        <td class="py-3 px-4 text-end fw-medium @(entry.Amount < 0 ? "text-danger" : "text-success")">
-                                            ₱ @Math.Abs(entry.Amount).ToString("N2")
-                                        </td>
-                                        <td class="py-3 px-4 text-end fw-bold text-dark">
-                                            ₱ @entry.RunningBalance.ToString("N2")
-                                        </td>
-                                    </tr>
-                                }
-                            }
-                            else
-                            {
-                                <tr>
-                                    <td colspan="4" class="py-5 text-center text-muted">
-                                        No ledger entries found for @Model.Filter.
-                                    </td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
+                    else
+                    {
+                            <div class="card border-0 shadow-sm rounded-4 text-center py-5">
+                                <div class="card-body">
+                                    <i class="bi bi-folder-x text-muted mb-3" style="font-size: 2.5rem;"></i>
+                                    <h5 class="fw-bold text-dark">No Complete Months Found</h5>
+                                    <p class="text-muted mb-0">Snapshots will automatically generate once a full month of Sundays is completed.</p>
+                                </div>
+                            </div>
+                    }
                 </div>
             </div>
         </div>
-    }
+
+        <div class="tab-pane fade @(currentFilter == "General" ? "show active" : "")" id="general" role="tabpanel" aria-labelledby="general-tab">
+            <div class="row">
+                <div class="col-12 col-xl-8">
+                    @if (Model.GenFundSnapshots.Any())
+                    {
+                        foreach (var snap in Model.GenFundSnapshots)
+                        {
+                                    <div class="card shadow-sm border-0 mb-4 rounded-4 overflow-hidden">
+                                        <div class="card-header bg-light border-bottom py-3 px-4 d-flex justify-content-between align-items-center">
+                                            <h5 class="fw-bold text-secondary mb-0 text-uppercase" style="letter-spacing: 0.5px;">
+                                        @snap.Month.ToString("MMMM yyyy")
+                                            </h5>
+                                           
+                                        </div>
+
+                                        <div class="card-body p-4 p-md-5">
+                                            <div class="mx-auto" style="max-width: 500px;">
+
+                                        @foreach (var week in snap.Weeks)
+                                        {
+                                                        <div class="d-flex mb-1 align-items-center">
+                                                            <div style="width: 120px;" class="text-dark fw-medium">@week.Date.ToString("MM-dd-yyyy")</div>
+                                                            <div style="width: 150px;" class="text-dark">Net balance</div>
+                                                            <div class="flex-grow-1 text-end font-monospace @(week.NetBalance < 0 ? "text-danger" : "text-dark")">
+                                                    @week.NetBalance.ToString("N2")
+                                                            </div>
+                                                        </div>
+                                                        <div class="d-flex mb-3 align-items-center">
+                                                            <div style="width: 120px;"></div>
+                                                            <div style="width: 150px;" class="text-dark">Less: Pledges</div>
+                                                            <div class="flex-grow-1 text-end font-monospace @(week.Pledges > 0 ? "text-danger" : "text-dark")">
+                                                    @* Ensure pledges display as negative since we are subtracting them *@
+                                                    @((-week.Pledges).ToString("N2"))
+                                                            </div>
+                                                        </div>
+                                        }
+
+                                                <div class="d-flex mb-4 border-top border-dark pt-2">
+                                                    <div style="width: 270px;"></div>
+                                                    <div class="flex-grow-1 text-end font-monospace fw-bold @(snap.MonthSubtotal < 0 ? "text-danger" : "text-dark")">
+                                                @snap.MonthSubtotal.ToString("N2")
+                                                    </div>
+                                                </div>
+
+                                            </div>
+                                        </div>
+                                    </div>
+                        }
+                    }
+                    else
+                    {
+                            <div class="card border-0 shadow-sm rounded-4 text-center py-5">
+                                <div class="card-body">
+                                    <i class="bi bi-folder-x text-muted mb-3" style="font-size: 2.5rem;"></i>
+                                    <h5 class="fw-bold text-dark">No Complete Months Found</h5>
+                                    <p class="text-muted mb-0">Snapshots will automatically generate once a full month of Sundays is completed.</p>
+                                </div>
+                            </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-pane fade @(currentFilter == "Pledges" ? "show active" : "")" id="pledges" role="tabpanel" aria-labelledby="pledges-tab">
+            <div class="row">
+                <div class="col-12 col-xl-8">
+                    <div class="card shadow-sm border-0 mb-4 rounded-4 overflow-hidden">
+                        <div class="card-header bg-light border-bottom py-3 px-4 d-flex justify-content-between align-items-center">
+                            <h5 class="fw-bold text-secondary mb-0 text-uppercase" style="letter-spacing: 0.5px;">
+                                Pledges Ledger
+                            </h5>
+                        </div>
+
+                        <div class="card-body p-4 p-md-5">
+                            <div class="mx-auto" style="max-width: 450px;">
+                                @if (Model.PledgeSnapshots.Any())
+                                {
+                                    foreach (var snap in Model.PledgeSnapshots)
+                                    {
+                                                <div class="mb-5">
+                                                    <div class="d-flex mb-1 align-items-center">
+                                                        <div style="width: 250px;" class="text-dark">Balance - @snap.Month.AddMonths(-1).ToString("MMM yyyy")</div>
+                                                        <div class="flex-grow-1 text-end font-monospace text-dark">
+                                                    @snap.BeginningBalance.ToString("N2")
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="d-flex mb-1 align-items-center">
+                                                        <div style="width: 250px;" class="text-dark">Total @snap.Month.ToString("MMMM") Pledges</div>
+                                                        <div class="flex-grow-1 text-end font-monospace text-dark border-bottom border-dark pb-1">
+                                                    @snap.CurrentMonthPledges.ToString("N2")
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="d-flex align-items-center fw-bold mt-2">
+                                                        <div style="width: 250px;" class="text-dark">Balance - @snap.Month.ToString("MMM yyyy")</div>
+                                                        <div class="flex-grow-1 text-end font-monospace text-dark">
+                                                    @snap.EndingBalance.ToString("N2")
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                    }
+                                }
+                                else
+                                {
+                                        <div class="text-center py-5">
+                                            <i class="bi bi-folder-x text-muted mb-3" style="font-size: 2.5rem;"></i>
+                                            <h5 class="fw-bold text-dark">No Complete Months Found</h5>
+                                            <p class="text-muted mb-0">Pledges will calculate once complete months are available.</p>
+                                        </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-pane fade @(currentFilter == "Construction" ? "show active" : "")" id="construction" role="tabpanel" aria-labelledby="construction-tab">
+            <div class="row">
+                <div class="col-12 col-xl-8">
+                    <div class="card shadow-sm border-0 mb-4 rounded-4 overflow-hidden">
+                        <div class="card-header bg-light border-bottom py-3 px-4 d-flex justify-content-between align-items-center">
+                            <h5 class="fw-bold text-secondary mb-0 text-uppercase" style="letter-spacing: 0.5px;">
+                                Construction - c/o Ptra Ester/Cora
+                            </h5>
+                        </div>
+
+                        <div class="card-body p-4 p-md-5">
+                            <div class="mx-auto" style="max-width: 450px;">
+                                @if (Model.ConstructionSnapshots.Any())
+                                {
+                                    foreach (var snap in Model.ConstructionSnapshots)
+                                    {
+                                                <div class="mb-5">
+                                                    <h6 class="fw-bold text-secondary mb-3 text-uppercase">@snap.Month.ToString("MMMM yyyy")</h6>
+
+                                                    <div class="d-flex mb-1 align-items-center">
+                                                        <div style="width: 250px;" class="text-dark">COH - beg</div>
+                                                        <div class="flex-grow-1 text-end font-monospace text-dark">
+                                                    @snap.BeginningBalance.ToString("N2")
+                                                        </div>
+                                                    </div>
+
+                                            @if (snap.Inflows > 0)
+                                            {
+                                                            <div class="d-flex mb-1 align-items-center">
+                                                                <div style="width: 250px;" class="text-dark">Add</div>
+                                                                <div class="flex-grow-1 text-end font-monospace text-dark">
+                                                        @snap.Inflows.ToString("N2")
+                                                                </div>
+                                                            </div>
+                                            }
+
+                                            @if (snap.Outflows > 0)
+                                            {
+                                                            <div class="d-flex mb-1 align-items-center">
+                                                                <div style="width: 250px;" class="text-dark">Less</div>
+                                                                <div class="flex-grow-1 text-end font-monospace text-danger">
+                                                                    -@snap.Outflows.ToString("N2")
+                                                                </div>
+                                                            </div>
+                                            }
+
+                                                    <div class="d-flex align-items-center fw-bold mt-2 pt-2 border-top border-dark">
+                                                        <div style="width: 250px;" class="text-dark">COH - total</div>
+                                                        <div class="flex-grow-1 text-end font-monospace text-dark">
+                                                    @snap.EndingBalance.ToString("N2")
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                    }
+                                }
+                                else
+                                {
+                                        <div class="text-center py-5">
+                                            <i class="bi bi-folder-x text-muted mb-3" style="font-size: 2.5rem;"></i>
+                                            <h5 class="fw-bold text-dark">No Complete Months Found</h5>
+                                            <p class="text-muted mb-0">Records will display once a complete month is available.</p>
+                                        </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-pane fade @(currentFilter == "PW" ? "show active" : "")" id="pw" role="tabpanel" aria-labelledby="pw-tab">
+            <div class="row">
+                <div class="col-12 col-xl-8">
+                    <div class="card shadow-sm border-0 mb-4 rounded-4 overflow-hidden">
+                        <div class="card-header bg-light border-bottom py-3 px-4 d-flex justify-content-between align-items-center">
+                            <h5 class="fw-bold text-secondary mb-0 text-uppercase" style="letter-spacing: 0.5px;">
+                                Praise and Worship
+                            </h5>
+                        </div>
+
+                        <div class="card-body p-4 p-md-5">
+                            <div class="mx-auto" style="max-width: 450px;">
+                                @if (Model.PWSnapshots.Any())
+                                {
+                                    foreach (var snap in Model.PWSnapshots)
+                                    {
+                                                <div class="mb-5">
+                                                    <h6 class="fw-bold text-secondary mb-3 text-uppercase">@snap.Month.ToString("MMMM yyyy")</h6>
+
+                                                    <div class="d-flex mb-1 align-items-center">
+                                                        <div style="width: 250px;" class="text-dark">COH - beg</div>
+                                                        <div class="flex-grow-1 text-end font-monospace text-dark">
+                                                    @snap.BeginningBalance.ToString("N2")
+                                                        </div>
+                                                    </div>
+
+                                            @if (snap.Inflows > 0)
+                                            {
+                                                            <div class="d-flex mb-1 align-items-center">
+                                                                <div style="width: 250px;" class="text-dark">Add</div>
+                                                                <div class="flex-grow-1 text-end font-monospace text-dark">
+                                                        @snap.Inflows.ToString("N2")
+                                                                </div>
+                                                            </div>
+                                            }
+
+                                            @if (snap.Outflows > 0)
+                                            {
+                                                            <div class="d-flex mb-1 align-items-center">
+                                                                <div style="width: 250px;" class="text-dark">Less</div>
+                                                                <div class="flex-grow-1 text-end font-monospace text-danger">
+                                                                    -@snap.Outflows.ToString("N2")
+                                                                </div>
+                                                            </div>
+                                            }
+
+                                                    <div class="d-flex align-items-center fw-bold mt-2 pt-2 border-top border-dark">
+                                                        <div style="width: 250px;" class="text-dark">COH - total</div>
+                                                        <div class="flex-grow-1 text-end font-monospace text-dark">
+                                                    @snap.EndingBalance.ToString("N2")
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                    }
+                                }
+                                else
+                                {
+                                        <div class="text-center py-5">
+                                            <i class="bi bi-folder-x text-muted mb-3" style="font-size: 2.5rem;"></i>
+                                            <h5 class="fw-bold text-dark">No Complete Months Found</h5>
+                                            <p class="text-muted mb-0">Records will display once a complete month is available.</p>
+                                        </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
 </div>
+
+<script>
+    // 🚨 Same pattern as Admin/SystemSetup's inline IIFE: force-activate the
+    // correct pill/pane on load, including after an htmx-boosted sidebar swap.
+    (function() {
+        const targetTab = '@currentFilter'.toLowerCase() + '-tab';
+        const tabBtn = document.getElementById(targetTab === 'coh-tab' ? 'coh-tab' : targetTab);
+
+        if (tabBtn) {
+            tabBtn.classList.add('active');
+            if (typeof bootstrap !== 'undefined') {
+                const bsTab = new bootstrap.Tab(tabBtn);
+                bsTab.show();
+            }
+        }
+    })();
+</script>
