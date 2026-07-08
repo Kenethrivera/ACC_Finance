@@ -35,15 +35,15 @@
         transition: all 0.2s ease;
     }
 
-    .calendar-cell:hover {
-        border-color: #cbd5e1;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.02);
-    }
+        .calendar-cell:hover {
+            border-color: #cbd5e1;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        }
 
-    .calendar-cell.out-of-month {
-        background: #f8fafc;
-        opacity: 0.6;
-    }
+        .calendar-cell.out-of-month {
+            background: #f8fafc;
+            opacity: 0.6;
+        }
 
     .calendar-day-num {
         font-weight: 700;
@@ -63,50 +63,54 @@
         transition: all 0.2s ease-in-out;
     }
 
-    /* 🚨 Added !important to guarantee it overrides any other styling conflicts */
-    #adminTabs .nav-link.active {
-        color: #fff !important;
-        background-color: #0d6efd !important;
-        border-color: #0d6efd !important;
-    }
+        /* 🚨 Added !important to guarantee it overrides any other styling conflicts */
+        #adminTabs .nav-link.active {
+            color: #fff !important;
+            background-color: #0d6efd !important;
+            border-color: #0d6efd !important;
+        }
 </style>
 
 <div class="container-fluid py-4" style="max-width: 1200px;">
 
     @if (TempData["ErrorMessage"] != null)
     {
-            <div class="alert alert-danger alert-dismissible fade show shadow-sm border-0 mb-4 rounded-3" role="alert">
-                <i class="bi bi-exclamation-triangle-fill me-2"></i> @TempData["ErrorMessage"]
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
+        <div class="alert alert-danger alert-dismissible fade show shadow-sm border-0 mb-4 rounded-3" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i> @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
     }
     @if (TempData["SuccessMessage"] != null)
     {
-            <div class="alert alert-success alert-dismissible fade show shadow-sm border-0 mb-4 rounded-3" role="alert">
-                <i class="bi bi-check-circle-fill me-2"></i> @TempData["SuccessMessage"]
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
+        <div class="alert alert-success alert-dismissible fade show shadow-sm border-0 mb-4 rounded-3" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i> @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
     }
 
     <div class="mb-4">
         <h2 class="fw-bold text-dark"><i class="bi bi-sliders me-2 text-primary"></i>System Setup</h2>
-        <p class="text-muted">Manage core lists, funds, and monitor system-wide activity.</p>
     </div>
 
     <ul class="nav nav-pills gap-2 mb-4" id="adminTabs" role="tablist">
         <li class="nav-item" role="presentation">
             <button class="nav-link fw-bold px-4 rounded @(currentTab == "calendar" ? "active" : "")" id="calendar-tab" data-bs-toggle="pill" data-bs-target="#calendar" type="button" role="tab" aria-controls="calendar" aria-selected="@(currentTab == "calendar" ? "true" : "false")">
-                Activity Calendar
+                <i class="bi bi-calendar3 me-1"></i> Activity Calendar
             </button>
         </li>
         <li class="nav-item" role="presentation">
             <button class="nav-link fw-bold px-4 rounded @(currentTab == "members" ? "active" : "")" id="members-tab" data-bs-toggle="pill" data-bs-target="#members" type="button" role="tab" aria-controls="members" aria-selected="@(currentTab == "members" ? "true" : "false")">
-                Members
+                <i class="bi bi-people me-1"></i> Members
             </button>
         </li>
         <li class="nav-item" role="presentation">
             <button class="nav-link fw-bold px-4 rounded @(currentTab == "wallets" ? "active" : "")" id="wallets-tab" data-bs-toggle="pill" data-bs-target="#wallets" type="button" role="tab" aria-controls="wallets" aria-selected="@(currentTab == "wallets" ? "true" : "false")">
-                Integrations
+                <i class="bi bi-wallet2 me-1"></i> Wallets
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-bold px-4 rounded @(currentTab == "integration" ? "active" : "")" id="integration-tab" data-bs-toggle="pill" data-bs-target="#integration" type="button" role="tab" aria-controls="integration" aria-selected="@(currentTab == "integration" ? "true" : "false")">
+                <i class="bi bi-cloud-arrow-up me-1"></i> Integrations
             </button>
         </li>
     </ul>
@@ -126,20 +130,20 @@
                         <span class="text-muted fw-bold">EXPORT STATUS:</span>
                         @if (Model.IsDetailedExported)
                         {
-                                <span class="badge bg-success bg-opacity-10 text-success border border-success px-3 py-2 rounded-pill"><i class="bi bi-check-circle-fill me-1"></i> Detailed</span>
+                            <span class="badge bg-success bg-opacity-10 text-success border border-success px-3 py-2 rounded-pill"><i class="bi bi-check-circle-fill me-1"></i> Detailed</span>
                         }
                         else
                         {
-                                <span class="badge bg-light text-muted border px-3 py-2 rounded-pill"><i class="bi bi-x-circle me-1"></i> Detailed</span>
+                            <span class="badge bg-light text-muted border px-3 py-2 rounded-pill"><i class="bi bi-x-circle me-1"></i> Detailed</span>
                         }
 
                         @if (Model.IsFinancialExported)
                         {
-                                <span class="badge bg-success bg-opacity-10 text-success border border-success px-3 py-2 rounded-pill"><i class="bi bi-check-circle-fill me-1"></i> Financial</span>
+                            <span class="badge bg-success bg-opacity-10 text-success border border-success px-3 py-2 rounded-pill"><i class="bi bi-check-circle-fill me-1"></i> Financial</span>
                         }
                         else
                         {
-                                <span class="badge bg-light text-muted border px-3 py-2 rounded-pill"><i class="bi bi-x-circle me-1"></i> Financial</span>
+                            <span class="badge bg-light text-muted border px-3 py-2 rounded-pill"><i class="bi bi-x-circle me-1"></i> Financial</span>
                         }
                     </div>
                 </div>
@@ -156,23 +160,23 @@
 
                         @foreach (var day in Model.CalendarDays)
                         {
-                                <div class="calendar-cell @(day.IsCurrentMonth ? "" : "out-of-month") @(day.Date == DateTime.Today ? "border-primary border-2" : "")">
-                                    <span class="calendar-day-num">@day.DayNumber</span>
+                            <div class="calendar-cell @(day.IsCurrentMonth ? "" : "out-of-month") @(day.Date == DateTime.Today ? "border-primary border-2" : "")">
+                                <span class="calendar-day-num">@day.DayNumber</span>
 
                                 @if (!string.IsNullOrEmpty(day.GivingRecordCode))
                                 {
-                                            <a href="/Giving/Entry?date=@day.Date.ToString("yyyy-MM-dd")&RecordId=@day.GivingRecordId" target="_blank" class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 text-decoration-none text-start d-block text-truncate mb-1" title="Giving Record">
-                                                <i class="bi bi-box-arrow-in-down me-1"></i> @day.GivingRecordCode
-                                            </a>
+                                    <a href="/Giving/Entry?date=@day.Date.ToString("yyyy-MM-dd")&RecordId=@day.GivingRecordId" target="_blank" class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 text-decoration-none text-start d-block text-truncate mb-1" title="Giving Record">
+                                        <i class="bi bi-box-arrow-in-down me-1"></i> @day.GivingRecordCode
+                                    </a>
                                 }
 
                                 @foreach (var item in day.Disbursements)
                                 {
-                                            <a href="/Disbursements/Create?RecordDate=@item.RecordDateStr" target="_blank" class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 text-decoration-none text-start d-block text-truncate mb-1" title="Disbursement Record">
-                                                <i class="bi bi-receipt me-1"></i> @item.RecordCode
-                                            </a>
+                                    <a href="/Disbursements/Create?RecordDate=@item.RecordDateStr" target="_blank" class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 text-decoration-none text-start d-block text-truncate mb-1" title="Disbursement Record">
+                                        <i class="bi bi-receipt me-1"></i> @item.RecordCode
+                                    </a>
                                 }
-                                </div>
+                            </div>
                         }
                     </div>
                 </div>
@@ -190,18 +194,18 @@
                     <div class="row g-3">
                         @foreach (var member in Model.Members)
                         {
-                                <div class="col-md-6 col-lg-4 col-xl-3">
-                                    <div class="d-flex justify-content-between align-items-center p-3 border rounded-3 bg-white shadow-sm @(!member.Is_Active ? "opacity-50 bg-light" : "")" style="transition: all 0.2s;">
-                                        <span class="fw-semibold text-truncate @(!member.Is_Active ? "text-muted text-decoration-line-through" : "text-dark")" title="@member.Name">
+                            <div class="col-md-6 col-lg-4 col-xl-3">
+                                <div class="d-flex justify-content-between align-items-center p-3 border rounded-3 bg-white shadow-sm @(!member.Is_Active ? "opacity-50 bg-light" : "")" style="transition: all 0.2s;">
+                                    <span class="fw-semibold text-truncate @(!member.Is_Active ? "text-muted text-decoration-line-through" : "text-dark")" title="@member.Name">
                                         @member.Name
-                                        </span>
+                                    </span>
 
-                                        <button class="btn btn-sm rounded-pill p-1 px-2 border-0 flex-shrink-0 ms-2 @(member.Is_Active ? "bg-success-subtle text-success" : "bg-secondary-subtle text-secondary")"
-                                                onclick="openMemberModal('@member.Id', '@Html.Raw(System.Web.HttpUtility.JavaScriptStringEncode(member.Name))', @(member.Is_Active ? "true" : "false"))">
-                                            <i class="bi bi-pencil-fill"></i>
-                                        </button>
-                                    </div>
+                                    <button class="btn btn-sm rounded-pill p-1 px-2 border-0 flex-shrink-0 ms-2 @(member.Is_Active ? "bg-success-subtle text-success" : "bg-secondary-subtle text-secondary")"
+                                            onclick="openMemberModal('@member.Id', '@Html.Raw(System.Web.HttpUtility.JavaScriptStringEncode(member.Name))', @(member.Is_Active ? "true" : "false"))">
+                                        <i class="bi bi-pencil-fill"></i>
+                                    </button>
                                 </div>
+                            </div>
                         }
                     </div>
                 </div>
@@ -209,6 +213,103 @@
         </div>
 
         <div class="tab-pane fade @(currentTab == "wallets" ? "show active" : "")" id="wallets" role="tabpanel" aria-labelledby="wallets-tab">
+            <div class="row g-4">
+                <div class="col-lg-7">
+                    <div class="card border-0 shadow-sm rounded-4 h-100">
+                        <div class="card-header bg-white border-bottom pt-4 pb-3 px-4 d-flex justify-content-between align-items-center">
+                            <h5 class="fw-bold mb-0 text-dark">Dynamic Wallets</h5>
+                            <button class="btn btn-primary btn-sm fw-bold rounded-pill px-3 shadow-sm" onclick="openWalletModal('', '', '', 'Person', '', '', 'primary', 'bi-wallet2', true, '0.00')">
+                                <i class="bi bi-plus-lg me-1"></i> Add Wallet
+                            </button>
+                        </div>
+                        <div class="card-body p-4 bg-light bg-opacity-50">
+                            <div class="list-group">
+                                @foreach (var wallet in Model.Wallets)
+                                {
+                                    <div class="list-group-item list-group-item-action d-flex justify-content-between align-items-center p-3 mb-2 rounded-3 border shadow-sm @(!wallet.Is_Active ? "opacity-50 bg-light" : "bg-white")">
+                                        <div class="d-flex align-items-center">
+
+                                            <div class="bg-@(wallet.Theme ?? "primary")-subtle text-@(wallet.Theme ?? "primary") rounded p-2 me-3 d-flex align-items-center justify-content-center" style="width: 45px; height: 45px;">
+                                                <i class="bi @(wallet.Icon ?? "bi-wallet2") fs-4"></i>
+                                            </div>
+
+                                            <div>
+                                                <h6 class="mb-0 fw-bold text-dark @(!wallet.Is_Active ? "text-decoration-line-through" : "")">@wallet.DisplayName</h6>
+                                                <small class="text-muted">
+                                                    <span class="badge bg-secondary bg-opacity-10 text-secondary border me-1">@wallet.Code</span>
+                                                    @if (wallet.CustodianType == "Person")
+                                                    {
+                                                        <span><i class="bi bi-person me-1"></i>@wallet.CustodianPersonName</span>
+                                                    }
+                                                    else
+                                                    {
+                                                        var minName = Model.Ministries.FirstOrDefault(m => m.Id.ToString() == wallet.MinistryId?.ToString())?.Name ?? "Unknown Ministry";
+                                                        <span><i class="bi bi-diagram-3 me-1"></i>@minName</span>
+                                                    }
+                                                </small>
+                                            </div>
+                                        </div>
+
+                                        <div class="d-flex gap-2">
+                                            <button class="btn btn-sm rounded-pill p-2 border-0 flex-shrink-0 @(wallet.Is_Active ? "bg-success-subtle text-success" : "bg-secondary-subtle text-secondary")"
+                                                    onclick="openWalletModal('@wallet.Id', '@wallet.Code', '@Html.Raw(System.Web.HttpUtility.JavaScriptStringEncode(wallet.DisplayName))', '@wallet.CustodianType', '@Html.Raw(System.Web.HttpUtility.JavaScriptStringEncode(wallet.CustodianPersonName ?? ""))', '@wallet.MinistryId', '@wallet.Theme', '@wallet.Icon', @(wallet.Is_Active ? "true" : "false"), '@(Model.WalletInitialBalances != null && Model.WalletInitialBalances.ContainsKey(wallet.Code) ? Model.WalletInitialBalances[wallet.Code].ToString("F2") : "0.00")')">
+                                                <i class="bi bi-pencil-fill"></i>
+                                            </button>
+
+                                            <form method="post" asp-page-handler="DeleteWallet" onsubmit="return confirm('Are you sure you want to completely delete the @Html.Raw(System.Web.HttpUtility.JavaScriptStringEncode(wallet.DisplayName)) wallet?\n\nIf it has existing transactions, this will fail.');">
+                                                <input type="hidden" name="id" value="@wallet.Id" />
+                                                <input type="hidden" name="activeTab" value="wallets" />
+                                                <input type="hidden" name="selectedMonth" value="@Model.SelectedMonth" />
+                                                <button type="submit" class="btn btn-sm rounded-pill p-2 border-0 flex-shrink-0 bg-danger-subtle text-danger" title="Delete Wallet">
+                                                    <i class="bi bi-trash3-fill"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-5">
+                    <div class="card border-0 shadow-sm rounded-4 h-100">
+                        <div class="card-header bg-white border-bottom pt-4 pb-3 px-4 d-flex justify-content-between align-items-center">
+                            <h5 class="fw-bold mb-0 text-dark">Ministries</h5>
+                            <button class="btn btn-dark btn-sm fw-bold rounded-pill px-3 shadow-sm" onclick="openMinistryModal('', '', '', true)">
+                                <i class="bi bi-plus-lg me-1"></i> Add Ministry
+                            </button>
+                        </div>
+                        <div class="card-body p-4 bg-light bg-opacity-50">
+                            <div class="row g-2">
+                                @foreach (var ministry in Model.Ministries)
+                                {
+                                    <div class="col-12">
+                                        <div class="d-flex justify-content-between align-items-center p-3 border rounded-3 bg-white shadow-sm @(!ministry.Is_Active ? "opacity-50 bg-light" : "")">
+                                            <div>
+                                                <div class="fw-semibold text-truncate @(!ministry.Is_Active ? "text-muted text-decoration-line-through" : "text-dark")">
+                                                    @ministry.Name
+                                                </div>
+                                                @if (!string.IsNullOrEmpty(ministry.LeaderName))
+                                                {
+                                                    <small class="text-muted"><i class="bi bi-person me-1"></i>@ministry.LeaderName</small>
+                                                }
+                                            </div>
+                                            <button class="btn btn-sm rounded-pill p-1 px-2 border-0 flex-shrink-0 ms-2 @(ministry.Is_Active ? "bg-success-subtle text-success" : "bg-secondary-subtle text-secondary")"
+                                                    onclick="openMinistryModal('@ministry.Id', '@Html.Raw(System.Web.HttpUtility.JavaScriptStringEncode(ministry.Name))', '@Html.Raw(System.Web.HttpUtility.JavaScriptStringEncode(ministry.LeaderName ?? ""))', @(ministry.Is_Active ? "true" : "false"))">
+                                                <i class="bi bi-pencil-fill"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-pane fade @(currentTab == "integration" ? "show active" : "")" id="integration" role="tabpanel" aria-labelledby="integration-tab">
             <div class="card border-0 shadow-sm rounded-4">
                 <div class="card-header bg-white border-bottom pt-4 pb-3 px-4">
                     <h5 class="fw-bold mb-0 text-dark"><i class="bi bi-google text-primary me-2"></i> Google Sheets Integration</h5>
@@ -216,7 +317,7 @@
                 <div class="card-body p-4">
                     <form method="post" asp-page-handler="SaveSettings">
                         <input type="hidden" asp-for="SelectedMonth" />
-                        <input type="hidden" name="ActiveTab" value="wallets" />
+                        <input type="hidden" name="ActiveTab" value="integration" />
 
                         <div class="row g-4">
                             <div class="col-md-6">
@@ -224,9 +325,9 @@
                                 <input type="text" class="form-control mb-3 shadow-sm" asp-for="AppSettings.DetailedSheetId" required placeholder="e.g. 11zTb5fVncgnsm1lOs6eilf51h..." style="border-radius: 8px;" />
                                 @if (!string.IsNullOrEmpty(Model.AppSettings?.DetailedSheetId))
                                 {
-                                        <a href="https://docs.google.com/spreadsheets/d/@Model.AppSettings.DetailedSheetId" target="_blank" class="btn btn-outline-success rounded-pill fw-bold btn-sm">
-                                            <i class="bi bi-box-arrow-up-right me-1"></i> Open Sheet
-                                        </a>
+                                    <a href="https://docs.google.com/spreadsheets/d/@Model.AppSettings.DetailedSheetId" target="_blank" class="btn btn-outline-success rounded-pill fw-bold btn-sm">
+                                        <i class="bi bi-box-arrow-up-right me-1"></i> Open Sheet
+                                    </a>
                                 }
                             </div>
                             <div class="col-md-6">
@@ -234,9 +335,9 @@
                                 <input type="text" class="form-control mb-3 shadow-sm" asp-for="AppSettings.FinancialSheetId" required placeholder="e.g. 1Ln4Ia6EsZw-0Z64yBRERZ..." style="border-radius: 8px;" />
                                 @if (!string.IsNullOrEmpty(Model.AppSettings?.FinancialSheetId))
                                 {
-                                        <a href="https://docs.google.com/spreadsheets/d/@Model.AppSettings.FinancialSheetId" target="_blank" class="btn btn-outline-dark rounded-pill fw-bold btn-sm">
-                                            <i class="bi bi-box-arrow-up-right me-1"></i> Open Sheet
-                                        </a>
+                                    <a href="https://docs.google.com/spreadsheets/d/@Model.AppSettings.FinancialSheetId" target="_blank" class="btn btn-outline-dark rounded-pill fw-bold btn-sm">
+                                        <i class="bi bi-box-arrow-up-right me-1"></i> Open Sheet
+                                    </a>
                                 }
                             </div>
                         </div>
@@ -287,8 +388,146 @@
     </div>
 </div>
 
+<div class="modal fade" id="ministryModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 12px; border: none; box-shadow: 0 10px 25px rgba(0,0,0,0.1);">
+            <div class="modal-header bg-light border-bottom-0 pb-3" style="border-radius: 12px 12px 0 0;">
+                <h5 class="modal-title fw-bold text-dark" id="ministryModalTitle">Manage Ministry</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" asp-page-handler="SaveMinistry">
+                <input type="hidden" asp-for="SelectedMonth" />
+                <input type="hidden" name="ActiveTab" value="wallets" />
+                <input type="hidden" asp-for="EditMinistryId" id="modalMinistryId" />
+
+                <div class="modal-body px-4 py-4">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-muted small text-uppercase">Ministry Name</label>
+                        <input type="text" class="form-control shadow-sm" asp-for="EditMinistryName" id="modalMinistryName" required autocomplete="off" style="border-radius: 8px;" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-muted small text-uppercase">Leader Name</label>
+                        <input type="text" class="form-control shadow-sm" asp-for="EditMinistryLeaderName" id="modalMinistryLeaderName" autocomplete="off" style="border-radius: 8px;" />
+                    </div>
+
+                    <div class="form-check form-switch mt-4">
+                        <input class="form-check-input" type="checkbox" role="switch" asp-for="EditMinistryIsActive" id="modalMinistryStatus" style="transform: scale(1.3); margin-left: -2em;">
+                        <label class="form-check-label ms-2 fw-bold text-dark" for="modalMinistryStatus">Active Ministry</label>
+                    </div>
+                </div>
+                <div class="modal-footer border-top-0 pt-0 px-4 pb-4">
+                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-dark rounded-pill px-4 fw-bold shadow-sm">Save Ministry</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="walletModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content" style="border-radius: 12px; border: none; box-shadow: 0 10px 25px rgba(0,0,0,0.1);">
+            <div class="modal-header bg-light border-bottom-0 pb-3" style="border-radius: 12px 12px 0 0;">
+                <h5 class="modal-title fw-bold text-dark" id="walletModalTitle">Manage Wallet</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" asp-page-handler="SaveWallet">
+                <input type="hidden" asp-for="SelectedMonth" />
+                <input type="hidden" name="ActiveTab" value="wallets" />
+                <input type="hidden" asp-for="EditWalletId" id="modalWalletId" />
+                <input type="hidden" asp-for="EditWalletTheme" id="modalWalletTheme" value="primary" />
+                <input type="hidden" asp-for="EditWalletIcon" id="modalWalletIcon" value="bi-wallet2" />
+
+                <div class="modal-body px-4 py-4">
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold text-muted small text-uppercase">Database Code</label>
+                            <input type="text" class="form-control shadow-sm fw-bold" asp-for="EditWalletCode" id="modalWalletCode" required autocomplete="off" style="border-radius: 8px;" placeholder="e.g. GENERAL" />
+                        </div>
+                        <div class="col-md-8">
+                            <label class="form-label fw-bold text-muted small text-uppercase">Display Name</label>
+                            <input type="text" class="form-control shadow-sm" asp-for="EditWalletDisplayName" id="modalWalletDisplayName" required autocomplete="off" style="border-radius: 8px;" placeholder="e.g. General Fund" />
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold text-muted small text-uppercase">Custodian Type</label>
+                            <select class="form-select shadow-sm" asp-for="EditWalletCustodianType" id="modalWalletCustodianType" style="border-radius: 8px;">
+                                <option value="Person">Individual Person</option>
+                                <option value="Ministry">Church Ministry</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <div id="custodianPersonDiv">
+                                <label class="form-label fw-bold text-muted small text-uppercase">Person Name</label>
+                                <input type="text" class="form-control shadow-sm" asp-for="EditWalletCustodianPersonName" id="modalWalletCustodianPersonName" autocomplete="off" style="border-radius: 8px;" />
+                            </div>
+                            <div id="custodianMinistryDiv" style="display: none;">
+                                <label class="form-label fw-bold text-muted small text-uppercase">Select Ministry</label>
+                                <select class="form-select shadow-sm" asp-for="EditWalletMinistryId" id="modalWalletMinistryId" style="border-radius: 8px;">
+                                    <option value="">-- Choose Ministry --</option>
+                                    @foreach (var m in Model.Ministries.Where(m => m.Is_Active))
+                                    {
+                                        <option value="@m.Id">@m.Name</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="p-3 bg-light rounded-3 border mb-3">
+                        <div class="row g-4">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold text-muted small text-uppercase mb-2">Color Theme</label>
+                                <div class="d-flex flex-wrap gap-2">
+                                    <button type="button" class="btn rounded-circle theme-btn bg-primary shadow-sm" data-theme="primary" style="width:35px; height:35px;" onclick="selectTheme('primary')"></button>
+                                    <button type="button" class="btn rounded-circle theme-btn bg-success shadow-sm" data-theme="success" style="width:35px; height:35px;" onclick="selectTheme('success')"></button>
+                                    <button type="button" class="btn rounded-circle theme-btn bg-danger shadow-sm" data-theme="danger" style="width:35px; height:35px;" onclick="selectTheme('danger')"></button>
+                                    <button type="button" class="btn rounded-circle theme-btn bg-warning shadow-sm" data-theme="warning" style="width:35px; height:35px;" onclick="selectTheme('warning')"></button>
+                                    <button type="button" class="btn rounded-circle theme-btn bg-info shadow-sm" data-theme="info" style="width:35px; height:35px;" onclick="selectTheme('info')"></button>
+                                    <button type="button" class="btn rounded-circle theme-btn bg-dark shadow-sm" data-theme="dark" style="width:35px; height:35px;" onclick="selectTheme('dark')"></button>
+                                    <button type="button" class="btn rounded-circle theme-btn bg-secondary shadow-sm" data-theme="secondary" style="width:35px; height:35px;" onclick="selectTheme('secondary')"></button>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold text-success small text-uppercase mb-2">Initial Balance</label>
+                                <div class="input-group shadow-sm" style="border-radius: 8px; overflow: hidden;">
+                                    <span class="input-group-text bg-white text-success fw-bold border-end-0">₱</span>
+                                    <input type="number" step="0.01" class="form-control border-start-0 fw-bold" asp-for="EditWalletInitialBalance" id="modalWalletInitialBalance" autocomplete="off" />
+                                </div>
+                            </div>
+
+                            <div class="col-12 mt-3">
+                                <label class="form-label fw-bold text-muted small text-uppercase mb-2">Select Icon</label>
+                                <div class="d-flex flex-wrap gap-2 p-2 bg-white border rounded" style="max-height: 140px; overflow-y: auto;">
+                                    @foreach (var icon in new[] { "bi-wallet2", "bi-piggy-bank", "bi-bank", "bi-cash-coin", "bi-coin", "bi-credit-card", "bi-safe", "bi-building", "bi-house", "bi-heart", "bi-music-note-beamed", "bi-tools", "bi-journal-check", "bi-basket", "bi-box-seam", "bi-briefcase", "bi-calculator", "bi-gift", "bi-lightning-charge" })
+                                    {
+                                        <button type="button" class="btn btn-outline-secondary icon-btn p-2 d-flex align-items-center justify-content-center" data-icon="@icon" onclick="selectIcon('@icon')" style="width: 45px; height: 45px;">
+                                            <i class="bi @icon fs-5"></i>
+                                        </button>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-check form-switch mt-4">
+                        <input class="form-check-input" type="checkbox" role="switch" asp-for="EditWalletIsActive" id="modalWalletStatus" style="transform: scale(1.3); margin-left: -2em;">
+                        <label class="form-check-label ms-2 fw-bold text-dark" for="modalWalletStatus">Active Wallet</label>
+                    </div>
+                </div>
+                <div class="modal-footer border-top-0 pt-0 px-4 pb-4">
+                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm">Save Wallet</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <script>
-    // Server data array embedded into JS for instant client-side checking
     const existingMembers = [
     @foreach (var m in Model.Members)
     {
@@ -302,7 +541,6 @@
         document.getElementById('modalMemberStatus').checked = isActive;
         document.getElementById('memberModalTitle').innerText = id ? 'Edit Member' : 'Add New Member';
 
-        // Wipe any previous errors clean when opening the modal
         document.getElementById('modalMemberName').classList.remove('is-invalid');
         document.getElementById('duplicateNameError').style.display = 'none';
         document.getElementById('saveMemberBtn').disabled = false;
@@ -310,7 +548,6 @@
         new bootstrap.Modal(document.getElementById('memberModal')).show();
     }
 
-    // 🚨 AGGRESSIVE LIVE VALIDATION
     function validateDuplicate() {
         const currentInput = document.getElementById('modalMemberName').value.trim().toLowerCase();
         const currentEditId = document.getElementById('modalMemberId').value;
@@ -322,11 +559,11 @@
         if (isDuplicate) {
             document.getElementById('modalMemberName').classList.add('is-invalid');
             errorMsg.style.display = 'block';
-            submitBtn.disabled = true; // Instantly lock saving
+            submitBtn.disabled = true;
         } else {
             document.getElementById('modalMemberName').classList.remove('is-invalid');
             errorMsg.style.display = 'none';
-            submitBtn.disabled = false; // Unlock saving
+            submitBtn.disabled = false;
         }
     }
 
@@ -334,13 +571,102 @@
     nameInput.addEventListener('input', validateDuplicate);
     nameInput.addEventListener('keyup', validateDuplicate);
 
+    function openMinistryModal(id, name, leader, isActive) {
+        document.getElementById('modalMinistryId').value = id;
+        document.getElementById('modalMinistryName').value = name;
+        document.getElementById('modalMinistryLeaderName').value = leader;
+        document.getElementById('modalMinistryStatus').checked = isActive;
+        document.getElementById('ministryModalTitle').innerText = id ? 'Edit Ministry' : 'Add New Ministry';
+
+        new bootstrap.Modal(document.getElementById('ministryModal')).show();
+    }
+
+    function openWalletModal(id, code, name, type, person, minId, theme, icon, isActive, initialBalance) {
+        document.getElementById('modalWalletId').value = id;
+
+        let codeInput = document.getElementById('modalWalletCode');
+        let balanceInput = document.getElementById('modalWalletInitialBalance');
+
+        codeInput.value = code;
+
+        if (id) {
+            // EDITING MODE (Fields are greyed out and locked)
+            codeInput.setAttribute('readonly', 'readonly');
+            codeInput.classList.add('bg-light');
+
+            balanceInput.setAttribute('readonly', 'readonly');
+            balanceInput.classList.add('bg-light');
+            balanceInput.value = initialBalance || '0.00';
+        } else {
+            // CREATING MODE
+            codeInput.removeAttribute('readonly');
+            codeInput.classList.remove('bg-light');
+
+            balanceInput.removeAttribute('readonly');
+            balanceInput.classList.remove('bg-light');
+            balanceInput.value = '0.00';
+        }
+
+        document.getElementById('modalWalletDisplayName').value = name;
+        document.getElementById('modalWalletCustodianType').value = type;
+        document.getElementById('modalWalletCustodianPersonName').value = person;
+        document.getElementById('modalWalletMinistryId').value = minId;
+        document.getElementById('modalWalletStatus').checked = isActive;
+
+        document.getElementById('walletModalTitle').innerText = id ? 'Edit Wallet' : 'Add New Wallet';
+
+        toggleCustodianInputs(type);
+        selectTheme(theme || 'primary');
+        selectIcon(icon || 'bi-wallet2');
+
+        new bootstrap.Modal(document.getElementById('walletModal')).show();
+    }
+
+    function selectTheme(themeStr) {
+        document.getElementById('modalWalletTheme').value = themeStr;
+
+        document.querySelectorAll('.theme-btn').forEach(btn => {
+            btn.classList.remove('border', 'border-dark', 'border-3');
+            if (btn.dataset.theme === themeStr) {
+                btn.classList.add('border', 'border-dark', 'border-3');
+            }
+        });
+    }
+
+    function selectIcon(iconStr) {
+        document.getElementById('modalWalletIcon').value = iconStr;
+
+        document.querySelectorAll('.icon-btn').forEach(btn => {
+            btn.classList.remove('btn-primary', 'text-white');
+            btn.classList.add('btn-outline-secondary');
+
+            if (btn.dataset.icon === iconStr) {
+                btn.classList.remove('btn-outline-secondary');
+                btn.classList.add('btn-primary', 'text-white');
+            }
+        });
+    }
+
+    function toggleCustodianInputs(type) {
+        if(type === 'Person') {
+            document.getElementById('custodianPersonDiv').style.display = 'block';
+            document.getElementById('custodianMinistryDiv').style.display = 'none';
+        } else {
+            document.getElementById('custodianPersonDiv').style.display = 'none';
+            document.getElementById('custodianMinistryDiv').style.display = 'block';
+        }
+    }
+
+    document.getElementById('modalWalletCustodianType').addEventListener('change', function() {
+        toggleCustodianInputs(this.value);
+    });
 
     (function() {
         const targetTab = '@currentTab' + '-tab';
         const tabBtn = document.getElementById(targetTab);
 
         if (tabBtn) {
-            tabBtn.classList.add('active'); // forcefully add class just in case
+            tabBtn.classList.add('active');
             if (typeof bootstrap !== 'undefined') {
                 const bsTab = new bootstrap.Tab(tabBtn);
                 bsTab.show();

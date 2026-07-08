@@ -4,7 +4,7 @@
     ViewData["Title"] = "Dashboard";
 }
 <style>
-    /* 🚨 SMOOTH FADE-IN ANIMATION (No Snapping) 🚨 */
+    /* 🚨 SMOOTH FADE-IN ANIMATION 🚨 */
     .fade-in-section {
         animation: smoothFade 0.2s ease-in forwards;
     }
@@ -45,17 +45,10 @@
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     }
 
-    .section-title {
-        font-size: 1.5rem;
-        font-weight: 800;
-        color: #0f172a;
-        letter-spacing: -0.02em;
-    }
-
     .master-total-banner {
         background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
         border-radius: 16px;
-        padding: 30px;
+        padding: 24px 30px;
         color: #ffffff;
         display: flex;
         justify-content: space-between;
@@ -80,18 +73,41 @@
         letter-spacing: -0.02em;
     }
 
-    /* FORCED 4-COLUMN GRID */
+    .activity-card {
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        cursor: pointer;
+    }
+
+        .activity-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.1) !important;
+        }
+
+    /* 🚨 RESPONSIVE DYNAMIC GRID: Wraps beautifully no matter how many wallets exist */
     .wallet-grid {
         display: grid;
         grid-template-columns: repeat(4, 1fr);
-        gap: 20px;
+        gap: 18px;
+    }
+
+    /* Responsive fallbacks for smaller screens */
+    @@media (max-width: 1200px) {
+        .wallet-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .wallet-grid {
+            grid-template-columns: 1fr;
+        }
     }
 
     .wallet-card {
         background: #ffffff;
         border: 1px solid #e2e8f0;
         border-top: 4px solid #e2e8f0;
-        border-radius: 16px;
+        border-radius: 14px;
         overflow: hidden;
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
         display: flex;
@@ -100,13 +116,13 @@
     }
 
     .wallet-icon {
-        width: 48px;
-        height: 48px;
+        width: 44px;
+        height: 44px;
         border-radius: 12px;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 1.4rem;
+        font-size: 1.3rem;
     }
 
     /* Theme colors */
@@ -178,8 +194,59 @@
                 background: #f0fdf4;
             }
 
+    .theme-danger {
+        border-top-color: #ef4444 !important;
+    }
+
+        .theme-danger .wallet-icon {
+            background: #fef2f2;
+            color: #dc2626;
+        }
+
+        .theme-danger .wallet-footer-link {
+            color: #dc2626;
+        }
+
+            .theme-danger .wallet-footer-link:hover {
+                background: #fef2f2;
+            }
+
+    .theme-dark {
+        border-top-color: #334155 !important;
+    }
+
+        .theme-dark .wallet-icon {
+            background: #f1f5f9;
+            color: #1e293b;
+        }
+
+        .theme-dark .wallet-footer-link {
+            color: #1e293b;
+        }
+
+            .theme-dark .wallet-footer-link:hover {
+                background: #f1f5f9;
+            }
+
+    .theme-secondary {
+        border-top-color: #64748b !important;
+    }
+
+        .theme-secondary .wallet-icon {
+            background: #f8fafc;
+            color: #475569;
+        }
+
+        .theme-secondary .wallet-footer-link {
+            color: #475569;
+        }
+
+            .theme-secondary .wallet-footer-link:hover {
+                background: #f8fafc;
+            }
+
     .wallet-name {
-        font-size: 1.1rem;
+        font-size: 1.05rem;
         font-weight: 800;
         color: #1e293b;
         margin-bottom: 2px;
@@ -187,44 +254,30 @@
     }
 
     .wallet-custodian {
-        font-size: 0.75rem;
+        font-size: 0.7rem;
         font-weight: 600;
         text-transform: uppercase;
         letter-spacing: 0.05em;
         color: #64748b;
     }
 
-    .wallet-body {
-        padding: 24px;
-        flex-grow: 1;
-        display: flex;
-        flex-direction: column;
-    }
-
     .wallet-footer-link {
         display: block;
         text-align: center;
-        padding: 12px;
+        padding: 10px;
         background: #f8fafc;
         border-top: 1px solid #e2e8f0;
         text-decoration: none;
         font-weight: 700;
-        font-size: 0.9rem;
+        font-size: 0.85rem;
         transition: background-color 0.2s;
     }
 
-    /* Bulletproof Number Rows */
     .money-row {
         display: flex;
         align-items: baseline;
         white-space: nowrap;
         line-height: 1;
-    }
-
-    @@media (max-width: 1200px) {
-        .wallet-grid {
-            grid-template-columns: repeat(2, 1fr);
-        }
     }
 
     @@media (max-width: 768px) {
@@ -237,34 +290,22 @@
         .master-amount {
             font-size: 2.5rem;
         }
-
-        .wallet-grid {
-            grid-template-columns: 1fr;
-        }
     }
 </style>
 
 <div class="dashboard-page py-4 fade-in-section">
-
-    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
-        <div>
-            <h2 class="section-title mb-0">Church Fund Wallets</h2>
-            <div class="text-muted small fw-medium mt-1"><i class="bi bi-shield-check me-1"></i> Live data fetched from verified records.</div>
-        </div>
-        <div class="d-inline-flex align-items-center">
-            <span class="text-muted small me-3 text-uppercase fw-bold" style="letter-spacing: 0.05em;">Currently Viewing</span>
-            <span class="badge bg-primary fs-6 px-3 py-2 rounded-pill shadow-sm"><i class="bi bi-calendar2-week me-2"></i>@Model.CurrentMonthLabel</span>
-        </div>
-    </div>
 
     <div class="master-total-banner">
         <div>
             <div class="master-label">Net Cash Balance (All Funds)</div>
             <div class="master-amount">₱ @Model.TotalChurchFunds.ToString("N2")</div>
         </div>
-        <div>
-            <button type="button" class="btn btn-light fw-bold text-dark rounded-pill px-4 py-2 shadow-sm" data-bs-toggle="modal" data-bs-target="#distributionModal">
-                <i class="bi bi-pie-chart-fill me-2 text-primary"></i>View Distribution
+        <div class="d-flex align-items-center gap-3">
+            <span class="badge bg-white bg-opacity-10 border border-white border-opacity-25 text-white fs-6 px-4 py-2 rounded-pill shadow-sm" style="letter-spacing: 0.05em;">
+                <i class="bi bi-calendar2-week me-2 opacity-75"></i>@Model.CurrentMonthLabel
+            </span>
+            <button type="button" class="btn btn-light rounded-circle shadow-sm d-flex justify-content-center align-items-center" data-bs-toggle="modal" data-bs-target="#distributionModal" title="View Distribution" style="width: 42px; height: 42px;">
+                <i class="bi bi-pie-chart-fill text-primary fs-5"></i>
             </button>
         </div>
     </div>
@@ -272,159 +313,61 @@
     <h5 class="fw-bold mb-3 text-dark">Latest Activity</h5>
     <div class="row g-3 mb-5">
         <div class="col-md-6">
-            <div class="card border-0 shadow-sm rounded-4 h-100 border-start border-4 border-success p-3">
-                <div class="card-body p-1">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <span class="badge bg-success bg-opacity-10 text-success px-3 py-2 rounded-pill"><i class="bi bi-box-arrow-in-down me-1"></i> Latest Giving</span>
-                        <small class="text-muted fw-bold">@(Model.LatestGiving?.Date.ToString("MMM dd, yyyy") ?? "N/A")</small>
+            <a href="@Model.LatestGiving?.Url" target="_blank" class="text-decoration-none">
+                <div class="card border-0 shadow-sm rounded-4 h-100 border-start border-4 border-success p-2 activity-card">
+                    <div class="card-body p-3">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="badge bg-success bg-opacity-10 text-success px-3 py-2 rounded-pill"><i class="bi bi-box-arrow-in-down me-1"></i> Latest Giving</span>
+                            <small class="text-muted fw-bold">@(Model.LatestGiving?.Date.ToString("MMM dd, yyyy") ?? "N/A")</small>
+                        </div>
+                        <h3 class="fw-bold text-dark mb-0 mt-2">₱ @(Model.LatestGiving?.Amount.ToString("N2") ?? "0.00")</h3>
                     </div>
-                    <h3 class="fw-bold text-dark mb-1">₱ @(Model.LatestGiving?.Amount.ToString("N2") ?? "0.00")</h3>
-                    <p class="text-muted small mb-0"><i class="bi bi-info-circle me-1"></i>@(Model.LatestGiving?.Impact ?? "No recent records found.")</p>
                 </div>
-            </div>
+            </a>
         </div>
         <div class="col-md-6">
-            <div class="card border-0 shadow-sm rounded-4 h-100 border-start border-4 border-danger p-3">
-                <div class="card-body p-1">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <span class="badge bg-danger bg-opacity-10 text-danger px-3 py-2 rounded-pill"><i class="bi bi-receipt me-1"></i> Latest Disbursement</span>
-                        <small class="text-muted fw-bold">@(Model.LatestDisbursement?.Date.ToString("MMM dd, yyyy") ?? "N/A")</small>
+            <a href="@Model.LatestDisbursement?.Url" target="_blank" class="text-decoration-none">
+                <div class="card border-0 shadow-sm rounded-4 h-100 border-start border-4 border-danger p-2 activity-card">
+                    <div class="card-body p-3">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="badge bg-danger bg-opacity-10 text-danger px-3 py-2 rounded-pill"><i class="bi bi-receipt me-1"></i> Latest Disbursement</span>
+                            <small class="text-muted fw-bold">@(Model.LatestDisbursement?.Date.ToString("MMM dd, yyyy") ?? "N/A")</small>
+                        </div>
+                        <h3 class="fw-bold text-dark mb-0 mt-2">₱ @(Model.LatestDisbursement?.Amount.ToString("N2") ?? "0.00")</h3>
                     </div>
-                    <h3 class="fw-bold text-dark mb-1">₱ @(Model.LatestDisbursement?.Amount.ToString("N2") ?? "0.00")</h3>
-                    <p class="text-muted small mb-0"><i class="bi bi-info-circle me-1"></i>@(Model.LatestDisbursement?.Impact ?? "No recent records found.")</p>
                 </div>
-            </div>
+            </a>
         </div>
     </div>
 
     <h5 class="fw-bold mb-3 text-dark">Fund Balances</h5>
 
     <div class="wallet-grid">
+        @foreach (var wallet in Model.DynamicWallets)
+        {
+            <div class="wallet-card theme-@(wallet.Theme)">
+                <div class="p-3 d-flex flex-column h-100">
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <div class="wallet-icon flex-shrink-0"><i class="bi @(wallet.Icon)"></i></div>
+                        <div>
+                            <div class="wallet-name">@wallet.Name</div>
+                            <div class="wallet-custodian"><i class="bi bi-person-badge me-1"></i> c/o @wallet.Custodian</div>
+                        </div>
+                    </div>
 
-        <div class="wallet-card theme-@Model.GeneralFund.Theme">
-            <div class="wallet-body d-flex flex-column h-100">
-                <div class="d-flex align-items-center gap-3 mb-4" style="height: 65px;">
-                    <div class="wallet-icon flex-shrink-0"><i class="bi @Model.GeneralFund.Icon"></i></div>
-                    <div>
-                        <div class="wallet-name">@Model.GeneralFund.Name</div>
-                        <div class="wallet-custodian"><i class="bi bi-person-badge me-1"></i> c/o @Model.GeneralFund.Custodian</div>
+                    <div class="mt-auto bg-light rounded-3 p-3 border border-secondary border-opacity-25">
+                        <div class="text-muted fw-bold text-uppercase mb-1" style="font-size: 0.75rem; letter-spacing: 0.05em;">Cash on Hand</div>
+                        <div class="money-row fw-bolder @(wallet.CashOnHand < 0 ? "text-danger" : "text-dark")" style="font-size: 1.6rem;">
+                            <span style="font-size: 1.1rem; opacity: 0.75; margin-right: 0.25rem;">₱</span>
+                            <span>@wallet.CashOnHand.ToString("N2")</span>
+                        </div>
                     </div>
                 </div>
-
-                <div class="mb-3">
-                    <div class="text-muted fw-bold text-uppercase small mb-1" style="letter-spacing: 0.05em;">Book Balance</div>
-                    <div class="money-row fw-bolder @(Model.GeneralFund.EndBalance < 0 ? "text-danger" : "text-dark")" style="font-size: 2.2rem;">
-                        <span style="font-size: 1.25rem; opacity: 0.75; margin-right: 0.25rem;">₱</span>
-                        <span>@Model.GeneralFund.EndBalance.ToString("N2")</span>
-                    </div>
-                </div>
-
-                <div class="mt-auto bg-light rounded-3 p-3 border border-secondary border-opacity-25">
-                    <div class="text-muted fw-bold text-uppercase mb-1" style="font-size: 0.75rem; letter-spacing: 0.05em;">Cash on Hand</div>
-                    <div class="money-row fw-bolder text-dark" style="font-size: 1.5rem;">
-                        <span style="font-size: 1rem; opacity: 0.75; margin-right: 0.25rem;">₱</span>
-                        <span>@Model.GeneralFund.CashOnHand.ToString("N2")</span>
-                    </div>
-                </div>
+                <a href="/WalletDetails?month=@Model.TargetMonth&fund=@Uri.EscapeDataString(wallet.Code)" class="wallet-footer-link">
+                    View Details <i class="bi bi-arrow-right ms-1"></i>
+                </a>
             </div>
-            <a href="/WalletDetails?month=@Model.TargetMonth&fund=General" class="wallet-footer-link">
-                View Details <i class="bi bi-arrow-right ms-1"></i>
-            </a>
-        </div>
-
-        <div class="wallet-card theme-@Model.PledgesFund.Theme">
-            <div class="wallet-body d-flex flex-column h-100">
-                <div class="d-flex align-items-center gap-3 mb-4" style="height: 65px;">
-                    <div class="wallet-icon flex-shrink-0"><i class="bi @Model.PledgesFund.Icon"></i></div>
-                    <div>
-                        <div class="wallet-name">@Model.PledgesFund.Name</div>
-                        <div class="wallet-custodian"><i class="bi bi-person-badge me-1"></i> c/o @Model.PledgesFund.Custodian</div>
-                    </div>
-                </div>
-
-                <div class="mb-3">
-                    <div class="text-muted fw-bold text-uppercase small mb-1" style="letter-spacing: 0.05em;">Book Balance</div>
-                    <div class="money-row fw-bolder @(Model.PledgesFund.EndBalance < 0 ? "text-danger" : "text-dark")" style="font-size: 2.2rem;">
-                        <span style="font-size: 1.25rem; opacity: 0.75; margin-right: 0.25rem;">₱</span>
-                        <span>@Model.PledgesFund.EndBalance.ToString("N2")</span>
-                    </div>
-                </div>
-
-                <div class="mt-auto bg-light rounded-3 p-3 border border-secondary border-opacity-25">
-                    <div class="text-muted fw-bold text-uppercase mb-1" style="font-size: 0.75rem; letter-spacing: 0.05em;">Cash on Hand</div>
-                    <div class="money-row fw-bolder text-dark" style="font-size: 1.5rem;">
-                        <span style="font-size: 1rem; opacity: 0.75; margin-right: 0.25rem;">₱</span>
-                        <span>@Model.PledgesFund.CashOnHand.ToString("N2")</span>
-                    </div>
-                </div>
-            </div>
-            <a href="/WalletDetails?month=@Model.TargetMonth&fund=Pledges" class="wallet-footer-link">
-                View Details <i class="bi bi-arrow-right ms-1"></i>
-            </a>
-        </div>
-
-        <div class="wallet-card theme-@Model.ConstructionFund.Theme">
-            <div class="wallet-body d-flex flex-column h-100">
-                <div class="d-flex align-items-center gap-3 mb-4" style="height: 65px;">
-                    <div class="wallet-icon flex-shrink-0"><i class="bi @Model.ConstructionFund.Icon"></i></div>
-                    <div>
-                        <div class="wallet-name">@Model.ConstructionFund.Name</div>
-                        <div class="wallet-custodian"><i class="bi bi-person-badge me-1"></i> c/o @Model.ConstructionFund.Custodian</div>
-                    </div>
-                </div>
-
-                <div class="mb-3">
-                    <div class="text-muted fw-bold text-uppercase small mb-1" style="letter-spacing: 0.05em;">Book Balance</div>
-                    <div class="money-row fw-bolder @(Model.ConstructionFund.EndBalance < 0 ? "text-danger" : "text-dark")" style="font-size: 2.2rem;">
-                        <span style="font-size: 1.25rem; opacity: 0.75; margin-right: 0.25rem;">₱</span>
-                        <span>@Model.ConstructionFund.EndBalance.ToString("N2")</span>
-                    </div>
-                </div>
-
-                <div class="mt-auto bg-light rounded-3 p-3 border border-secondary border-opacity-25">
-                    <div class="text-muted fw-bold text-uppercase mb-1" style="font-size: 0.75rem; letter-spacing: 0.05em;">Cash on Hand</div>
-                    <div class="money-row fw-bolder text-dark" style="font-size: 1.5rem;">
-                        <span style="font-size: 1rem; opacity: 0.75; margin-right: 0.25rem;">₱</span>
-                        <span>@Model.ConstructionFund.CashOnHand.ToString("N2")</span>
-                    </div>
-                </div>
-            </div>
-            <a href="/WalletDetails?month=@Model.TargetMonth&fund=Construction" class="wallet-footer-link">
-                View Details <i class="bi bi-arrow-right ms-1"></i>
-            </a>
-        </div>
-
-        <div class="wallet-card theme-@Model.PWFund.Theme">
-            <div class="wallet-body d-flex flex-column h-100">
-                <div class="d-flex align-items-center gap-3 mb-4" style="height: 65px;">
-                    <div class="wallet-icon flex-shrink-0"><i class="bi @Model.PWFund.Icon"></i></div>
-                    <div>
-                        <div class="wallet-name" style="line-height: 1.1;">Praise &<br>Worship</div>
-                        <div class="wallet-custodian"><i class="bi bi-person-badge me-1"></i> c/o @Model.PWFund.Custodian</div>
-                    </div>
-                </div>
-
-                <div class="mb-3">
-                    <div class="text-muted fw-bold text-uppercase small mb-1" style="letter-spacing: 0.05em;">Book Balance</div>
-                    <div class="money-row fw-bolder @(Model.PWFund.EndBalance < 0 ? "text-danger" : "text-dark")" style="font-size: 2.2rem;">
-                        <span style="font-size: 1.25rem; opacity: 0.75; margin-right: 0.25rem;">₱</span>
-                        <span>@Model.PWFund.EndBalance.ToString("N2")</span>
-                    </div>
-                </div>
-
-                <div class="mt-auto bg-light rounded-3 p-3 border border-secondary border-opacity-25">
-                    <div class="text-muted fw-bold text-uppercase mb-1" style="font-size: 0.75rem; letter-spacing: 0.05em;">Cash on Hand</div>
-                    <div class="money-row fw-bolder text-dark" style="font-size: 1.5rem;">
-                        <span style="font-size: 1rem; opacity: 0.75; margin-right: 0.25rem;">₱</span>
-                        <span>@Model.PWFund.CashOnHand.ToString("N2")</span>
-                    </div>
-                </div>
-            </div>
-            <a href="/WalletDetails?month=@Model.TargetMonth&fund=Praise%20%26%20Worship" class="wallet-footer-link">
-                View Details <i class="bi bi-arrow-right ms-1"></i>
-            </a>
-        </div>
-
+        }
     </div>
 
     <div class="card shadow-sm border-0 mb-4 rounded-4 mt-5">
@@ -436,7 +379,7 @@
 
             <div class="btn-group border border-primary border-opacity-25 shadow-sm" role="group" aria-label="Summary View Toggle" style="border-radius: 8px; padding: 2px; background-color: #f8fafc;">
                 <input type="radio" class="btn-check" name="summaryToggle" id="btnCurrentMonth" autocomplete="off" checked onchange="toggleSummaryView('current')">
-                <label class="btn btn-sm btn-outline-primary border-0 fw-semibold" for="btnCurrentMonth" style="border-radius: 6px;">Current Month</label>
+                <label class="btn btn-sm btn-outline-primary border-0 fw-semibold" for="btnCurrentMonth" style="border-radius: 6px;">Latest Month</label>
 
                 <input type="radio" class="btn-check" name="summaryToggle" id="btnQuarterly" autocomplete="off" onchange="toggleSummaryView('quarterly')">
                 <label class="btn btn-sm btn-outline-primary border-0 fw-semibold" for="btnQuarterly" style="border-radius: 6px;">Quarterly</label>
@@ -447,7 +390,6 @@
         </div>
 
         <div class="card-body p-4">
-
             <div id="viewCurrentMonth">
                 @if (Model.CurrentMonthSummary != null && Model.CurrentMonthSummary.DailySummaries.Any())
                 {
@@ -455,9 +397,7 @@
                 }
                 else
                 {
-                    <div class="alert alert-light text-center border rounded-3">
-                        No transactions recorded yet for this month.
-                    </div>
+                    <div class="alert alert-light text-center border rounded-3">No transactions recorded yet for this month.</div>
                 }
             </div>
 
@@ -471,23 +411,18 @@
                             <h6 class="fw-bold text-secondary mb-3 text-uppercase" style="letter-spacing: 0.05em; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px;">
                                 Q@(quarterGroup.Key) @Model.DisplayYear
                             </h6>
-
                             @foreach (var monthSummary in quarterGroup)
                             {
-                                <div class="mb-4">
-                                    @{
+                                <div class="mb-4">@{
                                         RenderMonthlyTable(monthSummary);
-                                    }
-                                </div>
+                                    }</div>
                             }
                         </div>
                     }
                 }
                 else
                 {
-                    <div class="alert alert-light text-center border rounded-3">
-                        No transactions recorded for @Model.DisplayYear.
-                    </div>
+                    <div class="alert alert-light text-center border rounded-3">No transactions recorded for @Model.DisplayYear.</div>
                 }
             </div>
 
@@ -496,21 +431,16 @@
                 {
                     foreach (var monthSummary in Model.AllYearSummaries)
                     {
-                        <div class="mb-5">
-                            @{
+                        <div class="mb-5">@{
                                 RenderMonthlyTable(monthSummary);
-                            }
-                        </div>
+                            }</div>
                     }
                 }
                 else
                 {
-                    <div class="alert alert-light text-center border rounded-3">
-                        No transactions recorded for @Model.DisplayYear.
-                    </div>
+                    <div class="alert alert-light text-center border rounded-3">No transactions recorded for @Model.DisplayYear.</div>
                 }
             </div>
-
         </div>
     </div>
 </div>
@@ -576,22 +506,13 @@
             <div class="modal-body p-4">
                 <p class="text-muted small mb-4">This breakdown shows how the Total Net Cash Balance is distributed across all active church fund wallets for the currently tracked month.</p>
 
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <span class="fw-semibold text-secondary">General Fund:</span>
-                    <span class="fw-bold text-dark">₱ @Model.GeneralFund.CashOnHand.ToString("N2")</span>
-                </div>
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <span class="fw-semibold text-secondary">Pledges:</span>
-                    <span class="fw-bold text-dark">₱ @Model.PledgesFund.CashOnHand.ToString("N2")</span>
-                </div>
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <span class="fw-semibold text-secondary">Construction:</span>
-                    <span class="fw-bold text-dark">₱ @Model.ConstructionFund.CashOnHand.ToString("N2")</span>
-                </div>
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <span class="fw-semibold text-secondary">Praise & Worship:</span>
-                    <span class="fw-bold text-dark">₱ @Model.PWFund.CashOnHand.ToString("N2")</span>
-                </div>
+                @foreach (var wallet in Model.DynamicWallets)
+                {
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="fw-semibold text-secondary">@wallet.Name:</span>
+                        <span class="fw-bold text-dark">₱ @wallet.CashOnHand.ToString("N2")</span>
+                    </div>
+                }
 
                 <hr class="my-3 opacity-25">
 
@@ -653,3 +574,4 @@
         if (document.querySelector('.dashboard-page')) restoreSummaryTab();
     });
 </script>
+

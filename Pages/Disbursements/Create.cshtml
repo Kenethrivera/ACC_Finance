@@ -44,6 +44,9 @@
                     }).ToList()
             }).ToList()
     });
+
+    var activeMinistriesJson = JsonSerializer.Serialize(Model.ActiveMinistries);
+    var activeWalletsJson = JsonSerializer.Serialize(Model.ActiveWallets);
 }
 
 <style>
@@ -405,7 +408,7 @@
             <div class="sheet-head">
                 <div>
                     <h1 class="sheet-title">Cash Disbursement</h1>
-                    <div class="sheet-sub">Create or continuously edit disbursement records.</div>
+                    
                 </div>
 
                 <div class="d-flex align-items-end gap-3 flex-wrap">
@@ -599,10 +602,9 @@
         let fixedTemplates = @Html.Raw(initialTemplatesJson);
         if (!Array.isArray(fixedTemplates)) fixedTemplates = [];
 
-        const ministryOptions = [
-            "Admin", "Worship", "Fellowship", "Evangelism",
-            "Deacon", "Stewardship", "Prayer", "Discipleship", "Christian Education", "Helps"
-        ];
+        const ministryOptions = @Html.Raw(activeMinistriesJson);
+        const fundOptions = @Html.Raw(activeWalletsJson);
+
         let sheet = @Html.Raw(initialSheetJson);
 
         const currentRecordDate = document.getElementById("recordDateInput")?.value || "";
@@ -700,17 +702,30 @@
 
         function buildMinistryOptions(selectedValue) {
             let html = `<option value="">-- Select --</option>`;
+            let found = false;
             for (const option of ministryOptions) {
-                html += `<option value="${escapeHtml(option)}" ${option === selectedValue ? "selected" : ""}>${escapeHtml(option)}</option>`;
+                const isSelected = option === selectedValue;
+                if (isSelected) found = true;
+                html += `<option value="${escapeHtml(option)}" ${isSelected ? "selected" : ""}>${escapeHtml(option)}</option>`;
+            }
+            // Fallback: If a voucher contains a ministry that was later deleted, still show it to prevent data loss.
+            if (selectedValue && !found) {
+                html += `<option value="${escapeHtml(selectedValue)}" selected>${escapeHtml(selectedValue)} (Inactive)</option>`;
             }
             return html;
         }
 
         function buildFundOptions(selectedValue) {
-            const funds = ["General", "Construction", "Praise & Worship", "Pledges"];
             let html = ``;
-            for (const f of funds) {
-                html += `<option value="${escapeHtml(f)}" ${f === selectedValue ? "selected" : ""}>${escapeHtml(f)}</option>`;
+            let found = false;
+            for (const f of fundOptions) {
+                const isSelected = f === selectedValue;
+                if (isSelected) found = true;
+                html += `<option value="${escapeHtml(f)}" ${isSelected ? "selected" : ""}>${escapeHtml(f)}</option>`;
+            }
+            
+            if (selectedValue && !found) {
+                html += `<option value="${escapeHtml(selectedValue)}" selected>${escapeHtml(selectedValue)} (Inactive)</option>`;
             }
             return html;
         }

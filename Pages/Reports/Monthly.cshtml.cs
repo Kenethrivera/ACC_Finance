@@ -1,5 +1,6 @@
 ﻿using acc_finance.Models;
 using acc_finance.Models.Reports;
+using acc_finance.Pages.Admin;
 using acc_finance.Services;
 using Google.Apis.Auth.OAuth2;
 using Google.Apis.Services;
@@ -56,6 +57,10 @@ namespace acc_finance.Pages.Reports
 
         public async Task<IActionResult> OnGetAsync()
         {
+            // Fetch the dynamic wallets/ministries from your new table safely
+            var allWalletsResponse = await _supabase.Client.From<Wallet>().Get();
+            var activeWallets = allWalletsResponse.Models.Where(w => w.Is_Active == true).ToList();
+
             // 🚨 PERSIST LOADED RECORD DATE 🚨
             var qsMonth = Request.Query["SelectedMonth"].ToString();
             if (string.IsNullOrEmpty(qsMonth))
@@ -72,6 +77,7 @@ namespace acc_finance.Pages.Reports
                 // Save the currently viewed month to session
                 HttpContext.Session.SetString("ActiveReportMonth", SelectedMonth);
             }
+
 
             await LoadMonthAsync();
             return Page();
@@ -1323,28 +1329,57 @@ namespace acc_finance.Pages.Reports
             var monthGivingRecordIds = givingRecords.Select(r => r.Id.ToString()).ToList();
             var monthGivingEntries = allGivingEntries.Where(e => monthGivingRecordIds.Contains(e.GivingRecordId.ToString())).ToList();
 
-            decimal begGen = beginningBalances.FirstOrDefault(b => b.FundName == "General")?.EndingBalance ?? 0;
-            decimal begPledges = beginningBalances.FirstOrDefault(b => b.FundName == "Pledges")?.EndingBalance ?? 0;
-            decimal begConst = beginningBalances.FirstOrDefault(b => b.FundName == "Construction")?.EndingBalance ?? 0;
-            decimal begPW = beginningBalances.FirstOrDefault(b => b.FundName == "Praise & Worship")?.EndingBalance ?? 0;
+            // 🚨 DYNAMIC: pull active wallets/funds from the database instead of a fixed 4-item list
+            var activeWalletsResp = await _supabase.Client.From<Wallet>()
+                .Where(w => w.Is_Active == true)
+                .Get();
+            var allWalletsResp = await _supabase.Client.From<Wallet>().Get();
+            var activeWallets = allWalletsResp.Models
+                .Where(w => w.Is_Active == true)
+                .OrderBy(w => w.CreatedAt)
+                .ToList();
 
-            decimal incPledges = monthGivingEntries.Sum(e => e.Solomon + e.Noah + e.Mission);
-            decimal incGen = monthGivingEntries.Sum(e => e.Tithes + e.Offerings) + monthGivingEntries.Where(e => e.OthersFund == "General" || string.IsNullOrWhiteSpace(e.OthersFund)).Sum(e => e.Others);
-            decimal incConst = monthGivingEntries.Where(e => e.OthersFund == "Construction").Sum(e => e.Others);
-            decimal incPW = monthGivingEntries.Where(e => e.OthersFund == "Praise & Worship").Sum(e => e.Others);
+            var ministriesForCustodianResp = await _supabase.Client.From<Ministry>().Get();
+            var ministriesForCustodian = ministriesForCustodianResp.Models ?? new List<Ministry>();
 
-            decimal expConst = transactions.Where(t => t.FundSource == "Construction").Sum(t => t.DisbursementAmount);
-            decimal expPW = transactions.Where(t => t.FundSource == "Praise & Worship").Sum(t => t.DisbursementAmount);
-            decimal expPledges = transactions.Where(t => t.FundSource == "Pledges").Sum(t => t.DisbursementAmount);
-            decimal expGen = transactions.Where(t => t.FundSource == "General").Sum(t => t.DisbursementAmount);
-
-            var endBalances = new List<MonthlyFundBalance>
+            string ResolveCustodian(Wallet w)
             {
-                new MonthlyFundBalance { ReportMonth = SelectedMonth, FundName = "General", Custodian = "Sis. Cora", EndingBalance = begGen + incGen - expGen },
-                new MonthlyFundBalance { ReportMonth = SelectedMonth, FundName = "Pledges", Custodian = "Sis. Cora", EndingBalance = begPledges + incPledges - expPledges },
-                new MonthlyFundBalance { ReportMonth = SelectedMonth, FundName = "Construction", Custodian = "Ptra Es", EndingBalance = begConst + incConst - expConst },
-                new MonthlyFundBalance { ReportMonth = SelectedMonth, FundName = "Praise & Worship", Custodian = "P/W", EndingBalance = begPW + incPW - expPW }
+                if (w.CustodianType == "Ministry" && w.MinistryId.HasValue)
+                    return ministriesForCustodian.FirstOrDefault(m => m.Id == w.MinistryId.Value)?.Name ?? w.DisplayName;
+
+                return string.IsNullOrWhiteSpace(w.CustodianPersonName) ? w.DisplayName : w.CustodianPersonName;
+            }
+
+            // Same math as before, per fund — General/Pledges keep their special income sources,
+            // every other wallet gets "Others" routed by matching its Code. Nothing about the
+            // arithmetic changed, only that the set of funds is read from the DB.
+            decimal IncomeFor(Wallet w) => w.Code switch
+            {
+                "General" => monthGivingEntries.Sum(e => e.Tithes + e.Offerings)
+                           + monthGivingEntries.Where(e => e.OthersFund == "General" || string.IsNullOrWhiteSpace(e.OthersFund)).Sum(e => e.Others),
+                "Pledges" => monthGivingEntries.Sum(e => e.Solomon + e.Noah + e.Mission)
+                           + monthGivingEntries.Where(e => e.OthersFund == "Pledges").Sum(e => e.Others),
+                _ => monthGivingEntries.Where(e => e.OthersFund == w.Code).Sum(e => e.Others)
             };
+
+            decimal ExpenseFor(Wallet w) => w.Code == "General"
+                ? transactions.Where(t => t.FundSource == "General" || string.IsNullOrWhiteSpace(t.FundSource)).Sum(t => t.DisbursementAmount)
+                : transactions.Where(t => t.FundSource == w.Code).Sum(t => t.DisbursementAmount);
+
+            var endBalances = activeWallets.Select(w =>
+            {
+                decimal beg = beginningBalances.FirstOrDefault(b => b.FundName == w.Code)?.EndingBalance ?? 0;
+                decimal inc = IncomeFor(w);
+                decimal exp = ExpenseFor(w);
+
+                return new MonthlyFundBalance
+                {
+                    ReportMonth = SelectedMonth,
+                    FundName = w.Code,
+                    Custodian = ResolveCustodian(w),
+                    EndingBalance = beg + inc - exp
+                };
+            }).ToList();
 
             // N+1 FIX: Fetch all existing balances for the month once, then Bulk Upsert
             var existingBalsResp = await _supabase.Client.From<MonthlyFundBalance>()
@@ -1504,7 +1539,7 @@ namespace acc_finance.Pages.Reports
                 }
             });
 
-            BuildFinancialReportGrid(grid, formatRequests, sheetId, firstDay, beginningBalances, transactions, monthGivingEntries, endBalances);
+            BuildFinancialReportGrid(grid, formatRequests, sheetId, firstDay, beginningBalances, transactions, monthGivingEntries, endBalances, activeWallets);
 
             IList<IList<object>> allRows = grid.Select(r => (IList<object>)r).ToList();
             var valueRange = new ValueRange { Values = allRows };
@@ -1562,10 +1597,11 @@ namespace acc_finance.Pages.Reports
         }
 
         private void BuildFinancialReportGrid(
-            List<List<object>> grid, List<Request> formats, int sheetId,
-            DateTime month, IReadOnlyList<MonthlyFundBalance> beginningBalances,
-            List<LedgerTransaction> transactions, List<GivingEntry> givingEntries,
-            List<MonthlyFundBalance> endBalances)
+    List<List<object>> grid, List<Request> formats, int sheetId,
+    DateTime month, IReadOnlyList<MonthlyFundBalance> beginningBalances,
+    List<LedgerTransaction> transactions, List<GivingEntry> givingEntries,
+    List<MonthlyFundBalance> endBalances,
+    List<Wallet> activeWallets)  
         {
             var lastDay = new DateTime(month.Year, month.Month,
                 DateTime.DaysInMonth(month.Year, month.Month));
@@ -1817,29 +1853,17 @@ namespace acc_finance.Pages.Reports
 
             formats.Add(new Request { RepeatCell = new RepeatCellRequest { Range = new GridRange { SheetId = sheetId, StartRowIndex = netStartRow, EndRowIndex = netStartRow + 1, StartColumnIndex = 8, EndColumnIndex = 9 }, Cell = new CellData { UserEnteredFormat = new CellFormat { BackgroundColor = netBgColor, TextFormat = new TextFormat { Bold = true, ForegroundColor = new Color { Red = 0f, Green = 0f, Blue = 0f } }, NumberFormat = new NumberFormat { Type = "NUMBER", Pattern = "#,##0.00;(#,##0.00)" } } }, Fields = "userEnteredFormat.backgroundColor,userEnteredFormat.textFormat.bold,userEnteredFormat.textFormat.foregroundColor,userEnteredFormat.numberFormat" } });
 
-            var genBal = endBalances.FirstOrDefault(b => b.FundName == "General")?.EndingBalance ?? 0;
-            var pldgBal = endBalances.FirstOrDefault(b => b.FundName == "Pledges")?.EndingBalance ?? 0;
-            var constBal = endBalances.FirstOrDefault(b => b.FundName == "Construction")?.EndingBalance ?? 0;
-            var pwBal = endBalances.FirstOrDefault(b => b.FundName == "Praise & Worship")?.EndingBalance ?? 0;
-
             int walletStartRow = row;
 
-            SetCell(grid, row, 3, "Pledges - c/o Sis. Cora");
-            SetCell(grid, row, 6, pldgBal);
-            row++;
+            foreach (var w in activeWallets)
+            {
+                decimal bal = endBalances.FirstOrDefault(b => b.FundName == w.Code)?.EndingBalance ?? 0;
+                string custodian = endBalances.FirstOrDefault(b => b.FundName == w.Code)?.Custodian ?? w.DisplayName;
 
-            SetCell(grid, row, 3, "General Fund - c/o Sis. Cora");
-            SetCell(grid, row, 6, genBal);
-            row++;
-
-            SetCell(grid, row, 3, "For church ceiling construction - c./o Ptra Es");
-            SetCell(grid, row, 6, constBal);
-            row++;
-
-            int pwRow = row;
-            SetCell(grid, row, 3, "Fund - c/o P/W");
-            SetCell(grid, row, 6, pwBal);
-            row++;
+                SetCell(grid, row, 3, $"{w.DisplayName} - c/o {custodian}");
+                SetCell(grid, row, 6, bal);
+                row++;
+            }
 
             if (walletStartRow < row)
             {
@@ -1951,10 +1975,9 @@ namespace acc_finance.Pages.Reports
                 .Filter("report_month", Supabase.Postgrest.Constants.Operator.Equals, previousMonthStr).Get();
             var beginningBalances = prevBalancesResponse.Models.ToList();
 
-            decimal begGen = beginningBalances.FirstOrDefault(b => b.FundName == "General")?.EndingBalance ?? 0;
-            decimal begPledges = beginningBalances.FirstOrDefault(b => b.FundName == "Pledges")?.EndingBalance ?? 0;
-            decimal begConst = beginningBalances.FirstOrDefault(b => b.FundName == "Construction")?.EndingBalance ?? 0;
-            decimal begPW = beginningBalances.FirstOrDefault(b => b.FundName == "Praise & Worship")?.EndingBalance ?? 0;
+            // Fix: Fetch safely and filter in memory
+            var allWalletsResp = await _supabase.Client.From<Wallet>().Get();
+            var activeWallets = allWalletsResp.Models.Where(w => w.Is_Active == true).OrderBy(w => w.CreatedAt).ToList();
 
             // B. Bulk Fetch Month Income Data
             var givingResp = await _supabase.Client.From<GivingRecord>()
@@ -1996,6 +2019,18 @@ namespace acc_finance.Pages.Reports
             decimal totalMonthGiving = 0;
             decimal totalMonthAdjDisb = 0;
 
+            // 🚨 FIX: Moved the local functions DOWN HERE after the lists are actually created! 🚨
+            decimal IncomeForAudit(Wallet w) => w.Code switch
+            {
+                "General" => monthGivingEntries.Sum(e => e.Tithes + e.Offerings + (e.OthersFund == "General" || string.IsNullOrWhiteSpace(e.OthersFund) ? e.Others : 0)),
+                "Pledges" => monthGivingEntries.Sum(e => e.Solomon + e.Noah + e.Mission + (e.OthersFund == "Pledges" ? e.Others : 0)),
+                _ => monthGivingEntries.Where(e => e.OthersFund == w.Code).Sum(e => e.Others)
+            };
+
+            decimal DisbForAudit(Wallet w) => w.Code == "General"
+                ? allVoucherItems.Where(i => i.FundSource == "General" || string.IsNullOrWhiteSpace(i.FundSource)).Sum(i => i.Amount - i.AmountReturned)
+                : allVoucherItems.Where(i => i.FundSource == w.Code).Sum(i => i.Amount - i.AmountReturned);
+
             // ====================================================================
             // DYNAMIC DAILY LOOP
             // ====================================================================
@@ -2003,7 +2038,6 @@ namespace acc_finance.Pages.Reports
             {
                 string pageDateStr = page.ReportDate.ToString("yyyy-MM-dd");
 
-                // 1. Get accurate daily income breakdown from GivingEntries
                 var dayRecordIds = givingRecords.Where(r => r.ServiceDate.ToString("yyyy-MM-dd") == pageDateStr).Select(r => r.Id).ToList();
                 var dayEntries = monthGivingEntries.Where(e => dayRecordIds.Contains(e.GivingRecordId)).ToList();
 
@@ -2012,7 +2046,6 @@ namespace acc_finance.Pages.Reports
                 decimal dayConst = dayEntries.Where(e => e.OthersFund == "Construction").Sum(e => e.Others);
                 decimal dayPW = dayEntries.Where(e => e.OthersFund == "Praise & Worship").Sum(e => e.Others);
 
-                // 2. Get accurate daily disbursement breakdown from VoucherItems
                 var dailyVoucherItems = allVoucherItems.Where(i =>
                     allVouchers.Any(v => v.Id == i.VoucherId &&
                     disbRecords.Any(dr => dr.Id == v.DisbursementRecordId && dr.RecordDate.ToString("yyyy-MM-dd") == pageDateStr))).ToList();
@@ -2034,13 +2067,11 @@ namespace acc_finance.Pages.Reports
                     DisbursementByWallet = new Dictionary<string, decimal>()
                 };
 
-                // Populate Blessing Dictionary (Only if > 0)
                 if (dayGen > 0) dailySummary.BlessingByWallet.Add("General Fund", dayGen);
                 if (dayPledges > 0) dailySummary.BlessingByWallet.Add("Pledges", dayPledges);
                 if (dayConst > 0) dailySummary.BlessingByWallet.Add("Construction", dayConst);
                 if (dayPW > 0) dailySummary.BlessingByWallet.Add("Praise & Worship", dayPW);
 
-                // Populate Disbursement Dictionary (Only if > 0)
                 if (dDisbGen > 0) dailySummary.DisbursementByWallet.Add("General Fund", dDisbGen);
                 if (dDisbPledges > 0) dailySummary.DisbursementByWallet.Add("Pledges", dDisbPledges);
                 if (dDisbConst > 0) dailySummary.DisbursementByWallet.Add("Construction", dDisbConst);
@@ -2053,37 +2084,31 @@ namespace acc_finance.Pages.Reports
             }
 
             // 4. Overall & Wallet Health (Monthly Totals)
-            decimal incPledges = monthGivingEntries.Sum(e => e.Solomon + e.Noah + e.Mission + (e.OthersFund == "Pledges" ? e.Others : 0));
-            decimal incGen = monthGivingEntries.Sum(e => e.Tithes + e.Offerings + (e.OthersFund == "General" || string.IsNullOrWhiteSpace(e.OthersFund) ? e.Others : 0));
-            decimal incConst = monthGivingEntries.Where(e => e.OthersFund == "Construction").Sum(e => e.Others);
-            decimal incPW = monthGivingEntries.Where(e => e.OthersFund == "Praise & Worship").Sum(e => e.Others);
-
-            decimal disbGen = allVoucherItems.Where(i => i.FundSource == "General" || string.IsNullOrWhiteSpace(i.FundSource)).Sum(i => i.Amount - i.AmountReturned);
-            decimal disbPledges = allVoucherItems.Where(i => i.FundSource == "Pledges").Sum(i => i.Amount - i.AmountReturned);
-            decimal disbConst = allVoucherItems.Where(i => i.FundSource == "Construction").Sum(i => i.Amount - i.AmountReturned);
-            decimal disbPW = allVoucherItems.Where(i => i.FundSource == "Praise & Worship").Sum(i => i.Amount - i.AmountReturned);
-
             decimal overallBegBal = beginningBalances.Sum(b => b.EndingBalance);
             ledger.Overall = new OverallSummary { BeginningBalance = overallBegBal, TotalGiving = totalMonthGiving, TotalAdjustedDisbursement = totalMonthAdjDisb, NetCashBalance = overallBegBal + totalMonthGiving - totalMonthAdjDisb };
 
-            ledger.FundAudits = new Dictionary<string, FundAudit>
+            ledger.FundAudits = new Dictionary<string, FundAudit>();
+            foreach (var w in activeWallets)
             {
-                { "General Fund", new FundAudit { BeginningBalance = begGen, TotalIncome = incGen, TotalDisbursements = disbGen, CalculatedEndingBalance = begGen + incGen - disbGen, IsMathBalanced = true, IsInDeficit = (begGen + incGen - disbGen) < 0 } },
-                { "Pledges", new FundAudit { BeginningBalance = begPledges, TotalIncome = incPledges, TotalDisbursements = disbPledges, CalculatedEndingBalance = begPledges + incPledges - disbPledges, IsMathBalanced = true, IsInDeficit = (begPledges + incPledges - disbPledges) < 0 } },
-                { "Construction", new FundAudit { BeginningBalance = begConst, TotalIncome = incConst, TotalDisbursements = disbConst, CalculatedEndingBalance = begConst + incConst - disbConst, IsMathBalanced = true, IsInDeficit = (begConst + incConst - disbConst) < 0 } },
-                { "Praise & Worship", new FundAudit { BeginningBalance = begPW, TotalIncome = incPW, TotalDisbursements = disbPW, CalculatedEndingBalance = begPW + incPW - disbPW, IsMathBalanced = true, IsInDeficit = (begPW + incPW - disbPW) < 0 } }
-            };
+                decimal beg = beginningBalances.FirstOrDefault(b => b.FundName == w.Code)?.EndingBalance ?? 0;
+                decimal inc = IncomeForAudit(w);
+                decimal disb = DisbForAudit(w);
+
+                ledger.FundAudits[w.DisplayName] = new FundAudit
+                {
+                    BeginningBalance = beg,
+                    TotalIncome = inc,
+                    TotalDisbursements = disb,
+                    CalculatedEndingBalance = beg + inc - disb,
+                    IsMathBalanced = true,
+                    IsInDeficit = (beg + inc - disb) < 0
+                };
+            }
 
             ledger.SystemDashboard = new DashboardTotals { BookBalance = ledger.Overall.NetCashBalance, CashOnHand = ledger.Overall.NetCashBalance };
 
-            // ====================================================================
-            // 🚨 THE NEW AI CACHING LOGIC 🚨
-            // ====================================================================
-
-            // 1. Generate the Fingerprint (Combines BegBal + Receipts - Disb)
             string currentFingerprint = $"{ledger.Overall.BeginningBalance}_{ledger.Overall.TotalGiving}_{ledger.Overall.TotalAdjustedDisbursement}";
 
-            // 2. Check the Database to see if a report for this MONTH exists
             var cachedLogQuery = await _supabase.Client.From<AiAuditLog>()
                 .Filter("report_month", Supabase.Postgrest.Constants.Operator.Equals, SelectedMonth)
                 .Get();
@@ -2092,36 +2117,29 @@ namespace acc_finance.Pages.Reports
 
             if (existingLog != null && existingLog.DataFingerprint == currentFingerprint)
             {
-                // CACHE HIT (0.1 SECONDS): The data hasn't changed. Load the saved HTML!
                 AiSummary = existingLog.AiHtmlSummary;
             }
             else
             {
-                // CACHE MISS (8 SECONDS): The data is new or changed. Ask Gemini to write a fresh report.
                 AiSummary = await _aiAuditor.GenerateAuditSummaryAsync(ledger);
 
                 if (existingLog != null)
                 {
-                    // UPDATE: The month already exists, but the fingerprint changed (Treasurer made an edit)
-                    // We just overwrite the old AI summary with the new one.
                     existingLog.DataFingerprint = currentFingerprint;
                     existingLog.AiHtmlSummary = AiSummary;
                     existingLog.CreatedAt = DateTime.UtcNow;
-
                     await _supabase.Client.From<AiAuditLog>().Update(existingLog);
                 }
                 else
                 {
-                    // INSERT: First time anyone has ever generated a report for this month
                     var newLog = new AiAuditLog
                     {
-                        Id = Guid.NewGuid().ToString(), // 👈 THIS FIXES THE CRASH! Generates a unique ID in C#
+                        Id = Guid.NewGuid().ToString(),
                         ReportMonth = SelectedMonth,
                         DataFingerprint = currentFingerprint,
                         AiHtmlSummary = AiSummary,
                         CreatedAt = DateTime.UtcNow
                     };
-
                     await _supabase.Client.From<AiAuditLog>().Insert(newLog);
                 }
             }

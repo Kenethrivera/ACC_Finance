@@ -30,6 +30,34 @@ namespace acc_finance.Pages.Disbursements
         public DisbursementSheetVm Sheet { get; set; } = new();
         public List<TemplatePayloadVm> FixedTemplates { get; set; } = new();
 
+        // 🚨 DYNAMIC DROPDOWNS
+        public List<string> ActiveMinistries { get; set; } = new();
+        public List<string> ActiveWallets { get; set; } = new();
+
+        private async Task LoadDropdownsAsync()
+        {
+            try
+            {
+                var ministriesTask = _supabase.Client.From<Ministry>().Get();
+                var walletsTask = _supabase.Client.From<Wallet>().Filter("is_active", Operator.Equals, "true").Get();
+
+                await Task.WhenAll(ministriesTask, walletsTask);
+
+                ActiveMinistries = ministriesTask.Result.Models?.Select(m => m.Name).OrderBy(n => n).ToList() ?? new List<string>();
+                ActiveWallets = walletsTask.Result.Models?.Select(w => w.Code).OrderBy(c => c).ToList() ?? new List<string>();
+
+                // Ensure "General" is always an available fallback option
+                if (!ActiveWallets.Contains("General", StringComparer.OrdinalIgnoreCase))
+                {
+                    ActiveWallets.Insert(0, "General");
+                }
+            }
+            catch
+            {
+                if (!ActiveWallets.Any()) ActiveWallets.Add("General");
+            }
+        }
+
         public async Task<IActionResult> OnGetAsync()
         {
             await _supabase.InitializeAsync(true);
@@ -51,6 +79,8 @@ namespace acc_finance.Pages.Disbursements
                 HttpContext.Session.SetString("ActiveDisbursementDate", RecordDate.ToString("yyyy-MM-dd"));
             }
 
+            // 🚨 Load Dropdowns
+            await LoadDropdownsAsync();
             Sheet = await BuildSheetAsync(RecordDate);
             FixedTemplates = await LoadTemplatesAsync();
 
@@ -64,6 +94,7 @@ namespace acc_finance.Pages.Disbursements
             if (RecordDate == DateTime.MinValue)
             {
                 ModelState.AddModelError(string.Empty, "Please choose a valid date.");
+                await LoadDropdownsAsync();
                 Sheet = await BuildSheetAsync(RecordDate);
                 return Page();
             }
@@ -71,6 +102,7 @@ namespace acc_finance.Pages.Disbursements
             if (string.IsNullOrWhiteSpace(SheetJson))
             {
                 ModelState.AddModelError(string.Empty, "No sheet data was submitted.");
+                await LoadDropdownsAsync();
                 Sheet = await BuildSheetAsync(RecordDate);
                 return Page();
             }
@@ -87,6 +119,7 @@ namespace acc_finance.Pages.Disbursements
             catch
             {
                 ModelState.AddModelError(string.Empty, "Failed to read the voucher sheet data.");
+                await LoadDropdownsAsync();
                 Sheet = await BuildSheetAsync(RecordDate);
                 return Page();
             }
@@ -94,6 +127,7 @@ namespace acc_finance.Pages.Disbursements
             if (postedSheet == null)
             {
                 ModelState.AddModelError(string.Empty, "Invalid voucher sheet data.");
+                await LoadDropdownsAsync();
                 Sheet = await BuildSheetAsync(RecordDate);
                 return Page();
             }
@@ -103,6 +137,7 @@ namespace acc_finance.Pages.Disbursements
             if (!validVouchers.Any())
             {
                 ModelState.AddModelError(string.Empty, "Please add at least one valid voucher.");
+                await LoadDropdownsAsync();
                 Sheet = await BuildSheetAsync(RecordDate);
                 return Page();
             }
@@ -116,6 +151,7 @@ namespace acc_finance.Pages.Disbursements
             if (duplicateNumbers.Any())
             {
                 ModelState.AddModelError(string.Empty, "Duplicate voucher number found in the sheet: " + string.Join(", ", duplicateNumbers));
+                await LoadDropdownsAsync();
                 Sheet = await BuildSheetAsync(RecordDate);
                 return Page();
             }
@@ -127,6 +163,7 @@ namespace acc_finance.Pages.Disbursements
                 if (disbursementRecord == null || disbursementRecord.Id <= 0)
                 {
                     ModelState.AddModelError(string.Empty, "Failed to initialize disbursement record.");
+                    await LoadDropdownsAsync();
                     Sheet = await BuildSheetAsync(RecordDate);
                     return Page();
                 }
@@ -177,6 +214,7 @@ namespace acc_finance.Pages.Disbursements
             catch (Exception ex)
             {
                 ModelState.AddModelError(string.Empty, "An error occurred while saving: " + ex.Message);
+                await LoadDropdownsAsync();
                 Sheet = await BuildSheetAsync(RecordDate);
                 return Page();
             }
@@ -884,7 +922,6 @@ namespace acc_finance.Pages.Disbursements
         public bool HasAutoLoadedTemplates => AutoLoadedTemplateCount > 0;
     }
 
-    // (VoucherVm, VoucherItemVm, DisbursementSheetPostVm and Templates classes remain exactly the same...)
     public class VoucherVm
     {
         public string VoucherNumber { get; set; } = "";

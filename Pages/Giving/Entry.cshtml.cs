@@ -55,6 +55,8 @@ namespace acc_finance.Pages.Giving
         public bool IsDenominationMatched { get; set; }
         public bool DenominationExist { get; set; }
 
+        public List<Wallet> ActiveWallets { get; set; } = new();
+        public List<Ministry> ActiveMinistries { get; set; } = new();
         private async Task<List<Member>> GetCachedMembersAsync()
         {
             if (!_cache.TryGetValue("ActiveMembersList", out List<Member> cachedMembers))
@@ -118,6 +120,8 @@ namespace acc_finance.Pages.Giving
                 await LoadPageDataAsync();
                 return Page();
             }
+
+            
 
             RecordId = record.Id;
             return RedirectToPage(new { RecordId });
@@ -252,6 +256,16 @@ namespace acc_finance.Pages.Giving
             await _supabase.InitializeAsync(true);
 
             Members = await GetCachedMembersAsync();
+
+            var walletsTask = await _supabase.Client.From<Wallet>()
+    .Filter("is_active", Operator.Equals, "true")
+    .Get();
+            ActiveWallets = walletsTask.Models ?? new List<Wallet>();
+
+            var ministriesTask = await _supabase.Client.From<Ministry>()
+                .Filter("is_active", Operator.Equals, "true")
+                .Get();
+            ActiveMinistries = ministriesTask.Models ?? new List<Ministry>();
 
             if (RecordId > 0)
             {

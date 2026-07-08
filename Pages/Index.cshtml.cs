@@ -27,23 +27,26 @@ namespace acc_finance.Pages
         public string CurrentMonthLabel { get; set; } = "";
         public decimal TotalChurchFunds { get; set; }
 
-        public FundWallet GeneralFund { get; set; } = new();
-        public FundWallet PledgesFund { get; set; } = new();
-        public FundWallet ConstructionFund { get; set; } = new();
-        public FundWallet PWFund { get; set; } = new();
+        // 🚨 DYNAMIC WALLET LIST
+        public List<FundWallet>
+    DynamicWallets
+        { get; set; } = new();
 
         public LatestActivityVm LatestGiving { get; set; } = new();
         public LatestActivityVm LatestDisbursement { get; set; } = new();
 
         public int DisplayYear { get; set; }
         public MonthlySummaryTableVm CurrentMonthSummary { get; set; } = new();
-        public List<MonthlySummaryTableVm> AllYearSummaries { get; set; } = new();
+        public List<MonthlySummaryTableVm>
+            AllYearSummaries
+        { get; set; } = new();
 
         public string ErrorMessage { get; set; } = "";
         public bool IsDatabasePaused { get; set; } = false;
         public string TargetMonth { get; set; } = "";
 
-        public async Task<IActionResult> OnGetAsync()
+        public async Task<IActionResult>
+            OnGetAsync()
         {
             if (!User.Identity?.IsAuthenticated ?? true) return RedirectToPage("/Login");
 
@@ -57,14 +60,26 @@ namespace acc_finance.Pages
                 string dashCacheKey = "Dashboard_Live_Setup";
                 if (!_cache.TryGetValue(dashCacheKey, out DashSetupCache setupCache))
                 {
-                    var latestGivingTask = _supabase.Client.From<GivingRecord>().Select("*").Order("service_date", Ordering.Descending).Limit(1).Get();
-                    var latestDisbTask = _supabase.Client.From<DisbursementRecord>().Select("*").Order("record_date", Ordering.Descending).Limit(1).Get();
+                    // 🚨 Fetch dynamic wallets alongside standard setup
+                    var walletsTask = _supabase.Client.From<Wallet>().Filter("is_active", Operator.Equals, "true").Get();
+                    var ministriesTask = _supabase.Client.From<Ministry>
+                        ().Get();
+                    var latestGivingTask = _supabase.Client.From<GivingRecord>()
+                        .Select("*")
+                        .Filter("is_closed", Operator.Equals, "true")
+                        .Order("service_date", Ordering.Descending)
+                        .Limit(1).Get();
+                    var latestDisbTask = _supabase.Client.From<DisbursementRecord>
+                        ().Select("*").Order("record_date", Ordering.Descending).Limit(1).Get();
 
-                    // REMOVED LOAN TASK HERE
-                    await Task.WhenAll(latestGivingTask, latestDisbTask);
+                    await Task.WhenAll(walletsTask, ministriesTask, latestGivingTask, latestDisbTask);
 
                     var alg = latestGivingTask.Result.Models?.FirstOrDefault();
                     var ald = latestDisbTask.Result.Models?.FirstOrDefault();
+                    var activeWallets = walletsTask.Result.Models ?? new List<Wallet>
+                        ();
+                    var activeMinistries = ministriesTask.Result.Models ?? new List<Ministry>
+                        ();
 
                     DateTime targetDate = DateTime.Today;
 
@@ -77,19 +92,22 @@ namespace acc_finance.Pages
 
                     string targetMonthStr = targetDate.ToString("yyyy-MM");
 
-                    var mfbResp = await _supabase.Client.From<MonthlyFundBalance>()
+                    var mfbResp = await _supabase.Client.From<MonthlyFundBalance>
+                        ()
                         .Filter("report_month", Operator.LessThan, targetMonthStr)
                         .Order("report_month", Ordering.Descending)
-                        .Limit(10)
                         .Get();
 
-                    var recentBalances = mfbResp.Models ?? new List<MonthlyFundBalance>();
+                    var recentBalances = mfbResp.Models ?? new List<MonthlyFundBalance>
+                        ();
 
                     LatestActivityVm disbActivity = new();
                     if (ald != null)
                     {
-                        var vResp = await _supabase.Client.From<Voucher>().Filter("disbursement_record_id", Operator.Equals, ald.Id.ToString()).Get();
-                        var vouchers = vResp.Models ?? new List<Voucher>();
+                        var vResp = await _supabase.Client.From<Voucher>
+                            ().Filter("disbursement_record_id", Operator.Equals, ald.Id.ToString()).Get();
+                        var vouchers = vResp.Models ?? new List<Voucher>
+                            ();
                         var vIds = vouchers.Select(v => (object)v.Id).ToList();
 
                         decimal netAmount = 0;
@@ -97,14 +115,16 @@ namespace acc_finance.Pages
 
                         if (vIds.Any())
                         {
-                            var iResp = await _supabase.Client.From<VoucherItem>().Filter("voucher_id", Operator.In, vIds).Get();
-                            var items = iResp.Models ?? new List<VoucherItem>();
+                            var iResp = await _supabase.Client.From<VoucherItem>
+                                ().Filter("voucher_id", Operator.In, vIds).Get();
+                            var items = iResp.Models ?? new List<VoucherItem>
+                                ();
                             var validItems = items.Where(i => (i.Amount - i.AmountReturned) > 0).ToList();
 
                             netAmount = validItems.Sum(i => i.Amount - i.AmountReturned);
                             impactStr = validItems.GroupBy(i => string.IsNullOrWhiteSpace(i.FundSource) ? "General" : i.FundSource)
-                                                  .OrderByDescending(g => g.Sum(i => i.Amount - i.AmountReturned))
-                                                  .FirstOrDefault()?.Key ?? "General";
+                            .OrderByDescending(g => g.Sum(i => i.Amount - i.AmountReturned))
+                            .FirstOrDefault()?.Key ?? "General";
                         }
 
                         disbActivity = new LatestActivityVm
@@ -112,7 +132,8 @@ namespace acc_finance.Pages
                             Date = ald.RecordDate,
                             Title = $"{vouchers.Count} Voucher(s)",
                             Amount = netAmount,
-                            Impact = $"Deducted primarily from {impactStr} Fund"
+                            Impact = $"Deducted primarily from {impactStr} Fund",
+                            Url = $"/Disbursements/Create?RecordDate={ald.RecordDate.ToString("yyyy-MM-dd")}"
                         };
                     }
 
@@ -122,12 +143,15 @@ namespace acc_finance.Pages
                         Ald = ald,
                         RecentBalances = recentBalances,
                         TargetDate = targetDate,
-                        LatestDisbActivity = disbActivity
+                        LatestDisbActivity = disbActivity,
+                        ActiveWallets = activeWallets,
+                        ActiveMinistries = activeMinistries
                     };
 
+                    // Cache for 15 seconds. Very fast invalidation without stressing the DB.
                     var setupOptions = new MemoryCacheEntryOptions()
-                        .SetSize(5)
-                        .SetAbsoluteExpiration(TimeSpan.FromSeconds(15));
+                    .SetSize(5)
+                    .SetAbsoluteExpiration(TimeSpan.FromSeconds(15));
                     _cache.Set(dashCacheKey, setupCache, setupOptions);
                 }
 
@@ -137,67 +161,91 @@ namespace acc_finance.Pages
                 CurrentMonthLabel = firstDay.ToString("MMMM yyyy");
 
                 var lastCheckpointMonth = setupCache.RecentBalances.FirstOrDefault()?.ReportMonth;
-                decimal begGen = 0, begPledges = 0, begConst = 0, begPW = 0;
+
+                // 🚨 Initialize Dictionary for Beginning Balances dynamically
+                var begBalances = new Dictionary<string, decimal>
+                    (StringComparer.OrdinalIgnoreCase);
+                foreach (var w in setupCache.ActiveWallets) begBalances[w.Code] = 0m;
+
                 DateTime gapStart = new DateTime(2000, 1, 1);
 
                 if (!string.IsNullOrEmpty(lastCheckpointMonth))
                 {
-                    begGen = setupCache.RecentBalances.FirstOrDefault(b => b.ReportMonth == lastCheckpointMonth && b.FundName == "General")?.EndingBalance ?? 0;
-                    begPledges = setupCache.RecentBalances.FirstOrDefault(b => b.ReportMonth == lastCheckpointMonth && b.FundName == "Pledges")?.EndingBalance ?? 0;
-                    begConst = setupCache.RecentBalances.FirstOrDefault(b => b.ReportMonth == lastCheckpointMonth && b.FundName == "Construction")?.EndingBalance ?? 0;
-                    begPW = setupCache.RecentBalances.FirstOrDefault(b => b.ReportMonth == lastCheckpointMonth && b.FundName == "Praise & Worship")?.EndingBalance ?? 0;
+                    foreach (var w in setupCache.ActiveWallets)
+                    {
+                        begBalances[w.Code] = setupCache.RecentBalances.FirstOrDefault(b => b.ReportMonth == lastCheckpointMonth && string.Equals(b.FundName, w.Code, StringComparison.OrdinalIgnoreCase))?.EndingBalance ?? 0;
+                    }
                     gapStart = DateTime.ParseExact(lastCheckpointMonth + "-01", "yyyy-MM-dd", CultureInfo.InvariantCulture).AddMonths(1);
                 }
 
                 DateTime gapEnd = firstDay.AddDays(-1);
-
-                decimal gapIncGen = 0, gapIncPledges = 0, gapIncConst = 0, gapIncPW = 0;
-                decimal gapExpGen = 0, gapExpPledges = 0, gapExpConst = 0, gapExpPW = 0;
+                Dictionary<string, decimal>
+                    gapInc = new(), gapExp = new();
 
                 if (gapStart <= gapEnd)
                 {
                     string gapCacheKey = $"GapMath_{gapStart:yyyyMMdd}_{gapEnd:yyyyMMdd}";
                     if (!_cache.TryGetValue(gapCacheKey, out GapMathCacheResult gapCache))
                     {
-                        var (gIncG, gIncP, gIncC, gIncPW) = await CalculateIncomeRangeAsync(gapStart, gapEnd);
-                        var (gExpG, gExpP, gExpC, gExpPW) = await CalculateExpenseRangeAsync(gapStart, gapEnd);
+                        var gInc = await CalculateIncomeRangeAsync(gapStart, gapEnd, setupCache.ActiveWallets);
+                        var gExp = await CalculateExpenseRangeAsync(gapStart, gapEnd, setupCache.ActiveWallets);
 
-                        gapCache = new GapMathCacheResult { Inc = new[] { gIncG, gIncP, gIncC, gIncPW }, Exp = new[] { gExpG, gExpP, gExpC, gExpPW } };
-                        var gapOptions = new MemoryCacheEntryOptions()
-                            .SetSize(1)
-                            .SetAbsoluteExpiration(TimeSpan.FromHours(12));
+                        gapCache = new GapMathCacheResult { Inc = gInc, Exp = gExp };
+                        var gapOptions = new MemoryCacheEntryOptions().SetSize(1).SetAbsoluteExpiration(TimeSpan.FromHours(12));
                         _cache.Set(gapCacheKey, gapCache, gapOptions);
                     }
 
-                    gapIncGen = gapCache.Inc[0]; gapIncPledges = gapCache.Inc[1]; gapIncConst = gapCache.Inc[2]; gapIncPW = gapCache.Inc[3];
-                    gapExpGen = gapCache.Exp[0]; gapExpPledges = gapCache.Exp[1]; gapExpConst = gapCache.Exp[2]; gapExpPW = gapCache.Exp[3];
+                    gapInc = gapCache.Inc;
+                    gapExp = gapCache.Exp;
                 }
 
-                begGen += (gapIncGen - gapExpGen);
-                begPledges += (gapIncPledges - gapExpPledges);
-                begConst += (gapIncConst - gapExpConst);
-                begPW += (gapIncPW - gapExpPW);
-
-                var liveIncomeTask = CalculateIncomeRangeAsync(firstDay, lastDay);
-                var liveExpenseTask = CalculateExpenseRangeAsync(firstDay, lastDay);
+                var liveIncomeTask = CalculateIncomeRangeAsync(firstDay, lastDay, setupCache.ActiveWallets);
+                var liveExpenseTask = CalculateExpenseRangeAsync(firstDay, lastDay, setupCache.ActiveWallets);
 
                 await Task.WhenAll(liveIncomeTask, liveExpenseTask);
 
-                var (incGen, incPledges, incConst, incPW) = await liveIncomeTask;
-                var (expGen, expPledges, expConst, expPW) = await liveExpenseTask;
+                var liveInc = await liveIncomeTask;
+                var liveExp = await liveExpenseTask;
 
-                // REMOVED ALL LOAN LENT/BORROWED CALCULATIONS HERE
+                // 🚨 Assemble the dynamic wallets
+                foreach (var w in setupCache.ActiveWallets)
+                {
+                    decimal finalBalance = begBalances.GetValueOrDefault(w.Code, 0)
+                    + gapInc.GetValueOrDefault(w.Code, 0)
+                    - gapExp.GetValueOrDefault(w.Code, 0)
+                    + liveInc.GetValueOrDefault(w.Code, 0)
+                    - liveExp.GetValueOrDefault(w.Code, 0);
 
-                GeneralFund = new FundWallet { Name = "General Fund", Custodian = "Sis. Cora", Theme = "primary", Icon = "bi-wallet2", EndBalance = begGen + incGen - expGen };
-                PledgesFund = new FundWallet { Name = "Pledges", Custodian = "Sis. Cora", Theme = "warning", Icon = "bi-journal-check", EndBalance = begPledges + incPledges - expPledges };
-                ConstructionFund = new FundWallet { Name = "Construction", Custodian = "Ptra Es", Theme = "info", Icon = "bi-tools", EndBalance = begConst + incConst - expConst };
-                PWFund = new FundWallet { Name = "Praise & Worship", Custodian = "P/W", Theme = "success", Icon = "bi-music-note-beamed", EndBalance = begPW + incPW - expPW };
+                    string custodian = w.CustodianType == "Person"
+    ? w.CustodianPersonName ?? "Unknown"
+    : setupCache.ActiveMinistries.FirstOrDefault(m => m.Id.ToString() == w.MinistryId?.ToString())?.Name ?? "Unknown Ministry";
 
-                TotalChurchFunds = GeneralFund.CashOnHand + PledgesFund.CashOnHand + ConstructionFund.CashOnHand + PWFund.CashOnHand;
+                    DynamicWallets.Add(new FundWallet
+                    {
+                        Code = w.Code,
+                        Name = w.DisplayName,
+                        Custodian = custodian,
+                        Theme = string.IsNullOrWhiteSpace(w.Theme) ? "primary" : w.Theme,
+                        Icon = string.IsNullOrWhiteSpace(w.Icon) ? "bi-wallet2" : w.Icon,
+                        EndBalance = finalBalance
+                    });
+                }
 
-                if (setupCache.Alg != null) LatestGiving = new LatestActivityVm { Date = setupCache.Alg.ServiceDate, Title = $"Record: {setupCache.Alg.RecordCode}", Amount = setupCache.Alg.GrandTotal, Impact = "Distributed to General, Pledges & specific tags" };
+                TotalChurchFunds = DynamicWallets.Sum(w => w.CashOnHand);
+
+                if (setupCache.Alg != null)
+                {
+                    LatestGiving = new LatestActivityVm
+                    {
+                        Date = setupCache.Alg.ServiceDate,
+                        Title = $"Record: {setupCache.Alg.RecordCode}",
+                        Amount = setupCache.Alg.GrandTotal,
+                        Impact = "Distributed to General, Pledges & specific tags",
+                        Url = $"/Giving/Entry?date={setupCache.Alg.ServiceDate.ToString("yyyy-MM-dd")}&RecordId={setupCache.Alg.Id}"
+                    };
+                }
+
                 LatestDisbursement = setupCache.LatestDisbActivity;
-
                 await BuildSummaryTablesAsync(setupCache.TargetDate.Year);
 
                 return Page();
@@ -227,21 +275,31 @@ namespace acc_finance.Pages
             DisplayYear = targetYear;
             string summaryCacheKey = $"SummaryTable_{targetYear}";
 
-            if (!_cache.TryGetValue(summaryCacheKey, out List<MonthlySummaryTableVm> cachedSummaries))
+            if (!_cache.TryGetValue(summaryCacheKey, out List<MonthlySummaryTableVm>
+                cachedSummaries))
             {
                 string yearStartStr = new DateTime(targetYear, 1, 1).ToString("yyyy-MM-dd");
                 string yearEndStr = new DateTime(targetYear, 12, 31).ToString("yyyy-MM-dd");
 
-                var yearGivingTask = _supabase.Client.From<GivingRecord>().Filter("service_date", Operator.GreaterThanOrEqual, yearStartStr).Filter("service_date", Operator.LessThanOrEqual, yearEndStr).Get();
-                var yearDisbTask = _supabase.Client.From<DisbursementRecord>().Filter("record_date", Operator.GreaterThanOrEqual, yearStartStr).Filter("record_date", Operator.LessThanOrEqual, yearEndStr).Get();
+                // 🚨 UPDATE THIS IN BuildSummaryTablesAsync()
+                var yearGivingTask = _supabase.Client.From<GivingRecord>()
+                    .Filter("service_date", Operator.GreaterThanOrEqual, yearStartStr)
+                    .Filter("service_date", Operator.LessThanOrEqual, yearEndStr)
+                    .Filter("is_closed", Operator.Equals, "true") 
+                    .Get();
+                var yearDisbTask = _supabase.Client.From<DisbursementRecord>
+                    ().Filter("record_date", Operator.GreaterThanOrEqual, yearStartStr).Filter("record_date", Operator.LessThanOrEqual, yearEndStr).Get();
 
                 await Task.WhenAll(yearGivingTask, yearDisbTask);
 
-                var yearGivingRecords = yearGivingTask.Result.Models ?? new List<GivingRecord>();
-                var yearDisbRecords = yearDisbTask.Result.Models ?? new List<DisbursementRecord>();
+                var yearGivingRecords = yearGivingTask.Result.Models ?? new List<GivingRecord>
+                    ();
+                var yearDisbRecords = yearDisbTask.Result.Models ?? new List<DisbursementRecord>
+                    ();
 
                 var uniqueDates = yearGivingRecords.Select(g => g.ServiceDate.Date).Union(yearDisbRecords.Select(d => d.RecordDate.Date)).Distinct().OrderBy(d => d).ToList();
-                var allDailySummaries = new List<DailySummaryVm>();
+                var allDailySummaries = new List<DailySummaryVm>
+                    ();
 
                 foreach (var date in uniqueDates)
                 {
@@ -250,7 +308,8 @@ namespace acc_finance.Pages
                     if (dayReceipts > 0 || dayDisbursements > 0) allDailySummaries.Add(new DailySummaryVm { Date = date, CashReceipts = dayReceipts, CashDisbursements = dayDisbursements });
                 }
 
-                cachedSummaries = new List<MonthlySummaryTableVm>();
+                cachedSummaries = new List<MonthlySummaryTableVm>
+                    ();
                 var monthlyGroups = allDailySummaries.GroupBy(ds => new { ds.Date.Year, ds.Date.Month }).OrderByDescending(g => g.Key.Year).ThenByDescending(g => g.Key.Month).ToList();
 
                 foreach (var group in monthlyGroups)
@@ -272,12 +331,17 @@ namespace acc_finance.Pages
             if (AllYearSummaries.Any()) CurrentMonthSummary = AllYearSummaries.First();
         }
 
-        public async Task<(decimal gen, decimal pledges, decimal cons, decimal pw)> CalculateIncomeRangeAsync(DateTime start, DateTime end)
+        // 🚨 Dynamic Income Calculator (Preserves original routing for Tithes/Offerings/Solomon)
+        public async Task<Dictionary<string, decimal>> CalculateIncomeRangeAsync(DateTime start, DateTime end, List<Wallet> activeWallets)
         {
             string cacheKey = $"DashInc_{start:yyyyMMdd}_{end:yyyyMMdd}";
-            if (_cache.TryGetValue(cacheKey, out Tuple<decimal, decimal, decimal, decimal> cached)) return (cached.Item1, cached.Item2, cached.Item3, cached.Item4);
+            if (_cache.TryGetValue(cacheKey, out Dictionary<string, decimal> cached)) return cached;
 
-            var givingResp = await _supabase.Client.From<GivingRecord>().Filter("service_date", Operator.GreaterThanOrEqual, start.ToString("yyyy-MM-dd")).Filter("service_date", Operator.LessThanOrEqual, end.ToString("yyyy-MM-dd")).Get();
+            var givingResp = await _supabase.Client.From<GivingRecord>()
+                .Filter("service_date", Operator.GreaterThanOrEqual, start.ToString("yyyy-MM-dd"))
+                .Filter("service_date", Operator.LessThanOrEqual, end.ToString("yyyy-MM-dd"))
+                .Filter("is_closed", Operator.Equals, "true") // <-- ADD THIS FILTER
+                .Get();
             var records = givingResp.Models ?? new List<GivingRecord>();
             var allEntries = new List<GivingEntry>();
 
@@ -288,20 +352,39 @@ namespace acc_finance.Pages
                 allEntries = entryResp.Models?.ToList() ?? new List<GivingEntry>();
             }
 
-            decimal pledges = allEntries.Sum(e => e.Solomon + e.Noah + e.Mission) + allEntries.Where(e => e.OthersFund == "Pledges").Sum(e => e.Others);
-            decimal gen = allEntries.Sum(e => e.Tithes + e.Offerings) + allEntries.Where(e => e.OthersFund == "General" || string.IsNullOrWhiteSpace(e.OthersFund)).Sum(e => e.Others);
-            decimal cons = allEntries.Where(e => e.OthersFund == "Construction").Sum(e => e.Others);
-            decimal pw = allEntries.Where(e => e.OthersFund == "Praise & Worship").Sum(e => e.Others);
+            var results = new Dictionary<string, decimal>(StringComparer.OrdinalIgnoreCase);
 
-            var result = (gen, pledges, cons, pw);
-            _cache.Set(cacheKey, new Tuple<decimal, decimal, decimal, decimal>(gen, pledges, cons, pw), new MemoryCacheEntryOptions().SetSize(1).SetAbsoluteExpiration(TimeSpan.FromMinutes(2)));
-            return result;
+            // Apply core business logic routing first to ensure backward compatibility
+            decimal coreGen = allEntries.Sum(e => e.Tithes + e.Offerings);
+            decimal corePledges = allEntries.Sum(e => e.Solomon + e.Noah + e.Mission);
+
+            results["General"] = coreGen;
+            results["Pledges"] = corePledges;
+
+            // Dynamically route all "Others" fields to their respective database wallet names!
+            foreach (var entry in allEntries)
+            {
+                string fundKey = string.IsNullOrWhiteSpace(entry.OthersFund) ? "General" : entry.OthersFund;
+
+                if (results.ContainsKey(fundKey))
+                {
+                    results[fundKey] += entry.Others;
+                }
+                else
+                {
+                    results[fundKey] = entry.Others;
+                }
+            }
+
+            _cache.Set(cacheKey, results, new MemoryCacheEntryOptions().SetSize(1).SetAbsoluteExpiration(TimeSpan.FromMinutes(2)));
+            return results;
         }
 
-        public async Task<(decimal gen, decimal pledges, decimal cons, decimal pw)> CalculateExpenseRangeAsync(DateTime start, DateTime end)
+        // 🚨 Dynamic Expense Calculator
+        public async Task<Dictionary<string, decimal>> CalculateExpenseRangeAsync(DateTime start, DateTime end, List<Wallet> activeWallets)
         {
             string cacheKey = $"DashExp_{start:yyyyMMdd}_{end:yyyyMMdd}";
-            if (_cache.TryGetValue(cacheKey, out Tuple<decimal, decimal, decimal, decimal> cached)) return (cached.Item1, cached.Item2, cached.Item3, cached.Item4);
+            if (_cache.TryGetValue(cacheKey, out Dictionary<string, decimal> cached)) return cached;
 
             var disbResp = await _supabase.Client.From<DisbursementRecord>().Filter("record_date", Operator.GreaterThanOrEqual, start.ToString("yyyy-MM-dd")).Filter("record_date", Operator.LessThanOrEqual, end.ToString("yyyy-MM-dd")).Get();
             var records = disbResp.Models ?? new List<DisbursementRecord>();
@@ -321,25 +404,35 @@ namespace acc_finance.Pages
                 }
             }
 
-            decimal gen = 0, pledges = 0, cons = 0, pw = 0;
+            var results = new Dictionary<string, decimal>(StringComparer.OrdinalIgnoreCase);
+
             foreach (var item in allItems)
             {
                 decimal netExp = item.Amount - item.AmountReturned;
                 if (netExp <= 0) continue;
 
-                string fund = item.FundSource ?? "General";
-                if (fund == "Construction") cons += netExp;
-                else if (fund == "Praise & Worship") pw += netExp;
-                else if (fund == "Pledges") pledges += netExp;
-                else gen += netExp;
+                string fundKey = string.IsNullOrWhiteSpace(item.FundSource) ? "General" : item.FundSource;
+
+                if (results.ContainsKey(fundKey))
+                {
+                    results[fundKey] += netExp;
+                }
+                else
+                {
+                    results[fundKey] = netExp;
+                }
             }
 
-            var result = (gen, pledges, cons, pw);
-            _cache.Set(cacheKey, new Tuple<decimal, decimal, decimal, decimal>(gen, pledges, cons, pw), new MemoryCacheEntryOptions().SetSize(1).SetAbsoluteExpiration(TimeSpan.FromMinutes(2)));
-            return result;
+            _cache.Set(cacheKey, results, new MemoryCacheEntryOptions().SetSize(1).SetAbsoluteExpiration(TimeSpan.FromMinutes(2)));
+            return results;
         }
 
-        private class GapMathCacheResult { public decimal[] Inc { get; set; } public decimal[] Exp { get; set; } }
+        private class GapMathCacheResult
+        {
+            public Dictionary<string, decimal> Inc { get; set; } = new();
+            public Dictionary<string, decimal> Exp { get; set; } = new();
+        }
+
         private class DashSetupCache
         {
             public GivingRecord? Alg { get; set; }
@@ -347,18 +440,20 @@ namespace acc_finance.Pages
             public List<MonthlyFundBalance> RecentBalances { get; set; } = new();
             public DateTime TargetDate { get; set; }
             public LatestActivityVm LatestDisbActivity { get; set; } = new();
+            public List<Wallet> ActiveWallets { get; set; } = new();
+            public List<Ministry> ActiveMinistries { get; set; } = new();
         }
     }
 
     public class FundWallet
     {
+        public string Code { get; set; } = "";
         public string Name { get; set; } = "";
         public string Custodian { get; set; } = "";
         public string Theme { get; set; } = "primary";
         public string Icon { get; set; } = "";
         public decimal EndBalance { get; set; }
 
-        // SIMPLIFIED: Cash on hand is now just the true End Balance.
         public decimal CashOnHand => EndBalance;
     }
 
@@ -368,6 +463,7 @@ namespace acc_finance.Pages
         public string Title { get; set; } = "";
         public decimal Amount { get; set; }
         public string Impact { get; set; } = "";
+        public string Url { get; set; } = "#";
     }
 
     public class DailySummaryVm

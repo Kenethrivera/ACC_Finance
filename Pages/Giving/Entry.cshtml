@@ -530,7 +530,7 @@
 
                         <div class="col-md-3">
                             <label asp-for="Header.RecordCode" class="form-label">Record Code</label>
-                            <input asp-for="Header.RecordCode" class="form-control" placeholder="CR_01" />
+                            <input asp-for="Header.RecordCode" class="form-control"/>
                         </div>
 
                         <div class="col-md-3">
@@ -690,11 +690,15 @@
 
                                         <div class="col-6">
                                             <label class="form-label text-primary">Allocation</label>
-                                            <select id="Input_OthersFund" class="form-select border-primary">
-                                                <option value="General" selected="@(Model.Input.OthersFund == "General")">General</option>
-                                                <option value="Construction" selected="@(Model.Input.OthersFund == "Construction")">Construction</option>
-                                                <option value="Praise & Worship" selected="@(Model.Input.OthersFund == "Praise & Worship")">Praise & Worship</option>
-                                                <option value="Pledges" selected="@(Model.Input.OthersFund == "Pledges")">Pledges</option>
+                                            <select id="Input_OthersFund" name="Input.OthersFund" class="form-select border-primary">
+                                                <option value="" selected="@(string.IsNullOrEmpty(Model.Input.OthersFund))">-- Select Fund --</option>
+
+                                                @foreach (var wallet in Model.ActiveWallets)
+                                                {
+                                                    <option value="@wallet.Code" selected="@(Model.Input.OthersFund == wallet.Code)">
+                                                        @wallet.DisplayName
+                                                    </option>
+                                                }
                                             </select>
                                         </div>
                                     </div>
